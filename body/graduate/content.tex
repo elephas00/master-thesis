@@ -1,34 +1,133 @@
-\chapter{关于本模板}
+\chapter{背景介绍与国内外研究现状}
 
-本模板根据浙江大学研究生院编写的《浙江大学研究生学位论文编写规则》~\cite{zjugradthesisrules}，
-在原有的 zjuthesis 模板~\cite{zjuthesis}基础上开发而来。
+\section{研究背景}
+随着互联网、人工智能技术的蓬勃发展，大量数据持续产生并存储于数据中心，数据中心的存储规模呈现爆炸性增长。
+根据Cloudscene平台统计\cite{shankar2024challenging}，2024年世界上的数据中心总量超过10000个。
+根据2024版华为存储2030\cite{huaweistoragewhitepaper}，世界上产生的数据总量2020年为44ZB，2025年将达175ZB，到2030 年将达到 1003ZB。
+如此庞大的数据集中存储于数据中心的存储系统中，如何保障数据可靠性已成为重要挑战。
 
-本模板的本科生版本\cite{zjuthesisrules}得到了浙江大学本科生院老师的支持与审核，
-已经在本科生院网上公示。
-但当前的研究生版本并未经过研究生院老师的审核，
-同学们使用时要注意对照模板与要求，
-切不可盲目使用。
+硬盘故障是数据丢失的主要诱因之一。常见硬盘根据存储介质不同可分为机械硬盘（Hard Disk Drive, 简称 HDD）和固态硬盘（Solid State Drive, 简称 SSD）。
+早期数据中心通常采用 HDD 存储数据，HDD 通过磁性介质利用磁场实现数据的存取与读出，常被称为磁盘。它具有价格低廉、断电后数据保存时间长的特点，但也存在易受撞击和震动影响导致数据丢失、随机读写性能较差、机械结构故障率较高等问题。
+基于 NAND 闪存技术的 SSD 具备高速随机读写特性，且随着技术发展，单位存储容量的成本不断下降，目前已在数据中心得到广泛应用。
+根据阿里云大规模 SSD 数据集\cite{xu2021general}的统计结果，SSD 的平均年故障率为2.38\%。
+这些硬盘故障可能导致云上服务的监控指标异常波动、服务降级，甚至数据丢失。
+传统容灾措施通常通过冗余阵列技术\cite{raid}、多副本备份技术\cite{jaffer2020reliability}、纠删码技术\cite{huang2014flexecc}实现，这类方案往往只能在故障发生后恢复丢失数据，属于被动容错机制，且故障恢复需消耗一定时间与资源。目前，无论是 HDD 还是 SSD，均普遍搭载了自我监控、分析和报告技术（Self-Monitoring, Analysis And Report Technology, 简称 SMART）硬盘自检系统以保障可靠性。借助 SMART 采集的硬盘监控指标，通过主动预测硬盘故障，可提前预判潜在故障风险，主动移除即将发生故障的 SSD，从而避免故障恢复带来的时间开销，降低 SSD 故障引发的数据丢失风险。
+\section{国内外研究现状}
 
-作者本人并未编写过浙江大学研究生毕业论文，
-所以不清楚具体要求。
-如果有热心同学愿意帮忙，
-可以替我联系相关老师，我会配合审核并修改代码。
+早期存储设备故障预测研究主要集中于 HDD，通常结合 SMART 指标、硬件自定义观测指标及设备运行的软件监控性能指标开展预测。
+由于 HDD 与 SSD 的实现原理存在差异，且不同厂商对统一指标的定义不完全一致 —— 即便二者均兼容 SMART 标准，故障特征也会因设备型号及厂商不同而存在差异，因此 HDD 的故障预测研究成果无法直接应用于 SSD。
+目前，SSD 故障预测相关研究主要集中于故障成因分析及预测算法优化两大方向。
 
-\section{Overleaf 使用注意事项}
+\section{研究意义}
 
-如果你在Overleaf上编译本模板，请注意如下事项：
+本文的核心研究意义在于，利用阿里云数据中心的真实运维数据，分析实际发生的 SSD 故障特性；基于特性分析结果构造机器学习特征，提升故障预测性能；探索低假阳性率（False Positive Rate, 简称 FPR）条件下的预测准确率提升方法；最后，结合收集到的 SSD 块级别错误编码计数（Fault Bit Count, 简称 FBC），设计二分类模型相关的寿命优化策略，延长 SSD 整体使用寿命。具体研究意义如下：
 
-\begin{itemize}
-    \item 删除根目录的 ``.latexmkrc'' 文件，否则编译失败且不报任何错误
-    \item 字体有版权所以本模板不能附带字体，请务必手动上传字体文件，并在各个专业模板下手动指定字体。
-        具体方法参照 GitHub 主页的说明。
-    \item 当前的Overleaf默认使用TexLive 2017进行编译，但一些伪粗体复制乱码的问题需要TexLive 2019版本来解决。
-        所以各位同学可以在Overleaf上编写论文时务必切换到TexLive 2019或更新版本来编译，以免产生查重相关问题。
-        具体说明参照 GitHub 主页。
-\end{itemize}
+\begin{enumerate}
+    \item 基于阿里云数据中心超过 4 万个 SSD 的运行数据，提出一种基于机器学习算法的 SSD 故障预测技术；
+    \item 通过分析上述 SSD 数据，探索并提升低 FPR 条件下机器学习算法的预测性能；
+    \item 针对 SSD 块级别的 FBC 数据开展分析，设计二分类写入策略，探索在保障数据安全前提下提升 SSD 写入量的有效方法。
+\end{enumerate}
 
 
-\section{节标题}
+\chapter{机器学习模型介绍}
+
+本章节详细介绍与本文相关的研究技术及原理。
+
+\section{机器学习模型}
+
+\subsection{RandomForest}
+
+% 在此处添加 RandomForest 介绍内容
+
+\subsection{XGBoost}
+
+% 在此处添加 XGBoost 介绍内容
+
+\subsection{LightGBM}
+
+% 在此处添加 LightGBM 介绍内容
+
+\section{集成学习}
+
+% 在此处添加集成学习介绍内容
+
+\section{SMART技术}
+
+% 在此处添加 SMART 技术介绍内容
+
+\section{FBC原理}
+
+% 在此处添加 FBC 原理介绍内容
+
+
+\chapter{基于Lag特征的集成学习方法研究}
+
+\section{Alibaba数据集介绍与数据分析}
+
+% 在此处添加Alibaba数据集介绍和数据分析内容
+
+
+\section{Lag特征介绍}
+
+% 在此处添加Lag特征介绍内容
+
+
+\section{实验结果}
+
+% 在此处添加实验结果内容
+
+
+\chapter{低FPR条件下的SSD故障预测方法研究}
+
+\section{标记策略介绍}
+
+% 在此处添加标记策略介绍内容
+
+
+\section{Spearman特征筛选介绍}
+
+% 在此处添加Spearman特征筛选介绍内容
+
+
+\section{故障样本移除介绍}
+
+% 在此处添加故障样本移除介绍内容
+
+
+\section{Lag特征、均值、差值特征}
+
+% 在此处添加Lag特征、均值、差值特征内容
+
+
+\section{实验结果}
+
+% 在此处添加实验结果内容
+
+
+\chapter{基于二分类的SSD磨损策略方法研究}
+
+\section{磨损数据集字段介绍}
+
+% 在此处添加磨损数据集字段介绍内容
+
+
+\section{寿命计算过程介绍}
+
+% 在此处添加寿命计算过程介绍内容
+
+
+\section{二分类实验与模拟指标}
+
+% 在此处添加二分类实验和模拟指标内容
+
+
+% ============================================
+% 以下为模板示例代码，供参考使用
+% ============================================
+
+\chapter{示例代码参考}
+
+\section{图片插入示例}
 
 我们可以用includegraphics来插入现有的jpg等格式的图片，
 如\autoref{fig:zju-logo}所示。
@@ -40,8 +139,7 @@
 \end{figure}
 
 
-\subsection{小节标题}
-
+\section{表格示例}
 
 \par 如\autoref{tab:sample}所示，这是一张自动调节列宽的表格。
 
@@ -57,6 +155,8 @@
 \end{table}
 
 
+\section{公式示例}
+
 \par 如\autoref{equ:sample}，这是一个公式
 
 \begin{equation}
@@ -64,16 +164,13 @@
     A=\overbrace{(a+b+c)+\underbrace{i(d+e+f)}_{\text{虚数}}}^{\text{复数}}
 \end{equation}
 
-\chapter{另一章}
-
-
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=.3\linewidth]{example-image-a}
     \caption{\label{fig:fig-placeholder}图片占位符}
 \end{figure}
 
-\chapter{再一章}
+\section{算法示例}
 
 \par 如\autoref{alg:sample}，这是一个算法
 
