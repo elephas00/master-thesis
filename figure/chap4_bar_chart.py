@@ -8,7 +8,7 @@ plt.rcParams['axes.unicode_minus'] = False
 # 数据：6个块的PE次数
 # 注意：您提到有6个数据，但只列出了5个值，这里假设第6个也是10000
 # 如果需要修改，请调整下面的pe_values列表
-pe_values = [8000, 8500, 9500, 10000, 10000, 10000]  # 6个数据值
+pe_values = [9000, 8500, 9500, 10000, 10000, 10000]  # 6个数据值
 
 # 创建图形
 fig, ax = plt.subplots(figsize=(5, 3))
@@ -17,7 +17,7 @@ fig, ax = plt.subplots(figsize=(5, 3))
 block_labels = [f'块{i+1}' for i in range(len(pe_values))]
 
 # 阈值
-threshold = 8000
+threshold = 8500
 
 # 计算左侧（灰色）和右侧（绿色）的长度
 left_values = [min(pe, threshold) for pe in pe_values]  # 左侧灰色部分
