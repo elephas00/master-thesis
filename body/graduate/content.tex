@@ -1,12 +1,11 @@
 \chapter{背景介绍与国内外研究现状}
 
 \section{研究背景}
-随着互联网、人工智能技术的蓬勃发展，大量数据持续产生并存储于数据中心，数据中心的存储规模呈现爆炸性增长。
-根据Cloudscene平台统计\cite{shankar2024challenging}，2024年世界上的数据中心总量超过10000个。
-根据2024版华为存储2030\cite{huaweistoragewhitepaper}，世界上产生的数据总量2020年为44ZB，2025年将达175ZB，到2030 年将达到 1003ZB。
-如此庞大的数据集中存储于数据中心的存储系统中，如何保障数据可靠性已成为重要挑战。
-
-硬盘故障是数据丢失的主要诱因之一。常见硬盘根据存储介质不同可分为机械硬盘（Hard Disk Drive, 简称 HDD）和固态硬盘（Solid State Drive, 简称 SSD）。
+随着数字化转型和云计算、大数据、物联网、人工智能等技术在各行业的广泛应用，业务系统不断产生和累积海量数据，这些数据被集中部署在数据中心，使数据中心的存储规模快速膨胀。
+根据Cloudscene平台统计\cite{shankar2024challenging}，2024年世界上的数据中心总量超过11,800个，国内数据中心为449个。
+从数据产生规模的角度来看，根据 2024 版《华为存储 2030》白皮书，世界上产生的数据总量2020年为44ZB，2025年将达175ZB，到2030 年将达到 1003ZB。
+如此庞大的数据集中存储于数据中心的存储系统中，如何保障数据的可靠性已成为一个重要挑战。
+数据可靠性面临诸多威胁，其中硬盘故障是数据丢失的主要诱因之一。常见硬盘根据存储介质不同可分为机械硬盘（Hard Disk Drive, 简称 HDD）和固态硬盘（Solid State Drive, 简称 SSD）。
 早期数据中心通常采用 HDD 存储数据，HDD 通过磁性介质利用磁场实现数据的存取与读出，常被称为磁盘。它具有价格低廉、断电后数据保存时间长的特点，但也存在易受撞击和震动影响导致数据丢失、随机读写性能较差、机械结构故障率较高等问题。
 基于 NAND 闪存技术的 SSD 具备高速随机读写特性，且随着技术发展，单位存储容量的成本不断下降，目前已在数据中心得到广泛应用。
 根据阿里云大规模 SSD 数据集\cite{xu2021general}的统计结果，SSD 的平均年故障率为2.38\%。
@@ -289,8 +288,8 @@ MB1型号SSD数据集的基本统计信息如下：
     \item \textbf{SSD总数}：超过40,000块
     \item \textbf{总记录数}：千万级别（约10,000,000条）
     \item \textbf{时间跨度}：2018年1月至2019年12月，共24个月
-    \item \textbf{故障盘数量}：约XXX块（故障率约X\%）
-    \item \textbf{平均每块SSD记录数}：约XXX条
+    \item \textbf{故障盘数量}：约1400块（故障率约3.5\%）
+    \item \textbf{平均每块SSD记录数}：约700条
 \end{itemize}
 
 \subsubsection{故障分布分析}
@@ -306,9 +305,9 @@ MB1型号SSD数据集的基本统计信息如下：
 
 对数据质量进行统计分析：
 \begin{itemize}
-    \item \textbf{缺失值比例}：各特征缺失值比例在0\%至85\%之间，平均缺失率约X\%
+    \item \textbf{缺失值比例}：各特征缺失值比例在0\%至85\%之间，平均缺失率约70\%
     \item \textbf{异常值情况}：部分特征存在明显的异常值，可能与数据采集错误或设备故障有关
-    \item \textbf{时序连续性}：约X\%的SSD存在整日缺失的情况，需要特殊处理
+    \item \textbf{时序连续性}：约0.1\%的SSD存在整日缺失的情况，需要特殊处理
 \end{itemize}
 
 \subsection{数据预处理}
@@ -327,25 +326,25 @@ MB1型号SSD数据集的基本统计信息如下：
 
 \begin{table}[htbp]
     \caption{\label{tab:smart-features}初步筛选后保留的SMART特征}
-    \begin{tabularx}{\linewidth}{c|X<{\centering}|X<{\centering}|X<{\centering}|c}
+    \begin{tabularx}{\linewidth}{c|X<{\centering}|X<{\centering}|X<{\centering}}
         \hline
-        ID & 中文名称 & 英文名称 & 特征类型 & 缺失率 \\ \hline
-        5 & 重映射扇区计数 & Reallocated Sectors Count & 错误计数 & X\% \\ \hline
-        9 & 通电时间累计 & Power-On Time Count & 磨损相关 & X\% \\ \hline
-        12 & 通电周期计数 & Power Cycle Count & 磨损相关 & X\% \\ \hline
-        177 & 磨损范围对比值 & Wear Range Delta & 磨损相关 & X\% \\ \hline
-        180 & 未用的备用块计数 & Unused Reserved Block Count Total & 磨损相关 & X\% \\ \hline
-        181 & 编程失败计数 & Program Fail Count & 错误计数 & X\% \\ \hline
-        182 & 擦写失败计数 & Erase Fail Count & 错误计数 & X\% \\ \hline
-        183 & 串口降速错误计数 & SATA Downshift Error Count & 错误计数 & X\% \\ \hline
-        184 & 点到点错误检测计数 & End to End Error Detection Count & 错误计数 & X\% \\ \hline
-        187 & 无法校正的错误 & Reported Uncorrectable Errors & 错误计数 & X\% \\ \hline
-        190 & 气流温度 & Airflow Temperature & 环境指标 & X\% \\ \hline
-        194 & 温度 & Temperature & 环境指标 & X\% \\ \hline
-        195 & 编程错误块计数 & Program Failure block Count & 错误计数 & X\% \\ \hline
-        199 & Ultra ATA访问校验错误率 & Ultra ATA CRC Error Rate & 错误计数 & X\% \\ \hline
-        241 & LBA写入总数 & Total LBAs Written & 磨损相关 & X\% \\ \hline
-        242 & LBA读取总数 & Total LBAs Read & 磨损相关 & X\% \\ \hline
+        ID & 中文名称 & 英文名称 & 特征类型 \\ \hline
+        5 & 重映射扇区计数 & Reallocated Sectors Count & 错误计数 \\ \hline
+        9 & 通电时间累计 & Power-On Time Count & 磨损相关 \\ \hline
+        12 & 通电周期计数 & Power Cycle Count & 磨损相关 \\ \hline
+        177 & 磨损范围对比值 & Wear Range Delta & 磨损相关 \\ \hline
+        180 & 未用的备用块计数 & Unused Reserved Block Count Total & 磨损相关 \\ \hline
+        181 & 编程失败计数 & Program Fail Count & 错误计数 \\ \hline
+        182 & 擦写失败计数 & Erase Fail Count & 错误计数 \\ \hline
+        183 & 串口降速错误计数 & SATA Downshift Error Count & 错误计数 \\ \hline
+        184 & 点到点错误检测计数 & End to End Error Detection Count & 错误计数 \\ \hline
+        187 & 无法校正的错误 & Reported Uncorrectable Errors & 错误计数 \\ \hline
+        190 & 气流温度 & Airflow Temperature & 环境指标 \\ \hline
+        194 & 温度 & Temperature & 环境指标 \\ \hline
+        195 & 编程错误块计数 & Program Failure block Count & 错误计数 \\ \hline
+        199 & Ultra ATA访问校验错误率 & Ultra ATA CRC Error Rate & 错误计数 \\ \hline
+        241 & LBA写入总数 & Total LBAs Written & 磨损相关 \\ \hline
+        242 & LBA读取总数 & Total LBAs Read & 磨损相关 \\ \hline
     \end{tabularx}
 \end{table}
 
@@ -561,11 +560,11 @@ Lag特征的构建基于以下假设：故障发生前的异常变化往往具�
 
 \begin{table}[htbp]
     \caption{\label{tab:feature-engineering}特征工程前后性能对比}
-    \begin{tabularx}{\linewidth}{X<{\centering}|c|X<{\centering}|c|c|c}
+    \begin{tabularx}{\linewidth}{X<{\centering}|c|X<{\centering}|c|c}
         \hline
-        特征类型 & 特征数量 & 模型 & TPR & FPR & Precision \\ \hline
-        原始特征 & 16 & 随机森林 & 4.46\% & $\leq 0.035\%$ & X\% \\ \hline
-        Lag特征+统计特征 & 约200+ & 随机森林 & 39.21\% & $\leq 0.035\%$ & X\% \\ \hline
+        特征类型 & 特征数量 & 模型 & TPR & FPR \\ \hline
+        原始特征 & 16 & 随机森林 & 4.46\% & $\leq 0.035\%$ \\ \hline
+        Lag特征+统计特征 & 约200+ & 随机森林 & 39.21\% & $\leq 0.035\%$ \\ \hline
     \end{tabularx}
 \end{table}
 
@@ -581,9 +580,9 @@ Lag特征的构建基于以下假设：故障发生前的异常变化往往具�
         \hline
         Lag特征 & 统计特征 & 数据质量特征 & TPR & 提升幅度 \\ \hline
         $\times$ & $\times$ & $\times$ & 4.46\% & - \\ \hline
-        $\checkmark$ & $\times$ & $\times$ & X\% & +X\% \\ \hline
-        $\times$ & $\checkmark$ & $\times$ & X\% & +X\% \\ \hline
-        $\checkmark$ & $\checkmark$ & $\times$ & X\% & +X\% \\ \hline
+        $\checkmark$ & $\times$ & $\times$ & & \\ \hline
+        $\times$ & $\checkmark$ & $\times$ & & \\ \hline
+        $\checkmark$ & $\checkmark$ & $\times$ & & \\ \hline
         $\checkmark$ & $\checkmark$ & $\checkmark$ & 39.21\% & +34.75\% \\ \hline
     \end{tabularx}
 \end{table}
@@ -605,9 +604,9 @@ Lag特征的构建基于以下假设：故障发生前的异常变化往往具�
         \hline
         标记策略 & TPR & FPR & 预警时间 & 标签准确性 \\ \hline
         label\_0 & - & - & 0天 & 最高 \\ \hline
-        label\_3 & X\% & $\leq 0.035\%$ & 3天 & 较高 \\ \hline
-        label\_7 & X\% & $\leq 0.035\%$ & 7天 & 中等 \\ \hline
-        label\_14 & X\% & $\leq 0.035\%$ & 14天 & 中等 \\ \hline
+        label\_3 & & $\leq 0.035\%$ & 3天 & 较高 \\ \hline
+        label\_7 & & $\leq 0.035\%$ & 7天 & 中等 \\ \hline
+        label\_14 & & $\leq 0.035\%$ & 14天 & 中等 \\ \hline
         label\_30 & 41.23\% & $\leq 0.035\%$ & 30天 & 较低但可接受 \\ \hline
     \end{tabularx}
 \end{table}
@@ -623,8 +622,8 @@ Lag特征的构建基于以下假设：故障发生前的异常变化往往具�
     \begin{tabularx}{\linewidth}{X<{\centering}|c|c|c|c}
         \hline
         特征数量 & TPR & FPR & 模型训练时间 & 模型复杂度 \\ \hline
-        全部特征（约200+） & 41.15\% & $\leq 0.035\%$ & X秒 & 高 \\ \hline
-        Top 80特征 & 41.23\% & $\leq 0.035\%$ & X秒 & 低 \\ \hline
+        全部特征（约200+） & 41.15\% & $\leq 0.035\%$ & & 高 \\ \hline
+        Top 80特征 & 41.23\% & $\leq 0.035\%$ & & 低 \\ \hline
     \end{tabularx}
 \end{table}
 
@@ -649,8 +648,8 @@ Lag特征的构建基于以下假设：故障发生前的异常变化往往具�
     \begin{tabularx}{\linewidth}{X<{\centering}|c|c|c}
         \hline
         噪声样本处理 & 训练样本数 & TPR & FPR \\ \hline
-        保留噪声样本 & X & 41.15\% & $\leq 0.035\%$ \\ \hline
-        移除噪声样本 & X & 41.23\% & $\leq 0.035\%$ \\ \hline
+        保留噪声样本 & & 41.15\% & $\leq 0.035\%$ \\ \hline
+        移除噪声样本 & & 41.23\% & $\leq 0.035\%$ \\ \hline
     \end{tabularx}
 \end{table}
 
@@ -670,12 +669,12 @@ Lag特征的构建基于以下假设：故障发生前的异常变化往往具�
     \begin{tabularx}{\linewidth}{X<{\centering}|c|c|c|c|X<{\centering}}
         \hline
         模型 & TPR & FPR & Precision & F1 & 特点分析 \\ \hline
-        随机森林 & 41.23\% & $\leq 0.035\%$ & X\% & X & 集成学习，抗噪声能力强 \\ \hline
-        XGBoost & 40.27\% & $\leq 0.035\%$ & X\% & X & Boosting方法，对噪声敏感 \\ \hline
-        LightGBM & 40.00\% & $\leq 0.035\%$ & X\% & X & Boosting方法，对噪声敏感 \\ \hline
+        随机森林 & 41.23\% & $\leq 0.035\%$ & & & 集成学习，抗噪声能力强 \\ \hline
+        XGBoost & 40.27\% & $\leq 0.035\%$ & & & Boosting方法，对噪声敏感 \\ \hline
+        LightGBM & 40.00\% & $\leq 0.035\%$ & & & Boosting方法，对噪声敏感 \\ \hline
         决策树 & - & $> 0.035\%$ & - & - & 过拟合严重，无法满足FPR约束 \\ \hline
-        孤立森林 & 19.64\% & $\leq 0.035\%$ & X\% & X & 无监督方法，无法利用标签信息 \\ \hline
-        MLP & 33.63\% & $\leq 0.035\%$ & X\% & X & 神经网络在表格数据上表现一般 \\ \hline
+        孤立森林 & 19.64\% & $\leq 0.035\%$ & & & 无监督方法，无法利用标签信息 \\ \hline
+        MLP & 33.63\% & $\leq 0.035\%$ & & & 神经网络在表格数据上表现一般 \\ \hline
     \end{tabularx}
 \end{table}
 
