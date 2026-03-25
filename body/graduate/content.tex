@@ -467,42 +467,44 @@ MB1型号SSD数据集的基本统计信息如表\ref{tab:mb1-dataset-stats}所�
 
 \begin{table}[htbp]
     \caption{\label{tab:smart-features}初步筛选后保留的SMART特征}
-    \begin{tabularx}{\linewidth}{c|X<{\centering}|X<{\centering}|X<{\centering}}
-        \hline
-        ID & 中文名称 & 英文名称 & 特征类型 \\ \hline
-        5 & 重映射扇区计数 & Reallocated Sectors Count & 错误计数 \\ \hline
-        9 & 通电时间累计 & Power-On Time Count & 磨损相关 \\ \hline
-        12 & 通电周期计数 & Power Cycle Count & 磨损相关 \\ \hline
-        177 & 磨损范围对比值 & Wear Range Delta & 磨损相关 \\ \hline
-        180 & 未用的备用块计数 & Unused Reserved Block Count Total & 磨损相关 \\ \hline
-        181 & 编程失败计数 & Program Fail Count & 错误计数 \\ \hline
-        182 & 擦写失败计数 & Erase Fail Count & 错误计数 \\ \hline
-        183 & 串口降速错误计数 & SATA Downshift Error Count & 错误计数 \\ \hline
-        184 & 点到点错误检测计数 & End to End Error Detection Count & 错误计数 \\ \hline
-        187 & 无法校正的错误 & Reported Uncorrectable Errors & 错误计数 \\ \hline
-        190 & 气流温度 & Airflow Temperature & 环境指标 \\ \hline
-        194 & 温度 & Temperature & 环境指标 \\ \hline
-        195 & 编程错误块计数 & Program Failure block Count & 错误计数 \\ \hline
-        199 & Ultra ATA访问校验错误率 & Ultra ATA CRC Error Rate & 错误计数 \\ \hline
-        241 & LBA写入总数 & Total LBAs Written & 磨损相关 \\ \hline
-        242 & LBA读取总数 & Total LBAs Read & 磨损相关 \\ \hline
+    \begin{tabularx}{\linewidth}{cX<{\centering}X<{\centering}X<{\centering}}
+        \toprule
+        ID & 中文名称 & 英文名称 & 特征类型 \\
+        \midrule
+        5 & 重映射扇区计数 & Reallocated Sectors Count & 错误计数 \\
+        9 & 通电时间累计 & Power-On Time Count & 磨损相关 \\
+        12 & 通电周期计数 & Power Cycle Count & 磨损相关 \\
+        177 & 磨损范围对比值 & Wear Range Delta & 磨损相关 \\
+        180 & 未用的备用块计数 & Unused Reserved Block Count Total & 磨损相关 \\
+        181 & 编程失败计数 & Program Fail Count & 错误计数 \\
+        182 & 擦写失败计数 & Erase Fail Count & 错误计数 \\
+        183 & 串口降速错误计数 & SATA Downshift Error Count & 错误计数 \\
+        184 & 点到点错误检测计数 & End to End Error Detection Count & 错误计数 \\
+        187 & 无法校正的错误 & Reported Uncorrectable Errors & 错误计数 \\
+        190 & 气流温度 & Airflow Temperature & 环境指标 \\
+        194 & 温度 & Temperature & 环境指标 \\
+        195 & 编程错误块计数 & Program Failure block Count & 错误计数 \\
+        199 & Ultra ATA访问校验错误率 & Ultra ATA CRC Error Rate & 错误计数 \\
+        241 & LBA写入总数 & Total LBAs Written & 磨损相关 \\
+        242 & LBA读取总数 & Total LBAs Read & 磨损相关 \\
+        \bottomrule
     \end{tabularx}
 \end{table}
 
 \subsubsection{缺失值处理}
 
-原始数据集中存在部分缺失值，这可能是由于数据采集过程中的设备故障、网络中断或系统维护等原因导致的。部分SSD的SMART日志可能存在整日缺失的情况。
+原始数据集中存在部分缺失值，这可能是由于数据采集过程中的设备故障、网络中断或系统维护等原因导致的 。部分SSD的SMART日志可能存在整日缺失的情况。
 
-为保持时间序列的连续性，采用向前向后填充（Forward-Backward Fill）方法对缺失值进行补全。该方法首先使用前向填充（用前一个有效值填充），然后使用后向填充（用后一个有效值填充），能够较好地保持数据的时序特性，为后续构建时序特征提供基础。
+为保持时间序列的连续性，本文采用前向填充（Forward Fill）方法对缺失值进行补全：优先使用该磁盘历史时刻的最近有效观测值进行填充。对于序列起始位置等不存在前向有效值的情况，使用健康磁盘对应特征的均值进行补充，以避免样本被大量丢弃并降低噪声引入风险。
 
 具体而言，对于特征$X$在时刻$t$的缺失值，填充方法如下：
 
 \begin{enumerate}
     \item \textbf{前向填充}：$X_t = X_{t-1}$（如果$X_{t-1}$存在）
-    \item \textbf{后向填充}：$X_t = X_{t+1}$（如果$X_{t+1}$存在且$X_t$在前向填充后仍缺失）
+    \item \textbf{均值补充}：$X_t = \mu_X^{\text{healthy}}$（如果不存在前向有效值，其中$\mu_X^{\text{healthy}}$表示所有健康样本在特征$X$上的均值）
 \end{enumerate}
 
-这种方法能够保持数据的时序连续性，同时避免引入过多的噪声。
+本文认为该策略在保留时序连续性的同时，提高了缺失值处理的稳健性。
 
 \subsection{故障标记策略}
 
@@ -512,14 +514,16 @@ SSD故障预测的目标是提前识别出在未来一段时间内可能发生�
 
 \begin{table}[htbp]
     \caption{\label{tab:label-strategies}故障标记策略}
-    \begin{tabularx}{\linewidth}{c|X<{\centering}|X<{\centering}|X<{\centering}}
-        \hline
-        标记策略 & 定义 & 数学表示 & 适用场景 \\ \hline
-        label\_30 & 故障发生前30天及以后的记录标记为正样本 & $y_t = 1$ if $t \geq t_f - 30$ & 需要较长预警时间的场景 \\ \hline
-        label\_14 & 故障发生前14天及以后的记录标记为正样本 & $y_t = 1$ if $t \geq t_f - 14$ & 平衡预警时间和标签准确性 \\ \hline
-        label\_7 & 故障发生前7天及以后的记录标记为正样本 & $y_t = 1$ if $t \geq t_f - 7$ & 需要较高标签准确性的场景 \\ \hline
-        label\_3 & 故障发生前3天及以后的记录标记为正样本 & $y_t = 1$ if $t \geq t_f - 3$ & 故障前兆明显的场景 \\ \hline
-        label\_0 & 故障发生当天及以后的记录标记为正样本 & $y_t = 1$ if $t \geq t_f$ & 故障特征突发的场景 \\ \hline
+    \begin{tabularx}{\linewidth}{cX<{\centering}X<{\centering}X<{\centering}}
+        \toprule
+        标记策略 & 定义 & 数学表示 & 适用场景 \\
+        \midrule
+        label\_30 & 故障发生前30天及以后的记录标记为正样本 & $y_t = 1$ if $t \geq t_f - 30$ & 需要较长预警时间的场景 \\
+        label\_14 & 故障发生前14天及以后的记录标记为正样本 & $y_t = 1$ if $t \geq t_f - 14$ & 平衡预警时间和标签准确性 \\
+        label\_7 & 故障发生前7天及以后的记录标记为正样本 & $y_t = 1$ if $t \geq t_f - 7$ & 需要较高标签准确性的场景 \\
+        label\_3 & 故障发生前3天及以后的记录标记为正样本 & $y_t = 1$ if $t \geq t_f - 3$ & 故障前兆明显的场景 \\
+        label\_0 & 故障发生当天及以后的记录标记为正样本 & $y_t = 1$ if $t \geq t_f$ & 故障特征突发的场景 \\
+        \bottomrule
     \end{tabularx}
 \end{table}
 
@@ -547,25 +551,26 @@ Lag特征（滞后特征）是时间序列分析中的经典特征工程方法�
 
 其中$X_t$表示当前时刻$t$的特征值，$\text{lag} \in \{1, 2, \ldots, k\}$表示滞后期数。本研究设置$k=7$，即构建1至7天的Lag特征。
 
-Lag特征的构建基于以下假设：故障发生前的异常变化往往具有持续性，通过观察历史时刻的特征值，可以更好地识别这种异常趋势。数学上，Lag特征能够捕捉特征的自相关关系：
-
-\begin{equation}
-    \text{Corr}(X_t, X_{t-\text{lag}})
-\end{equation}
-
-其中$\text{Corr}(\cdot)$表示相关系数。对于故障预测任务，故障前的异常变化往往表现为特征值的持续偏离正常范围，Lag特征能够捕捉这种偏离的持续性。
+Lag特征的构建基于以下假设：故障发生前的异常变化往往具有持续性，通过观察历史时刻的特征值，可以更好地识别这种异常趋势。
 
 \subsection{时间窗口统计特征}
 
 除了Lag特征外，还构建了基于滑动时间窗口的统计特征，从多个角度刻画SMART属性的变化模式。对于特征$X$，在时间窗口$[t-w, t]$内计算以下统计量：
 
-\begin{itemize}
-    \item \textbf{最小值}：$\min(X_{t-w:t}) = \min\{X_{t-w}, X_{t-w+1}, \ldots, X_t\}$，反映特征的下界
-    \item \textbf{最大值}：$\max(X_{t-w:t}) = \max\{X_{t-w}, X_{t-w+1}, \ldots, X_t\}$，反映特征的上界
-    \item \textbf{平均值}：$\text{mean}(X_{t-w:t}) = \frac{1}{w+1}\sum_{i=t-w}^{t} X_i$，反映特征的整体水平
-    \item \textbf{极差}：$\text{range}(X_{t-w:t}) = \max(X_{t-w:t}) - \min(X_{t-w:t})$，反映特征的波动幅度
-    \item \textbf{差分}：$\text{diff}(X_t) = X_t - X_{t-1}$，反映特征的短期变化趋势
-\end{itemize}
+\begin{table}[htbp]
+    \caption{\label{tab:window-stat-features}滑动时间窗口统计特征定义}
+    \begin{tabularx}{\linewidth}{cX<{\centering}}
+        \toprule
+        统计量 & 数学定义 \\
+        \midrule
+        最小值 & $\min(X_{t-w:t}) = \min\{X_{t-w}, X_{t-w+1}, \ldots, X_t\}$ \\
+        最大值 & $\max(X_{t-w:t}) = \max\{X_{t-w}, X_{t-w+1}, \ldots, X_t\}$ \\
+        平均值 & $\text{mean}(X_{t-w:t}) = \frac{1}{w+1}\sum_{i=t-w}^{t} X_i$ \\
+        极差 & $\text{range}(X_{t-w:t}) = \max(X_{t-w:t}) - \min(X_{t-w:t})$ \\
+        差分 & $\text{diff}(X_t) = X_t - X_{t-1}$ \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
 
 其中$w$表示时间窗口大小。本研究设置$w=7$，即使用过去7天的数据进行统计计算。
 
@@ -652,12 +657,11 @@ Lag特征的构建基于以下假设：故障发生前的异常变化往往具�
 
 采用时间序列交叉验证方法进行数据集划分：
 \begin{itemize}
-    \item \textbf{训练集}：2018年1月至2018年12月的数据（12个月）
-    \item \textbf{验证集}：2019年1月至2019年6月的数据（6个月）
-    \item \textbf{测试集}：2019年7月至2019年12月的数据（6个月）
+    \item \textbf{训练集}：2018年1月至2019年8月的数据（19个月）
+    \item \textbf{测试集}：2019年9月至2019年11月的数据（3个月）
 \end{itemize}
 
-这种划分方式符合实际应用场景，即使用历史数据训练模型，预测未来数据。
+这种划分方式符合实际应用场景，即使用历史数据训练模型，预测未来数据。测试区间选择2019年9月至11月而不包含12月，主要是因为12月数据位于观测期末端，数据集中没有2020年1月的故障清单，会因为故障标签不完整导致评估失真。
 
 \subsubsection{评估指标}
 
@@ -667,8 +671,6 @@ Lag特征的构建基于以下假设：故障发生前的异常变化往往具�
 \begin{itemize}
     \item \textbf{真正例率（TPR, True Positive Rate）}：$TPR = \frac{TP}{TP+FN}$，表示实际故障盘中被正确预测的比例，也称为召回率（Recall）
     \item \textbf{假正例率（FPR, False Positive Rate）}：$FPR = \frac{FP}{FP+TN}$，表示正常盘中被错误预测为故障的比例
-    \item \textbf{精确率（Precision）}：$Precision = \frac{TP}{TP+FP}$，表示预测为故障的盘中实际故障的比例
-    \item \textbf{F1分数}：$F1 = \frac{2 \times Precision \times Recall}{Precision + Recall}$，综合衡量精确率和召回率
 \end{itemize}
 
 在实际应用中，误报率（FPR）过高会导致运维成本增加，因此需要在控制FPR的前提下最大化TPR。本研究设定FPR约束条件为$\leq 0.035\%$，通过调整分类阈值来满足该约束。
@@ -682,18 +684,27 @@ Lag特征的构建基于以下假设：故障发生前的异常变化往往具�
     \item \textbf{特征重要性分析}：能够提供特征重要性度量，便于后续分析和解释
 \end{enumerate}
 
-随机森林的主要超参数设置：
-\begin{itemize}
-    \item \textbf{树的数量（n\_estimators）}：100
-    \item \textbf{最大深度（max\_depth）}：20
-    \item \textbf{最小样本分裂数（min\_samples\_split）}：5
-    \item \textbf{最小样本叶子数（min\_samples\_leaf）}：2
-    \item \textbf{特征子集大小（max\_features）}：$\sqrt{d}$，其中$d$为特征数
-\end{itemize}
+随机森林的主要超参数设置如表\ref{tab:rf-hyperparams}所示。
+
+\begin{table}[htbp]
+    \centering
+    \caption{\label{tab:rf-hyperparams}随机森林主要超参数设置}
+    \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}Xc}
+        \toprule
+        参数名称 & 设置值 \\
+        \midrule
+        树的数量（n\_estimators） & 100 \\
+        最大深度（max\_depth） & 20 \\
+        最小样本分裂数（min\_samples\_split） & 5 \\
+        最小样本叶子数（min\_samples\_leaf） & 2 \\
+        特征子集大小（max\_features） & $\sqrt{d}$（其中$d$为特征数） \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
 
 \subsection{整体实验结果}
 
-在FPR $\leq 0.035\%$的约束条件下，本研究提出的方法在MB1型号SSD数据集上取得了41.23\%的TPR，显著超过了35\%的预期目标。实验结果表明，基于Lag特征的特征工程方法能够有效提升SSD故障预测性能。
+在FPR $\leq 0.035\%$的约束条件下，本研究提出的方法在MB1型号SSD数据集上取得了41.23\%的TPR。实验结果表明，基于Lag特征的特征工程方法能够有效提升SSD故障预测性能。
 
 \subsection{特征工程效果分析}
 
@@ -701,15 +712,17 @@ Lag特征的构建基于以下假设：故障发生前的异常变化往往具�
 
 \begin{table}[htbp]
     \caption{\label{tab:feature-engineering}特征工程前后性能对比}
-    \begin{tabularx}{\linewidth}{X<{\centering}|c|X<{\centering}|c|c}
-        \hline
-        特征类型 & 特征数量 & 模型 & TPR & FPR \\ \hline
-        原始特征 & 16 & 随机森林 & 4.46\% & $\leq 0.035\%$ \\ \hline
-        Lag特征+统计特征 & 约200+ & 随机森林 & 39.21\% & $\leq 0.035\%$ \\ \hline
+    \begin{tabularx}{\linewidth}{X<{\centering}cX<{\centering}cc}
+        \toprule
+        特征类型 & 特征数量 & 模型 & TPR & FPR \\
+        \midrule
+        原始特征 & 16 & 随机森林 & 4.46\% & $\leq 0.035\%$ \\
+        Lag特征+统计特征 & 约200+ & 随机森林 & 39.21\% & $\leq 0.035\%$ \\
+        \bottomrule
     \end{tabularx}
 \end{table}
 
-实验结果表明，Lag特征和时间窗口统计特征对模型性能提升具有关键作用，TPR从4.46\%提升至39.21\%，提升了约8.8倍。这说明时序特征能够有效捕捉SMART属性的动态变化模式，对于故障预测具有重要意义。
+实验结果表明，Lag特征和时间窗口统计特征对模型性能提升具有关键作用，TPR从4.46\%提升至39.21\%，提升了约8.8倍。与仅使用前一天特征预测后一天状态的方式相比，Lag特征能够同时引入过去一段时间内的历史观测，将单点信息扩展为连续轨迹信息，从而更完整地刻画SMART属性在故障前的渐进变化、短期波动与异常累积过程。时间窗口统计特征进一步从区间尺度提炼出边界与波动强度等信息，与Lag特征形成互补。因此，模型不仅能够识别突发异常，还能更早捕捉到故障前的缓慢退化趋势，最终在低误报率约束下获得更高的预测性能。
 
 \subsubsection{消融实验分析}
 
@@ -740,15 +753,18 @@ Lag特征的构建基于以下假设：故障发生前的异常变化往往具�
 不同标记策略对模型性能的影响如表\ref{tab:label-comparison}所示。实验结果表明，label\_30策略在提供足够预警时间的同时，能够取得较好的预测性能。
 
 \begin{table}[htbp]
+    \centering
     \caption{\label{tab:label-comparison}不同标记策略性能对比}
-    \begin{tabularx}{\linewidth}{c|c|c|c|X<{\centering}}
-        \hline
-        标记策略 & TPR & FPR & 预警时间 & 标签准确性 \\ \hline
-        label\_0 & - & - & 0天 & 最高 \\ \hline
-        label\_3 & & $\leq 0.035\%$ & 3天 & 较高 \\ \hline
-        label\_7 & & $\leq 0.035\%$ & 7天 & 中等 \\ \hline
-        label\_14 & & $\leq 0.035\%$ & 14天 & 中等 \\ \hline
-        label\_30 & 41.23\% & $\leq 0.035\%$ & 30天 & 较低但可接受 \\ \hline
+    \begin{tabularx}{0.72\linewidth}{cccc}
+        \toprule
+        标记策略 & TPR & FPR & 预警时间 \\
+        \midrule
+        label\_0 & - & - & 0天 \\
+        label\_3 &  39.21\% & $\leq 0.035\%$ & 3天 \\
+        label\_7 &  38.33\% & $\leq 0.035\%$ & 7天 \\
+        label\_14 & 39.21\% & $\leq 0.035\%$ & 14天 \\
+        label\_30 & 39.65\% & $\leq 0.035\%$ & 30天 \\
+        \bottomrule
     \end{tabularx}
 \end{table}
 
@@ -756,19 +772,27 @@ Lag特征的构建基于以下假设：故障发生前的异常变化往往具�
 
 \subsection{特征筛选效果分析}
 
-特征筛选前后性能对比如表\ref{tab:feature-selection}所示。通过Spearman相关系数筛选Top 80特征后，模型性能略有提升（从41.15\%提升至41.23\%），同时显著降低了模型复杂度，减少了过拟合风险。
+不同特征维度设置下的性能与运行时间对比如表\ref{tab:spearman-topk-comparison}所示。其中，Top-$k$表示按Spearman相关性对特征进行排序后，保留相关性最高的前$k$个特征用于训练。
 
 \begin{table}[htbp]
-    \caption{\label{tab:feature-selection}特征筛选前后性能对比}
-    \begin{tabularx}{\linewidth}{X<{\centering}|c|c|c|c}
-        \hline
-        特征数量 & TPR & FPR & 模型训练时间 & 模型复杂度 \\ \hline
-        全部特征（约200+） & 41.15\% & $\leq 0.035\%$ & & 高 \\ \hline
-        Top 80特征 & 41.23\% & $\leq 0.035\%$ & & 低 \\ \hline
+    \centering
+    \caption{\label{tab:spearman-topk-comparison}Spearman降维不同Top-$k$设置对比}
+    \begin{tabularx}{0.72\linewidth}{Xcc}
+        \toprule
+        降维方式 & TPR & 运行时间 \\
+        \midrule
+        Top40 & 37.78\% & 223s \\
+        Top70 & 40.09\% & 235s \\
+        Top80 & 41.15\% & 295s \\
+        Top90 & 40.97\% & 336s \\
+        Top120 & 40.53\% & 384s \\
+        Top160 & 39.65\% & 418s \\
+        Top208 & 39.65\% & 459s \\
+        \bottomrule
     \end{tabularx}
 \end{table}
 
-实验结果表明，特征筛选不仅能够降低模型复杂度，还能够略微提升模型性能，说明筛选出的Top 80特征包含了最关键的判别信息。
+从表\ref{tab:spearman-topk-comparison}可以看出，按特征筛选过程（$k$由大到小）观察时，TPR呈现先上升后下降的趋势：当$k$由208逐步减小至80时，TPR由39.65\%提升至41.15\%；继续减小至40后，TPR下降至37.78\%。这验证了过多特征会引入冗余信息干扰模型训练，同时特征数量过少又会导致模型表征能力不足。与此同时，运行时间随$k$增大由223s上升至459s，呈现明显增长趋势。综合预测性能与计算成本，Top80在本实验设置下取得了较优平衡，因此后续实验采用该设置。
 
 \subsubsection{特征重要性分析}
 
@@ -785,64 +809,54 @@ Lag特征的构建基于以下假设：故障发生前的异常变化往往具�
 噪声样本移除前后性能对比如表\ref{tab:noise-removal}所示。移除噪声样本后，TPR从41.15\%提升至41.23\%，说明基于故障机理的噪声样本移除策略能够提升模型对真实异常信号的识别能力。
 
 \begin{table}[htbp]
+    \centering
     \caption{\label{tab:noise-removal}噪声样本移除前后性能对比}
-    \begin{tabularx}{\linewidth}{X<{\centering}|c|c|c}
-        \hline
-        噪声样本处理 & 训练样本数 & TPR & FPR \\ \hline
-        保留噪声样本 & & 41.15\% & $\leq 0.035\%$ \\ \hline
-        移除噪声样本 & & 41.23\% & $\leq 0.035\%$ \\ \hline
+    \begin{tabularx}{0.62\linewidth}{Xcc}
+        \toprule
+        噪声样本处理 & TPR & FPR \\
+        \midrule
+        保留噪声样本 & 41.15\% & $\leq 0.035\%$ \\
+        移除噪声样本 & 41.23\% & $\leq 0.035\%$ \\
+        \bottomrule
     \end{tabularx}
 \end{table}
 
-实验结果表明，移除噪声样本后：
-\begin{enumerate}
-    \item \textbf{训练样本数减少}：从X减少至X，减少了约X\%
-    \item \textbf{模型性能提升}：TPR从41.15\%提升至41.23\%，提升了0.08个百分点
-    \item \textbf{模型泛化能力增强}：移除噪声样本后，模型能够更好地学习到真实的故障模式
-\end{enumerate}
+实验结果表明，移除噪声样本后，在FPR保持不变（$\leq 0.035\%$）的条件下，TPR由41.15\%提升至41.23\%，验证了移除故障样本策略能够使模型更好地学习故障模式。
 
 \subsection{不同学习模型对比}
 
 为验证随机森林模型的选择合理性，对比了多种机器学习模型的性能，结果如表\ref{tab:model-comparison}所示。
 
 \begin{table}[htbp]
+    \centering
     \caption{\label{tab:model-comparison}不同学习模型性能对比}
-    \begin{tabularx}{\linewidth}{X<{\centering}|c|c|c|c|X<{\centering}}
-        \hline
-        模型 & TPR & FPR & Precision & F1 & 特点分析 \\ \hline
-        随机森林 & 41.23\% & $\leq 0.035\%$ & & & 集成学习，抗噪声能力强 \\ \hline
-        XGBoost & 40.27\% & $\leq 0.035\%$ & & & Boosting方法，对噪声敏感 \\ \hline
-        LightGBM & 40.00\% & $\leq 0.035\%$ & & & Boosting方法，对噪声敏感 \\ \hline
-        决策树 & - & $> 0.035\%$ & - & - & 过拟合严重，无法满足FPR约束 \\ \hline
-        孤立森林 & 19.64\% & $\leq 0.035\%$ & & & 无监督方法，无法利用标签信息 \\ \hline
-        MLP & 33.63\% & $\leq 0.035\%$ & & & 神经网络在表格数据上表现一般 \\ \hline
+    \begin{tabularx}{0.62\linewidth}{Xcc}
+        \toprule
+        模型 & TPR & FPR \\
+        \midrule
+        随机森林 & 41.23\% & $\leq 0.035\%$ \\
+        XGBoost & 40.27\% & $\leq 0.035\%$ \\
+        LightGBM & 40.00\% & $\leq 0.035\%$ \\
+        决策树 & - & $> 0.035\%$ \\
+        孤立森林 & 19.64\% & $\leq 0.035\%$ \\
+        MLP & 33.63\% & $\leq 0.035\%$ \\
+        \bottomrule
     \end{tabularx}
 \end{table}
 
-实验结果表明：
-\begin{enumerate}
-    \item \textbf{随机森林}表现最佳，其Bagging集成策略和随机特征选择能够有效降低噪声影响
-    \item \textbf{XGBoost和LightGBM}虽然也是集成方法，但其Boosting策略专注于困难样本，在存在噪声的情况下容易学习到噪声模式
-    \item \textbf{决策树}由于过拟合问题，无法将FPR控制在约束范围内
-    \item \textbf{孤立森林}作为无监督方法，无法利用故障标签信息，性能较差
-    \item \textbf{MLP}在表格型数据上的表现通常弱于树模型
-\end{enumerate}
+实验结果表明，随机森林在满足FPR约束的前提下取得了最高TPR，整体表现最优。
+XGBoost和LightGBM虽同属集成学习方法，但在当前噪声条件下略低于随机森林，可能是因为其基于Boosting策略，但是部分正样本没有故障表征，难以学习到故障模式，反而收到了噪声影响；
+决策树一行中TPR记为“-”，是因为其过拟合较为严重，在调参过程中始终无法将FPR控制在约束范围内，无法满足FPR约束；
+孤立森林因无法利用监督标签而表现较弱；
+MLP在该表格型数据场景下未达到树模型的效果。
+随机森林在本任务中兼顾了稳健性与预测性能，具有更好的适用性。
 
 \subsection{方法局限性讨论}
 
-本研究提出的方法虽然取得了较好的预测性能，但仍存在以下局限性：
-
-\begin{enumerate}
-    \item \textbf{数据集特定性}：方法主要针对MB1型号的MLC-SSD进行优化，对于其他型号或类型的SSD，可能需要重新调整特征工程策略和模型参数。不同型号的SSD在SMART属性定义、故障模式等方面可能存在差异。
-    
-    \item \textbf{标记策略依赖}：不同标记策略的选择依赖于对故障前兆时间的先验知识，在实际应用中可能需要根据具体场景进行调整。对于不同类型的故障，最佳标记策略可能不同。
-    
-    \item \textbf{特征工程复杂度}：Lag特征和时间窗口统计特征的构建增加了特征工程的复杂度，需要保证数据的时序连续性。对于数据缺失严重的情况，可能需要额外的处理策略。
-    
-    \item \textbf{噪声样本识别}：基于故障机理的噪声样本移除依赖于对故障类型的先验分类，对于混合类型的故障可能不够准确。如何更准确地识别噪声样本仍是一个挑战。
-    
-    \item \textbf{模型可解释性}：虽然随机森林能够提供特征重要性，但对于具体预测结果的解释仍存在一定困难。如何提升模型的可解释性，帮助运维人员理解预测结果，是未来需要改进的方向。
-\end{enumerate}
+本研究提出的方法虽然取得了较好的预测性能，但仍存在一定局限性。
+首先，当前方法主要针对MB1型号的MLC-SSD进行优化，对于其他型号或类型的SSD，可能需要重新调整特征工程策略和模型参数，因为不同型号在SMART属性定义和故障模式上可能存在差异。
+其次，标记策略的选择依赖于对故障前兆时间的先验知识，在实际应用中需根据具体场景动态调整，不同故障类型对应的最优标记策略也可能不同。
+此外，Lag特征与时间窗口统计特征的构建增加了特征工程复杂度，对数据时序连续性提出了更高要求，在缺失较严重时往往需要额外的补全与稳健处理。与此同时，基于故障机理的噪声样本移除依赖先验故障类型划分，对于混合故障场景可能存在识别偏差，如何提升噪声样本识别准确性仍是后续工作重点。最后，虽然随机森林能够提供特征重要性，但对单次预测结果的细粒度解释能力仍有限，如何进一步提升模型可解释性、增强运维决策支持能力，仍有待深入研究。
 
 \section{本章小结}
 
@@ -860,7 +874,8 @@ Lag特征的构建基于以下假设：故障发生前的异常变化往往具�
     \item \textbf{进行了系统的消融实验和特征重要性分析}：深入分析了不同特征类型的贡献，为后续研究提供了参考。
 \end{enumerate}
 
-实验结果表明，该方法在FPR $\leq 0.035\%$的约束条件下，能够达到41.23\%的TPR，显著超过了35\%的预期目标，为SSD故障预测提供了有效的解决方案。该方法在实际应用中能够帮助运维人员提前识别潜在的故障风险，降低数据丢失风险，提升系统可靠性。
+实验结果表明，该方法在FPR $\leq 0.035\%$的约束条件下，能够达到41.23\%的TPR，为SSD故障预测提供了有效的解决方案。
+该方法在实际应用中能够帮助运维人员提前识别潜在的故障风险，降低数据丢失风险，提升系统可靠性。
 
 
 \chapter{基于集成学习的固态硬盘寿命提升技术}
@@ -946,7 +961,7 @@ Lag特征的构建基于以下假设：故障发生前的异常变化往往具�
 \begin{equation}
     \mathrm{LIFESPAN}_i = \max\{p : \mathrm{FBC}_{i,p} < 151\} - \Delta p,
 \end{equation}
-其中 $\Delta p$ 表示 PE 档位的间隔（例如 1000 次）。
+其中 $\Delta p$ 表示 PE 档位的间隔（例如 500 次）。
 
 \subsection{二分类标签构造}
 
@@ -993,6 +1008,8 @@ Lag特征的构建基于以下假设：故障发生前的异常变化往往具�
 实验结果表明，在这些简化条件下，模型仍然保持了较好的区分能力：在部分 Wordline 采样下，准确率略有下降（约 95\% 到 98\%），但仍能有效区分强块和弱块；使用单一读模式时，DefaultRead 的准确率略低于 BestRead，但差异不大（约 2 到 3 个百分点）；仅使用单次读取时，准确率下降约 3 到 5 个百分点，但仍能保持 95\% 以上的分类准确率。
 
 这些结果表明，所提出的特征设计和建模方法对数据采样条件具有一定鲁棒性，在实际部署中即使数据采集条件受限，仍能保持较好的预测性能。
+
+
 
 \section{寿命提升策略与写入量评估}
 
@@ -1054,80 +1071,85 @@ Lag特征的构建基于以下假设：故障发生前的异常变化往往具�
 
 这一结果表明，结合块级错误行为建模与集成学习的寿命预测方法，能够在不牺牲可靠性的前提下显著提升 SSD 的可用寿命，为后续在真实 SSD 控制器中集成寿命预测与精细化写入调度提供了有力支撑和实验依据。
 
+
+\chapter{}
+
+
+
 % ============================================
 % 以下为模板示例代码，供参考使用
 % ============================================
 
-\chapter{示例代码参考}
+% \chapter{示例代码参考}
 
-\section{图片插入示例}
+% \section{图片插入示例}
 
-我们可以用includegraphics来插入现有的jpg等格式的图片，
-如\autoref{fig:zju-logo}所示。
+% 我们可以用includegraphics来插入现有的jpg等格式的图片，
+% 如\autoref{fig:zju-logo}所示。
 
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=.3\linewidth]{logo/zju}
-    \caption{\label{fig:zju-logo}浙江大学LOGO}
-\end{figure}
-
-
-\section{表格示例}
-
-\par 如\autoref{tab:sample}所示，这是一张自动调节列宽的表格。
-
-\begin{table}[htbp]
-    \caption{\label{tab:sample}自动调节列宽的表格}
-    \begin{tabularx}{\linewidth}{c|X<{\centering}}
-        \hline
-        第一列 & 第二列 \\ \hline
-        xxx & xxx \\ \hline
-        xxx & xxx \\ \hline
-        xxx & xxx \\ \hline
-    \end{tabularx}
-\end{table}
+% \begin{figure}[htbp]
+%     \centering
+%     \includegraphics[width=.3\linewidth]{logo/zju}
+%     \caption{\label{fig:zju-logo}浙江大学LOGO}
+% \end{figure}
 
 
-\section{公式示例}
+% \section{表格示例}
 
-\par 如\autoref{equ:sample}，这是一个公式
+% \par 如\autoref{tab:sample}所示，这是一张自动调节列宽的表格。
 
-\begin{equation}
-    \label{equ:sample}
-    A=\overbrace{(a+b+c)+\underbrace{i(d+e+f)}_{\text{虚数}}}^{\text{复数}}
-\end{equation}
+% \begin{table}[htbp]
+%     \caption{\label{tab:sample}自动调节列宽的表格}
+%     \begin{tabularx}{\linewidth}{c|X<{\centering}}
+%         \hline
+%         第一列 & 第二列 \\ \hline
+%         xxx & xxx \\ \hline
+%         xxx & xxx \\ \hline
+%         xxx & xxx \\ \hline
+%     \end{tabularx}
+% \end{table}
 
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=.3\linewidth]{example-image-a}
-    \caption{\label{fig:fig-placeholder}图片占位符}
-\end{figure}
 
-\section{算法示例}
+% \section{公式示例}
 
-\par 如\autoref{alg:sample}，这是一个算法
+% \par 如\autoref{equ:sample}，这是一个公式
 
-\begin{algorithm}[H]
-    \begin{algorithmic} % enter the algorithmic environment
-        \REQUIRE $n \geq 0 \vee x \neq 0$
-        \ENSURE $y = x^n$
-        \STATE $y \Leftarrow 1$
-        \IF{$n < 0$}
-            \STATE $X \Leftarrow 1 / x$
-            \STATE $N \Leftarrow -n$
-        \ELSE
-            \STATE $X \Leftarrow x$
-            \STATE $N \Leftarrow n$
-        \ENDIF
-        \WHILE{$N \neq 0$}
-            \IF{$N$ is even}
-                \STATE $X \Leftarrow X \times X$
-                \STATE $N \Leftarrow N / 2$
-            \ELSE[$N$ is odd]
-                \STATE $y \Leftarrow y \times X$
-                \STATE $N \Leftarrow N - 1$
-            \ENDIF
-        \ENDWHILE
-    \end{algorithmic}
-    \caption{\label{alg:sample}算法样例}
-\end{algorithm}
+% \begin{equation}
+%     \label{equ:sample}
+%     A=\overbrace{(a+b+c)+\underbrace{i(d+e+f)}_{\text{虚数}}}^{\text{复数}}
+% \end{equation}
+
+% \begin{figure}[htbp]
+%     \centering
+%     \includegraphics[width=.3\linewidth]{example-image-a}
+%     \caption{\label{fig:fig-placeholder}图片占位符}
+% \end{figure}
+
+% \section{算法示例}
+
+% \par 如\autoref{alg:sample}，这是一个算法
+
+% \begin{algorithm}[H]
+%     \begin{algorithmic} % enter the algorithmic environment
+%         \REQUIRE $n \geq 0 \vee x \neq 0$
+%         \ENSURE $y = x^n$
+%         \STATE $y \Leftarrow 1$
+%         \IF{$n < 0$}
+%             \STATE $X \Leftarrow 1 / x$
+%             \STATE $N \Leftarrow -n$
+%         \ELSE
+%             \STATE $X \Leftarrow x$
+%             \STATE $N \Leftarrow n$
+%         \ENDIF
+%         \WHILE{$N \neq 0$}
+%             \IF{$N$ is even}
+%                 \STATE $X \Leftarrow X \times X$
+%                 \STATE $N \Leftarrow N / 2$
+%             \ELSE[$N$ is odd]
+%                 \STATE $y \Leftarrow y \times X$
+%                 \STATE $N \Leftarrow N - 1$
+%             \ENDIF
+%         \ENDWHILE
+%     \end{algorithmic}
+%     \caption{\label{alg:sample}算法样例}
+% \end{algorithm}
