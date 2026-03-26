@@ -1,5 +1,15 @@
 \cleardoublepage
 \chapternonum{摘要}
 
+\noindent 本文面向数据中心中固态硬盘（SSD）的可靠性保障需求，研究在早期、有限且包含噪声的监控数据条件下的故障预测与寿命提升方法。针对SSD故障的时序演化与块级个体差异，本文基于块级错误比特计数（FBC）构建数据集与寿命标签体系，并通过时间序列交叉验证实现符合预警场景的数据划分。在故障预测阶段，提出面向早期PE档位的Lag特征与时间窗口统计特征的特征工程方法；进一步根据故障机理区分磨损相关与突发异常特征，识别并移除噪声样本。实验在FPR约束（$\leq 0.035\%$）下进行评估，结果表明所提方法可有效提升故障预测性能，在MB1型号SSD数据集上取得41.23\%的TPR（采用随机森林分类器）。在寿命提升阶段，本文将寿命预测结果转化为差异化写入策略：基于块级FBC预测强块与弱块，并对弱块保持保守阈值、对强块放宽阈值，从而在不突破纠错安全边界的前提下提升SSD整体可写入量。实验结果显示，相比统一PE阈值策略，该方法可带来约17\%的累计写入量提升。
+
+\bigskip
+\noindent \textbf{关键词}：固态硬盘；故障预测；SMART与Lag特征；集成学习；低误报率约束；寿命提升
+
 \cleardoublepage
 \chapternonum{Abstract}
+
+\noindent This thesis investigates SSD fault prediction and lifetime improvement under early-stage monitoring data that is limited and noisy. To address the temporal evolution and block-level heterogeneity of SSD degradation, we construct a dataset and lifespan labels based on block-level Fault Bit Count (FBC), and adopt time-series cross-validation for realistic warning-oriented data splitting. For fault prediction, we propose feature engineering tailored to early PE intervals, including Lag features and statistics aggregated over time windows. Moreover, guided by fault mechanisms, we separate wear-related signals and sudden abnormal signals to identify and remove noise samples. Under an FPR constraint ($\leq 0.035\%$), the proposed method achieves a TPR of 41.23\% on the MB1 SSD dataset using a Random Forest classifier. For lifetime improvement, we convert prediction results into differentiated write strategies: blocks are classified into strong and weak groups via block-level FBC-based lifespan prediction, where conservative thresholds are kept for weak blocks and relaxed thresholds are applied to strong blocks without violating the LDPC error-correction safety boundary. Experimental results show that, compared with a uniform PE-threshold policy, the proposed strategy yields about a 17\% increase in the cumulative writable amount.
+
+\bigskip
+\noindent \textbf{Keywords}：SSD fault prediction; SMART; Lag features; ensemble learning; low-FPR constraint; lifetime improvement
