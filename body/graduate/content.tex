@@ -433,23 +433,32 @@ MB1型号SSD数据集的基本统计信息如表\ref{tab:mb1-dataset-stats}所�
     \end{tabularx}
 \end{table}
 
-\subsubsection{故障分布分析}
+\subsubsection{故障特点分析}
 
-对故障盘的故障时间分布进行分析，发现：
-\begin{itemize}
-    \item 故障盘在数据集时间跨度内呈现相对均匀的分布
-    \item 部分故障盘在故障发生前存在明显的SMART属性异常变化
-    \item 故障前兆时间（从SMART异常到故障发生的时间）存在较大差异，从数天到数月不等
-\end{itemize}
+从故障时间分布看，如图\ref{fig:failure-by-month}，除2018年5月出现明显峰值外，其余月份的故障磁盘数量整体较为均匀。
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\linewidth]{figure/failure-by-month.png}
+    \caption{MB1型号SSD月度故障数量分布}
+    \label{fig:failure-by-month}
+\end{figure}
+
+
+从故障演化特征看，如图\ref{fig:failure-disk-sample}，部分故障盘在故障发生前已出现明显的SMART属性异常变化；同时，故障前兆持续时长差异较大，可从数天延续至数月。
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.82\linewidth]{figure/failure-disk-sample.png}
+    \caption{故障磁盘样本的指标时序变化示意图}
+    \label{fig:failure-disk-sample}
+\end{figure}
+
+
 
 \subsubsection{数据质量分析}
 
-对数据质量进行统计分析：
-\begin{itemize}
-    \item \textbf{缺失值比例}：各特征缺失值比例在0\%至85\%之间，平均缺失率约70\%
-    \item \textbf{异常值情况}：部分特征存在明显的异常值，可能与数据采集错误或设备故障有关
-    \item \textbf{时序连续性}：约0.1\%的SSD存在整日缺失的情况，需要特殊处理
-\end{itemize}
+在对数据进行观察后，发现各特征缺失值比例介于0\%至85\%之间，平均缺失率约为70\%；部分特征存在明显异常，包括空值描述不一致和离群值；在时序连续性方面，所有磁盘均存在特定日期日志缺失，其中约83\%的磁盘出现随机日期缺失或连续日志中断。因此，后续建模前需要对缺失值、异常值和时序断点进行针对性处理。
 
 \subsection{数据预处理}
 
@@ -510,7 +519,16 @@ MB1型号SSD数据集的基本统计信息如表\ref{tab:mb1-dataset-stats}所�
 
 SSD故障预测的目标是提前识别出在未来一段时间内可能发生故障的磁盘，以便运维人员及时采取预防措施。本研究设定预测窗口为30天，即预测未来30天内可能发生故障的SSD。
 
-在构建训练标签时，需要平衡预测的提前量和标签的准确性。若将故障发生前30天内的所有记录均标记为正样本，可能会引入噪声，因为部分故障盘在故障发生前较长时间内SMART属性可能尚未出现明显异常。为减少标签噪声，本研究设计了多种标记策略，如表\ref{tab:label-strategies}所示。
+在构建训练标签时，需要在预测提前量与标签准确性之间进行权衡。通常做法是将故障发生前一定时间窗口内的记录标记为正样本，如图\ref{fig:label-strategy}所示。
+然而，标签时间窗口并非越长越好或越短越好：窗口过短时，模型难以充分捕捉故障前的渐进变化；窗口过长时，故障SSD早期仍处于相对正常状态的样本可能被提前标记为故障，从而增加标签噪声并诱发过早预警。
+基于上述考虑，本文设计了多种标记策略（见表\ref{tab:label-strategies}）。同时，考虑到过长窗口可能引入时间信息泄露风险，本文将最长标签窗口限定为30天，不采用超过30天的标记策略。
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.78\linewidth]{figure/标签策略.jpg}
+    \caption{故障标记时间窗口示意图}
+    \label{fig:label-strategy}
+\end{figure}
 
 \begin{table}[htbp]
     \caption{\label{tab:label-strategies}故障标记策略}
@@ -647,7 +665,18 @@ Lag特征的构建基于以下假设：故障发生前的异常变化往往具�
     B_i < \theta_B \text{ 且 } A_i > \theta_A
 \end{equation}
 
-其中$\theta_A$和$\theta_B$分别为磨损特征和突发异常特征的阈值。这类故障盘仅表现出磨损特征的增加，而没有任何突发异常特征的变化，与正常磨损的健康盘在特征空间上难以区分，容易导致模型学习到错误的模式。因此，将这类样本从训练集中移除，能够提升模型对真实异常信号的识别能力。
+其中$\theta_A$和$\theta_B$分别为磨损特征和突发异常特征的阈值。这类故障盘仅表现出磨损特征的增加，而没有任何突发异常特征的变化，与正常磨损的健康盘在特征空间上难以区分，容易导致模型学习到错误的模式。
+
+如图\ref{fig:mutation-feature-noise}所示，图中红色线代表噪声硬盘样本的变化趋势，绿色线代表健康硬盘样本的变化趋势，蓝色线代表可被预测出的故障样本的变化趋势。在没有额外信息的情况下，无法将此类样本和故障样本区分。
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.72\linewidth]{figure/突变特征.jpg}
+    \caption{突变特征与噪声样本变化趋势示意图}
+    \label{fig:mutation-feature-noise}
+\end{figure}
+
+因此，将这类样本从训练集中移除，能够提升模型对真实异常信号的识别能力。
 
 \section{实验结果与分析}
 
@@ -754,7 +783,7 @@ Lag特征的构建基于以下假设：故障发生前的异常变化往往具�
 \begin{table}[htbp]
     \centering
     \caption{\label{tab:label-comparison}不同标记策略性能对比}
-    \begin{tabularx}{0.72\linewidth}{cccc}
+    \begin{tabular}{@{}lccc@{}}
         \toprule
         标记策略 & TPR & FPR & 预警时间 \\
         \midrule
@@ -764,7 +793,7 @@ Lag特征的构建基于以下假设：故障发生前的异常变化往往具�
         label\_14 & 39.21\% & $\leq 0.035\%$ & 14天 \\
         label\_30 & 39.65\% & $\leq 0.035\%$ & 30天 \\
         \bottomrule
-    \end{tabularx}
+    \end{tabular}
 \end{table}
 
 实验结果表明，随着预警时间的增加，TPR呈现先上升后下降的趋势。label\_30策略在保证预测性能的同时，能够提供足够的预警时间，因此作为最终采用的标记策略。
@@ -881,9 +910,16 @@ MLP在该表格型数据场景下未达到树模型的效果。
 
 \section{问题背景与研究目标}
 
-固态硬盘的底层结构通常由存储介质和纠错算法共同构成。当前数据中心广泛采用的 TLC 闪存（Triple-Level Cell）能够在一个存储单元中存储 3 个 bit 信息，相比 SLC/MLC 具备更高的容量密度和更低的单位成本，但其电压窗口更加紧凑、对噪声和老化更为敏感，更容易受到编程/擦除（Program Erase, PE）老化、数据保持时间和环境温度等因素的影响。
+固态硬盘的底层结构通常由存储介质和纠错算法共同构成。按单元可存储比特数划分，SLC每个单元存储1 bit，MLC（每个单元存储2 bit，TLC每个单元存储3 bit，如图\ref{fig:xlc-comparison}所示。随着单元存储比特数增加，容量密度与成本效率提升，但阈值电压分布更密集、噪声容限更低，对老化与环境扰动更敏感。当前数据中心广泛采用TLC闪存，因而其可靠性退化机理与寿命管理问题尤为关键。
 
-随着读写次数的增加，单元中的陷阱对电子的捕获能力逐渐下降；长时间静置或在高温环境下，单元中存储的电子可能从陷阱中逃逸，或者在多次读操作过程中受到读干扰，导致读出的数据与写入的数据并不一致，形成错误比特。为抵御这些错误，企业级 SSD 控制器中通常内置基于 LDPC（Low-Density Parity-Check）码的纠错模块：在写入数据前，对原始比特序列进行编码，插入冗余比特；在读取时，只要错误比特数量不超过 LDPC 的纠错能力上限，译码器便可以恢复原始数据；一旦错误比特数量超过阈值，对应块会被标记为坏块。厂商通常预留一定数量的冗余块以替换坏块，但冗余资源有限，当坏块数量过多时，SSD 的可用容量和并行写入能力都会明显下降。
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.72\linewidth]{figure/xlc.png}
+    \caption{SLC、MLC与TLC存储方式对比示意图}
+    \label{fig:xlc-comparison}
+\end{figure}
+
+随着读写次数的增加，单元中的陷阱对电子的捕获能力逐渐下降；长时间静置或在高温环境下，单元中存储的电子可能从陷阱中逃逸，或者在多次读操作过程中受到读干扰，导致读出的数据与写入的数据并不一致，形成错误比特。为抵御这些错误，企业级 SSD 控制器中通常内置基于 LDPC 码的纠错模块：在写入数据前，对原始比特序列进行编码，插入冗余比特；在读取时，只要错误比特数量不超过 LDPC 的纠错能力上限，译码器便可以恢复原始数据；一旦错误比特数量超过阈值，对应块会被标记为坏块。厂商通常预留一定数量的冗余块以替换坏块，但冗余资源有限，当坏块数量过多时，SSD 的可用容量和并行写入能力都会明显下降。
 
 在传统工程实践中，为了简化寿命管理策略，厂商往往采用统一 PE 阈值的粗粒度策略：不区分块间差异，只要某个块的 PE 次数达到预设上限（例如 8500 次），便认为整盘已接近寿命终点。该策略隐含地假定所有块具有相同的耐久性，但实验表明，在相同使用条件下，不同块的错误比特计数（Fault Bit Count, FBC）随 PE 增长的速度存在显著差异：部分弱块在较低 PE 次数下就接近纠错能力上限，而部分强块即便在较高 PE 档位 FBC 仍然较低，尚有较大冗余空间。简单采用统一阈值会导致强块剩余可写入能力被浪费，如下图4.1所示。
 
