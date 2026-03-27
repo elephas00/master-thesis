@@ -139,14 +139,15 @@ Zhou 等人\cite{zhou2023proactive} 研究了华为数据中心采集的 SSD 私
 
 \section{论文组织结构}
 
-论文分为五章，全文的组织结构如下：
+论文分为六章，全文的组织结构如下：
 
 \begin{enumerate}
     \item 第一章：绪论。阐述数据中心存储规模与数据可靠性面临的挑战，介绍 HDD 与 SSD 的差异及 SSD 故障对系统的影响；综述硬盘故障预测与容灾机制的研究背景，以及国内外在 SSD 故障预测与寿命优化方面的研究现状；明确本文的研究意义、研究内容与论文组织结构。
     \item 第二章：相关理论基础。介绍 NAND 闪存的基本结构与读写擦除机制、SMART 监控技术及其指标含义，以及机器学习在故障预测中常用的评价指标与基本方法，为后续章节的方法设计与实验分析提供理论依据。
     \item 第三章：SSD 故障预测研究。基于阿里云数据中心 MLC-SSD 的 SMART 数据，分析数据分布与故障特性；设计特征工程与机器学习故障预测方法，重点探索在低假阳性率（FPR）约束下提升预测准确率的策略；给出实验设置、对比基线及结果分析，并对方法的有效性与局限性进行讨论。
     \item 第四章：SSD 寿命提升研究。介绍 SSD 块级别错误编码计数（FBC）等细粒度数据的含义与获取方式；分析 FBC 与写入模式、寿命及可靠性的关系；设计基于二分类模型的写入策略或寿命优化方法，在保障数据安全的前提下探索提升 SSD 写入量与使用寿命的可行方案，并给出实验验证与结果分析。
-    \item 第五章：总结与展望。归纳本文在 SSD 故障预测与寿命提升两方面的主要工作与贡献，总结所得结论；指出当前研究的不足，并对后续可拓展的研究方向进行展望。
+    \item 第五章：智慧SSD运维软件设计与实现。围绕工程落地需求，给出软件需求分析与总体设计、系统架构与关键流程、数据库表设计以及系统实现与功能落地验证，说明本文方法在实际运维场景中的可部署性与可用性。
+    \item 第六章：总结与展望。归纳本文在 SSD 故障预测、寿命提升与系统落地方面的主要工作与贡献，总结所得结论；指出当前研究的不足，并对后续可拓展的研究方向进行展望。
 \end{enumerate}
 
 \chapter{相关理论基础}
@@ -1170,6 +1171,161 @@ MLP在该表格型数据场景下未达到树模型的效果。
 
 这一结果表明，结合块级错误行为建模与集成学习的寿命预测方法，能够在不牺牲可靠性的前提下显著提升 SSD 的可用寿命，为后续在真实 SSD 控制器中集成寿命预测与精细化写入调度提供了有力支撑和实验依据。
 
+
+\chapter{智慧SSD运维软件设计与实现}
+
+\section{需求分析与总体设计}
+为验证前文提出的 SSD 故障预测与寿命提升方法在真实运维场景中的可落地性，本文进一步设计并实现智慧SSD运维软件。系统建设目标包括：对SSD资产、运行日志与故障事件进行统一管理；提供基于历史SMART日志的故障预警能力；形成“预警生成--人工确认/忽略--结果沉淀”的闭环流程；为后续策略优化与模型迭代提供可追溯的数据基础。
+
+结合数据中心运维实际，系统功能需求可归纳为四类：一是基础数据管理需求，包括磁盘信息管理、日志记录管理与故障记录管理；二是预测分析需求，即基于日志数据定期生成预警并输出可解释的关联信息；三是交互与可视化需求，包括检索、分页、详情查看、状态更新等高频操作；四是可扩展需求，即支持后续替换或升级预测模型与规则引擎。
+
+在总体设计上，系统采用前后端分离思路。前端技术栈采用 Vue3 + TypeScript + Vite，基于组件化方式实现登录注册、磁盘管理、日志管理、故障管理与预测分析等页面，并通过统一的表格、分页、检索与弹窗交互机制提升可维护性。后端采用 REST 风格接口服务架构，围绕业务服务层、数据访问层和任务调度层组织实现：业务服务层负责预警状态流转与处置逻辑，数据访问层负责磁盘、日志、故障与预警数据的持久化读写，任务调度层按周期触发预测任务并写入预警结果。该设计在满足当前功能需求的同时，兼顾了后续模型替换、模块扩展与工程维护成本。
+
+\section{系统架构与关键流程}
+系统总体架构如图\ref{fig:software-structure}所示，采用“业务层--服务层--数据层--基础层”的四层设计。业务层面向运维场景，承载磁盘管理与预警处理等核心业务功能；服务层负责磁盘数据管理、日志数据管理、故障数据管理与预警数据管理等通用服务能力；数据层以 MySQL 为核心，统一存储磁盘主数据、SMART 日志、故障记录与预警记录；基础层提供计算资源、存储系统、网络与防火墙等运行环境保障。
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.95\linewidth]{figure/software_structure.png}
+    \caption{智慧SSD运维软件总体架构图}
+    \label{fig:software-structure}
+\end{figure}
+
+核心业务流程可概括为：首先，运维人员录入或导入磁盘基础信息，并持续写入 SMART 日志；其次，服务层按周期对增量日志进行预处理与预测计算，生成预警记录并写入数据层；最后，运维人员在预警页面查看详情并执行“确认故障”或“忽略预警”操作，系统同步更新预警状态并在需要时沉淀故障记录。通过该流程，系统实现了从数据采集、预测输出到人工处置的闭环管理。
+
+\section{数据库表设计}
+为支撑上述功能，系统围绕业务对象设计了四类核心数据表。
+
+\subsection{磁盘信息表设计}
+磁盘信息表用于维护SSD资产主数据，是日志表、故障表与预警表的关联基础。其字段设计如表\ref{tab:disk-info-schema}所示。
+
+\begin{table}[htbp]
+    \centering
+    \caption{\label{tab:disk-info-schema}磁盘信息表字段设计}
+    \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{2.8cm} >{\raggedright\arraybackslash}p{2.6cm} X >{\raggedright\arraybackslash}p{1.8cm}}
+        \toprule
+        字段名 & 字段类型 & 字段表述 & 备注 \\
+        \midrule
+        id & BIGINT & 记录主键 & 主键 \\
+        serial\_number & VARCHAR & 磁盘序列号 & \\
+        model\_type & VARCHAR & 磁盘型号 & \\
+        capacity & BIGINT & 容量（单位：KB） & \\
+        manufacturer & VARCHAR & 制造商 & \\
+        created\_at & DATETIME & 记录创建时间 & \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+\subsection{SMART日志表设计}
+SMART日志表用于按时间粒度保存磁盘运行日志，既支撑在线预警，也可用于离线建模。其字段设计如表\ref{tab:smart-log-schema}所示。
+
+\begin{table}[htbp]
+    \centering
+    \caption{\label{tab:smart-log-schema}SMART日志表字段设计}
+    \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{2.8cm} >{\raggedright\arraybackslash}p{2.6cm} X >{\raggedright\arraybackslash}p{1.8cm}}
+        \toprule
+        字段名 & 字段类型 & 字段表述 & 备注 \\
+        \midrule
+        id & BIGINT & 记录主键 & 主键 \\
+        serial\_number & VARCHAR & 关联磁盘序列号 & 外键 \\
+        ds & DATE & 日志采集日期 &  \\
+        raw\_1 & DECIMAL & SMART RAW\_1 &  \\
+        raw\_5 & DECIMAL & SMART RAW\_5 &  \\
+        raw\_9 & DECIMAL & SMART RAW\_9 &  \\
+        raw\_11 & DECIMAL & SMART RAW\_11 &  \\
+        raw\_180 & DECIMAL & SMART RAW\_180 &  \\
+        raw\_194 & DECIMAL & SMART RAW\_194 &  \\
+        raw\_195 & DECIMAL & SMART RAW\_195 &  \\
+        created\_at & DATETIME & 记录创建时间 &  \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+\subsection{故障记录表设计}
+故障记录表用于维护已确认故障事件，用于评估预警有效性并沉淀真实故障样本。其字段设计如表\ref{tab:fault-schema}所示。
+
+\begin{table}[htbp]
+    \centering
+    \caption{\label{tab:fault-schema}故障记录表字段设计}
+    \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{2.8cm} >{\raggedright\arraybackslash}p{2.6cm} X >{\raggedright\arraybackslash}p{1.8cm}}
+        \toprule
+        字段名 & 字段类型 & 字段表述 & 备注 \\
+        \midrule
+        id & BIGINT & 记录主键 & 主键 \\
+        serial\_number & VARCHAR & 关联磁盘序列号 & 外键 \\
+        fault\_date & DATE & 故障发生日期 &  \\
+        source & VARCHAR & 来源（人工确认/自动写入） &  \\
+        created\_at & DATETIME & 记录创建时间 &  \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+\subsection{预警记录表设计}
+预警记录表用于保存模型输出结果与处置状态，是预测分析页面的直接数据来源，也是形成运维闭环的关键数据表。其字段设计如表\ref{tab:warning-schema}所示。
+
+\begin{table}[htbp]
+    \centering
+    \caption{\label{tab:warning-schema}预警记录表字段设计}
+    \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{2.8cm} >{\raggedright\arraybackslash}p{2.6cm} X >{\raggedright\arraybackslash}p{1.8cm}}
+        \toprule
+        字段名 & 字段类型 & 字段表述 & 备注 \\
+        \midrule
+        id & BIGINT & 记录主键 & 主键 \\
+        serial\_number & VARCHAR & 关联磁盘序列号 & 外键 \\
+        warning\_date & DATE & 预警生成日期 &  \\
+        status & VARCHAR & 处置状态（pending/confirmed/ignored） &  \\
+        score & DECIMAL & 预警评分或概率 &  \\
+        logs\_snapshot & JSON & 关联日志快照 &  \\
+        handled\_at & DATETIME & 处置时间 &  \\
+        created\_at & DATETIME & 记录创建时间 &  \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+在表间关系上，磁盘信息表与其余三表通过磁盘序列号关联；日志表与预警表可按时间窗口进行关联查询，以支持预警溯源与详情展示。该设计在保证结构清晰的同时，满足了当前系统的数据一致性与查询性能需求。
+
+\section{系统实现与功能落地}
+基于上述设计，本文完成了智慧SSD运维软件原型系统实现。系统采用前后端分离架构：前端基于 Vue3 与 TypeScript 实现页面组织与交互逻辑，后端基于JAVA分层接口服务实现数据读写、任务调度与预警状态流转。整体实现围绕“数据管理--预测预警--人工处置--结果沉淀”的闭环目标展开。
+
+\subsection{管理员模块实现}
+在后台管理模块中，系统按业务对象划分为磁盘管理、日志管理与故障管理三个核心单元。磁盘管理模块负责维护 SSD 基础信息，支持列表查询、新增、编辑与删除；日志管理模块负责维护 SMART 日志记录，支持按序列号与日期检索并进行增删改查；故障管理模块负责维护已确认故障事件，支持故障日期登记、回溯查询与记录管理。通过模块化划分，系统将运维高频操作统一纳入标准化流程，提升了后台管理效率。
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.88\linewidth]{figure/磁盘管理页.png}
+    \caption{磁盘管理界面}
+    \label{fig:ssd-disk-ui}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.88\linewidth]{figure/日志管理页.png}
+    \caption{日志管理界面}
+    \label{fig:ssd-log-ui}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.88\linewidth]{figure/故障管理页.png}
+    \caption{故障管理界面}
+    \label{fig:ssd-fault-ui}
+\end{figure}
+
+\subsection{预警生成与处置流程实现}
+预警功能由离线任务与在线服务协同完成。离线任务按固定周期拉取增量 SMART 日志，完成数据清洗、特征构造与模型推理后生成预警记录，并写入预警表。在线服务根据页面请求返回预警列表、关联日志明细与当前处置状态。运维人员可在故障处理页面执行“确认故障”或“忽略预警”操作，系统同步更新预警状态，并在确认故障时写入故障记录表，形成从模型输出到运维动作的闭环链路。
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.88\linewidth]{figure/故障处理页.png}
+    \caption{故障处理界面}
+    \label{fig:ssd-warning-flow-ui}
+\end{figure}
+
+\subsection{功能落地效果分析}
+从工程落地效果看，系统已实现以下关键能力：第一，完成 SSD 资产与运行日志的结构化管理，满足日常数据治理需求；第二，实现预警记录与关联日志的联动展示，提升故障定位效率；第三，打通预警状态流转与故障沉淀流程，使模型输出可直接转化为可执行运维动作；第四，为后续模型重训练、阈值优化与策略迭代提供持续数据闭环。综上，系统已具备在实际运维场景中开展小规模试运行与持续优化的基础条件。
+
+\section{本章小结}
+本章围绕智慧SSD运维软件的工程落地展开，完成了需求分析与总体设计、系统架构与关键流程梳理、数据库表设计以及系统实现说明。通过将前文故障预测与寿命提升方法嵌入统一的软件流程，本文构建了可运行、可扩展、可闭环的运维原型系统，验证了相关研究成果在实际场景中的应用可行性。
 
 \chapter{总结与展望}
 

@@ -1,0 +1,2468 @@
+
+
+
+
+
+
+
+
+
+
+
+智慧SSD运维软件
+V 1.0
+
+
+
+
+
+源程序
+
+
+
+
+
+<script setup lang="ts">
+import { ref } from 'vue'
+import LoginPage from './components/LoginPage.vue'
+import DisksPage from './components/DisksPage.vue'
+import LogsPage from './components/LogsPage.vue'
+import FaultsPage from './components/FaultsPage.vue'
+import AnalyticsPage from './components/AnalyticsPage.vue'
+
+type Tab = 'disks' | 'logs' | 'faults' | 'analytics'
+
+const isLoggedIn = ref(false)
+const activeTab = ref<Tab>('disks')
+
+const tabs = [
+  { id: 'disks' as Tab, label: '磁盘管理', component: DisksPage },
+  { id: 'logs' as Tab, label: '日志管理', component: LogsPage },
+  { id: 'faults' as Tab, label: '故障管理', component: FaultsPage },
+  { id: 'analytics' as Tab, label: '预测分析', component: AnalyticsPage },
+]
+
+const currentComponent = () => {
+  return tabs.find(t => t.id === activeTab.value)?.component
+}
+
+function handleLogin(username: string, password: string) {
+  console.log('Login attempt:', username, password)
+  // Mock login - accept any credentials for now
+  alert(`登录成功：欢迎，${username}!`)
+  isLoggedIn.value = true
+}
+
+function handleRegister(username: string, password: string) {
+  console.log('Register attempt:', username, password)
+  // Mock registration
+  alert(`注册成功：欢迎，${username}！已为您自动登录`)
+  isLoggedIn.value = true
+}
+</script>
+
+<template>
+  <div class="app-container">
+    <!-- Login Page -->
+    <LoginPage
+      v-if="!isLoggedIn"
+      @login="handleLogin"
+      @register="handleRegister"
+    />
+
+    <!-- Main Application -->
+    <template v-else>
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <h2>智慧SSD运维软件V1.0</h2>
+        </div>
+        <nav class="nav-menu">
+          <button
+            v-for="tab in tabs"
+            :key="tab.id"
+            :class="['nav-item', { active: activeTab === tab.id }]"
+            @click="activeTab = tab.id"
+          >
+            {{ tab.label }}
+          </button>
+        </nav>
+      </aside>
+      <main class="main-content">
+        <div class="content-wrapper">
+          <component :is="currentComponent()" />
+        </div>
+      </main>
+    </template>
+  </div>
+</template>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.app-container {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+.sidebar {
+  width: 240px;
+  min-width: 240px;
+  flex-shrink: 0;
+  background: #1e1e1e;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #333;
+  position: relative;
+}
+
+.sidebar-header {
+  padding: 24px 20px;
+  border-bottom: 1px solid #333;
+}
+
+.sidebar-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.nav-menu {
+  flex: 1;
+  padding: 12px 0;
+}
+
+.nav-item {
+  width: 100%;
+  padding: 12px 20px;
+  text-align: left;
+  background: transparent;
+  border: none;
+  color: #ccc;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.nav-item:hover {
+  background: #2a2a2a;
+  color: #fff;
+}
+
+.nav-item.active {
+  background: #3a82f6;
+  color: #fff;
+}
+
+.main-content {
+  flex: 1;
+  min-width: 0;
+  background: #f5f5f5;
+  overflow-y: auto;
+}
+
+.content-wrapper {
+  padding: 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+</style>
+import { createApp } from 'vue'
+import './style.css'
+import App from './App.vue'
+
+createApp(App).mount('#app')
+<script setup lang="ts">
+import { ref, reactive } from 'vue'
+
+const emit = defineEmits<{
+  login: [username: string, password: string]
+  register: [username: string, password: string]
+}>()
+
+const isLoginMode = ref(true)
+const formData = reactive({
+  username: '',
+  password: ''
+})
+const errorMessage = ref('')
+
+function toggleMode() {
+  isLoginMode.value = !isLoginMode.value
+  errorMessage.value = ''
+  formData.username = ''
+  formData.password = ''
+}
+
+function handleSubmit() {
+  if (!formData.username.trim()) {
+    errorMessage.value = '请输入用户名'
+    return
+  }
+  if (!formData.password.trim()) {
+    errorMessage.value = '请输入密码'
+    return
+  }
+  
+  errorMessage.value = ''
+  
+  if (isLoginMode.value) {
+    emit('login', formData.username, formData.password)
+  } else {
+    emit('register', formData.username, formData.password)
+  }
+}
+</script>
+
+<template>
+  <div class="login-container">
+    <div class="login-card">
+      <div class="logo-section">
+        <h1 class="system-title">智慧SSD运维软件V1.0</h1>
+        <p class="system-subtitle">SSD Intelligent Operations Software</p>
+      </div>
+
+      <div class="form-section">
+        <div class="mode-switch">
+          <button
+            :class="['mode-btn', { active: isLoginMode }]"
+            @click="toggleMode"
+          >
+            登录
+          </button>
+          <button
+            :class="['mode-btn', { active: !isLoginMode }]"
+            @click="toggleMode"
+          >
+            注册
+          </button>
+        </div>
+
+        <form @submit.prevent="handleSubmit" class="login-form">
+          <div class="form-group">
+            <label for="username">用户名</label>
+            <input
+              id="username"
+              v-model="formData.username"
+              type="text"
+              placeholder="请输入用户名"
+              autocomplete="username"
+              class="form-input"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="password">密码</label>
+            <input
+              id="password"
+              v-model="formData.password"
+              type="password"
+              placeholder="请输入密码"
+              autocomplete="current-password"
+              class="form-input"
+            />
+          </div>
+
+          <div v-if="errorMessage" class="error-message">
+            {{ errorMessage }}
+          </div>
+
+          <button type="submit" class="submit-btn">
+            {{ isLoginMode ? '登录' : '注册' }}
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.login-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.login-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 440px;
+  overflow: hidden;
+}
+
+.logo-section {
+  background: linear-gradient(135deg, #3a82f6 0%, #2563eb 100%);
+  padding: 48px 32px;
+  text-align: center;
+  color: white;
+}
+
+.system-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  letter-spacing: 0.5px;
+}
+
+.system-subtitle {
+  font-size: 14px;
+  opacity: 0.9;
+  margin: 0;
+  font-weight: 300;
+  letter-spacing: 1px;
+}
+
+.form-section {
+  padding: 32px;
+}
+
+.mode-switch {
+  display: flex;
+  background: #f3f4f6;
+  border-radius: 8px;
+  padding: 4px;
+  margin-bottom: 32px;
+  gap: 4px;
+}
+
+.mode-btn {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  color: #6b7280;
+}
+
+.mode-btn.active {
+  background: white;
+  color: #3a82f6;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.mode-btn:hover:not(.active) {
+  color: #4b5563;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.form-input {
+  padding: 14px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 15px;
+  transition: all 0.3s;
+  outline: none;
+}
+
+.form-input:focus {
+  border-color: #3a82f6;
+  box-shadow: 0 0 0 3px rgba(58, 130, 246, 0.1);
+}
+
+.form-input::placeholder {
+  color: #9ca3af;
+}
+
+.error-message {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.submit-btn {
+  padding: 16px;
+  background: linear-gradient(135deg, #3a82f6 0%, #2563eb 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 12px rgba(58, 130, 246, 0.3);
+}
+
+.submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(58, 130, 246, 0.4);
+}
+
+.submit-btn:active {
+  transform: translateY(0);
+}
+</style>
+
+<script setup lang="ts">
+import { onMounted, reactive, h, ref } from 'vue'
+import DiskTable from './DiskTable.vue'
+import PageHeader from './PageHeader.vue'
+import { listAnalytics, confirmWarning, ignoreWarning, type AnalyticsItem, type LogEntry } from '../api/mock'
+
+type Column<T> = { key: string; title: string; render?: (value: any, row: T) => unknown }
+type Pagination = { page: number; pageSize: number; total: number; onChange: (page: number) => void }
+
+type State = {
+  loading: boolean
+  page: number
+  pageSize: number
+  total: number
+  data: AnalyticsItem[]
+  searchQuery: string
+}
+
+const state = reactive<State>({ 
+  loading: false, 
+  page: 1, 
+  pageSize: 10, 
+  total: 0, 
+  data: [],
+  searchQuery: ''
+})
+
+const expandedRows = ref<Set<string>>(new Set())
+
+function toggleExpand(row: AnalyticsItem) {
+  if (expandedRows.value.has(row.id)) {
+    expandedRows.value.delete(row.id)
+  } else {
+    expandedRows.value.add(row.id)
+  }
+}
+
+function handleDetail(row: AnalyticsItem) {
+  console.log('View details for:', row)
+  alert(`查看详细信息：${row.serial_number}`)
+}
+
+async function handleConfirm(row: AnalyticsItem) {
+  if (confirm(`确定要将 ${row.serial_number} 标记为故障吗？`)) {
+    console.log('Confirm fault:', row.id)
+    await confirmWarning(row.id)
+    load() // Reload data to update status
+  }
+}
+
+async function handleIgnore(row: AnalyticsItem) {
+  if (confirm(`确定要忽略 ${row.serial_number} 的预警吗？`)) {
+    console.log('Ignore warning:', row.id)
+    await ignoreWarning(row.id)
+    load() // Reload data to update status
+  }
+}
+
+const columns: Column<AnalyticsItem>[] = [
+  { key: 'id', title: 'ID' },
+  { key: 'serial_number', title: '序列号' },
+  { key: 'warning_date', title: '预警日期' },
+  {
+    key: 'logs',
+    title: '日志信息',
+    render: (_value: any, row: AnalyticsItem) => {
+      const isExpanded = expandedRows.value.has(row.id)
+      const sortedLogs = [...row.logs].sort((a, b) => b.date.localeCompare(a.date))
+      
+      return h('div', { style: 'width: 100%;' }, [
+        h('button', {
+          onClick: () => toggleExpand(row),
+          style: 'padding: 4px 8px; background: #3a82f6; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;',
+        }, isExpanded ? '收起' : `展开 (${row.logs.length}条)`),
+        isExpanded && h('div', { style: 'margin-top: 8px;' }, [
+          h('table', { style: 'width: 100%; border-collapse: collapse; font-size: 12px;' }, [
+            h('thead', {}, [
+              h('tr', {}, [
+                h('th', { style: 'padding: 6px; border: 1px solid #ddd; background: #f9fafb; text-align: left;' }, '日期'),
+                h('th', { style: 'padding: 6px; border: 1px solid #ddd; background: #f9fafb; text-align: left;' }, 'RAW 1'),
+                h('th', { style: 'padding: 6px; border: 1px solid #ddd; background: #f9fafb; text-align: left;' }, 'RAW 5'),
+                h('th', { style: 'padding: 6px; border: 1px solid #ddd; background: #f9fafb; text-align: left;' }, 'RAW 9'),
+                h('th', { style: 'padding: 6px; border: 1px solid #ddd; background: #f9fafb; text-align: left;' }, 'RAW 11'),
+                h('th', { style: 'padding: 6px; border: 1px solid #ddd; background: #f9fafb; text-align: left;' }, 'RAW 180'),
+                h('th', { style: 'padding: 6px; border: 1px solid #ddd; background: #f9fafb; text-align: left;' }, 'RAW 194'),
+                h('th', { style: 'padding: 6px; border: 1px solid #ddd; background: #f9fafb; text-align: left;' }, 'RAW 195'),
+              ])
+            ]),
+            h('tbody', {}, sortedLogs.map(log => 
+              h('tr', {}, [
+                h('td', { style: 'padding: 6px; border: 1px solid #f0f0f0;' }, log.date),
+                h('td', { style: 'padding: 6px; border: 1px solid #f0f0f0;' }, log.raw_1),
+                h('td', { style: 'padding: 6px; border: 1px solid #f0f0f0;' }, log.raw_5),
+                h('td', { style: 'padding: 6px; border: 1px solid #f0f0f0;' }, log.raw_9),
+                h('td', { style: 'padding: 6px; border: 1px solid #f0f0f0;' }, log.raw_11),
+                h('td', { style: 'padding: 6px; border: 1px solid #f0f0f0;' }, log.raw_180),
+                h('td', { style: 'padding: 6px; border: 1px solid #f0f0f0;' }, log.raw_194),
+                h('td', { style: 'padding: 6px; border: 1px solid #f0f0f0;' }, log.raw_195),
+              ])
+            ))
+          ])
+        ])
+      ])
+    }
+  },
+  {
+    key: 'actions',
+    title: '操作',
+    render: (_value: any, row: AnalyticsItem) =>
+      h('div', { style: 'display: flex; gap: 8px;' }, [
+        h('button', {
+          class: 'action-btn detail-btn',
+          onClick: () => handleDetail(row)
+        }, '详细信息'),
+        row.status === 'confirmed' 
+          ? h('span', { style: 'padding: 6px 12px; background: #dcfce7; color: #15803d; border-radius: 4px; font-size: 13px; font-weight: 600;' }, '已确认')
+          : row.status === 'ignored'
+          ? h('span', { style: 'padding: 6px 12px; background: #f3f4f6; color: #6b7280; border-radius: 4px; font-size: 13px; font-weight: 600;' }, '已忽略')
+          : h('div', { style: 'display: flex; gap: 4px;' }, [
+              h('button', {
+                class: 'action-btn confirm-btn',
+                onClick: () => handleConfirm(row)
+              }, '确认故障'),
+              h('button', {
+                class: 'action-btn ignore-btn',
+                onClick: () => handleIgnore(row)
+              }, '忽略预警')
+            ])
+      ])
+  },
+]
+
+async function load() {
+  state.loading = true
+  try {
+    const res = await listAnalytics({ 
+      page: state.page, 
+      pageSize: state.pageSize,
+      q: state.searchQuery || undefined,
+      sortBy: 'warning_date',
+      order: 'desc'
+    })
+    state.data = res.data
+    state.total = res.total
+  } finally {
+    state.loading = false
+  }
+}
+
+function onPageChange(p: number) {
+  state.page = p
+  load()
+}
+
+function onSearch(query: string) {
+  state.searchQuery = query
+  state.page = 1
+  load()
+}
+
+onMounted(load)
+
+const pagination: Pagination = {
+  get page() { return state.page },
+  get pageSize() { return state.pageSize },
+  get total() { return state.total },
+  onChange: onPageChange,
+}
+</script>
+
+<template>
+  <div class="page-container">
+    <PageHeader 
+      title="预测分析" 
+      search-placeholder="预警搜索" 
+      @search="onSearch"
+    />
+    <div class="page-body">
+      <DiskTable :data="state.data" :columns="columns" :pagination="pagination" />
+      <div v-if="state.loading" class="loading">Loading...</div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.page-container {
+  width: 100%;
+}
+
+.page-body {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.loading {
+  margin-top: 16px;
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+}
+
+:deep(.action-btn) {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+:deep(.detail-btn) {
+  background: #3a82f6;
+  color: white;
+}
+
+:deep(.detail-btn:hover) {
+  background: #2563eb;
+}
+
+:deep(.confirm-btn) {
+  background: #f59e0b;
+  color: white;
+}
+
+:deep(.confirm-btn:hover) {
+  background: #d97706;
+}
+
+:deep(.ignore-btn) {
+  background: #6b7280;
+  color: white;
+}
+
+:deep(.ignore-btn:hover) {
+  background: #4b5563;
+}
+</style>
+<script setup lang="ts">
+import { onMounted, reactive, ref, h } from 'vue'
+import DiskTable from './DiskTable.vue'
+import PageHeader from './PageHeader.vue'
+import { listSimpleDisks, type SimpleDisk } from '../api/mock'
+
+type Column<T> = { key: string; title: string; render?: (value: any, row: T) => unknown }
+type Pagination = { page: number; pageSize: number; total: number; onChange: (page: number) => void }
+
+type State = {
+  loading: boolean
+  page: number
+  pageSize: number
+  total: number
+  data: SimpleDisk[]
+  searchQuery: string
+}
+
+const showAddDialog = ref(false)
+const formData = reactive({
+  serial_number: '',
+  raw_1: '0',
+  raw_5: '0',
+  raw_9: '0',
+  raw_11: '0',
+  raw_180: '0',
+  raw_194: '0',
+  raw_195: '0'
+})
+
+const state = reactive<State>({ 
+  loading: false, 
+  page: 1, 
+  pageSize: 10, 
+  total: 0, 
+  data: [],
+  searchQuery: ''
+})
+
+function handleDetail(row: SimpleDisk) {
+  console.log('View details for:', row)
+  alert(`查看详细信息：${row.serial_number}`)
+}
+
+function handleDelete(row: SimpleDisk) {
+  if (confirm(`确定要删除日志 ${row.serial_number} 吗？`)) {
+    console.log('Delete log:', row.serial_number)
+    // TODO: 实际删除逻辑
+  }
+}
+
+function handleAdd() {
+  showAddDialog.value = true
+}
+
+function closeAddDialog() {
+  showAddDialog.value = false
+  formData.serial_number = ''
+  formData.raw_1 = '0'
+  formData.raw_5 = '0'
+  formData.raw_9 = '0'
+  formData.raw_11 = '0'
+  formData.raw_180 = '0'
+  formData.raw_194 = '0'
+  formData.raw_195 = '0'
+}
+
+function submitAddForm() {
+  console.log('Add log:', formData)
+  alert(`添加日志成功：${formData.serial_number}`)
+  closeAddDialog()
+  load()
+}
+
+const columns: Column<SimpleDisk>[] = [
+  { key: 'id', title: 'ID' },
+  { key: 'serial_number', title: '序列号' },
+  { key: 'ds', title: 'Date' },
+  { key: 'raw_1', title: 'RAW 1' },
+  { key: 'raw_5', title: 'RAW 5' },
+  { key: 'raw_9', title: 'RAW 9' },
+  { key: 'raw_11', title: 'RAW 11' },
+  { key: 'raw_180', title: 'RAW 180' },
+  { key: 'raw_194', title: 'RAW 194' },
+  { key: 'raw_195', title: 'RAW 195' },
+  {
+    key: 'actions',
+    title: '操作',
+    render: (_value: any, row: SimpleDisk) =>
+      h('div', { style: 'display: flex; gap: 8px;' }, [
+        h('button', {
+          class: 'action-btn detail-btn',
+          onClick: () => handleDetail(row)
+        }, '详细信息'),
+        h('button', {
+          class: 'action-btn delete-btn',
+          onClick: () => handleDelete(row)
+        }, '删除日志')
+      ])
+  },
+]
+
+async function load() {
+  state.loading = true
+  try {
+    const res = await listSimpleDisks({ 
+      page: state.page, 
+      pageSize: state.pageSize,
+      q: state.searchQuery || undefined
+    })
+    state.data = res.data
+    state.total = res.total
+  } finally {
+    state.loading = false
+  }
+}
+
+function onPageChange(p: number) {
+  state.page = p
+  load()
+}
+
+function onSearch(query: string) {
+  state.searchQuery = query
+  state.page = 1
+  load()
+}
+
+onMounted(load)
+
+const pagination: Pagination = {
+  get page() { return state.page },
+  get pageSize() { return state.pageSize },
+  get total() { return state.total },
+  onChange: onPageChange,
+}
+</script>
+
+<template>
+  <div class="page-container">
+    <PageHeader 
+      title="日志管理" 
+      search-placeholder="日志搜索" 
+      :show-add-button="true"
+      add-button-label="添加日志"
+      @search="onSearch"
+      @add="handleAdd"
+    />
+    <div class="page-body">
+      <DiskTable :data="state.data" :columns="columns" :pagination="pagination" />
+      <div v-if="state.loading" class="loading">Loading...</div>
+    </div>
+
+    <!-- Add Dialog -->
+    <div v-if="showAddDialog" class="dialog-overlay" @click="closeAddDialog">
+      <div class="dialog-content" @click.stop>
+        <div class="dialog-header">
+          <h2>添加日志</h2>
+          <button class="close-btn" @click="closeAddDialog">×</button>
+        </div>
+        <div class="dialog-body">
+          <div class="form-group">
+            <label>序列号 *</label>
+            <input v-model="formData.serial_number" type="text" placeholder="请输入序列号" />
+          </div>
+          <div class="form-group">
+            <label>RAW 1</label>
+            <input v-model="formData.raw_1" type="number" placeholder="RAW 1" />
+          </div>
+          <div class="form-group">
+            <label>RAW 5</label>
+            <input v-model="formData.raw_5" type="number" placeholder="RAW 5" />
+          </div>
+          <div class="form-group">
+            <label>RAW 9</label>
+            <input v-model="formData.raw_9" type="number" placeholder="RAW 9" />
+          </div>
+          <div class="form-group">
+            <label>RAW 11</label>
+            <input v-model="formData.raw_11" type="number" placeholder="RAW 11" />
+          </div>
+          <div class="form-group">
+            <label>RAW 180</label>
+            <input v-model="formData.raw_180" type="number" placeholder="RAW 180" />
+          </div>
+          <div class="form-group">
+            <label>RAW 194</label>
+            <input v-model="formData.raw_194" type="number" placeholder="RAW 194" />
+          </div>
+          <div class="form-group">
+            <label>RAW 195</label>
+            <input v-model="formData.raw_195" type="number" placeholder="RAW 195" />
+          </div>
+        </div>
+        <div class="dialog-footer">
+          <button class="btn-cancel" @click="closeAddDialog">取消</button>
+          <button class="btn-submit" @click="submitAddForm">确定</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.page-container {
+  width: 100%;
+}
+
+.page-body {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.loading {
+  margin-top: 16px;
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+}
+
+:deep(.action-btn) {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+:deep(.detail-btn) {
+  background: #3a82f6;
+  color: white;
+}
+
+:deep(.detail-btn:hover) {
+  background: #2563eb;
+}
+
+:deep(.delete-btn) {
+  background: #ef4444;
+  color: white;
+}
+
+:deep(.delete-btn:hover) {
+  background: #dc2626;
+}
+
+/* Dialog styles */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.dialog-content {
+  background: white;
+  border-radius: 8px;
+  width: 500px;
+  max-width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.dialog-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e1e1e;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #666;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.dialog-body {
+  padding: 24px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #3a82f6;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.btn-cancel,
+.btn-submit {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancel {
+  background: #f3f4f6;
+  color: #666;
+}
+
+.btn-cancel:hover {
+  background: #e5e7eb;
+}
+
+.btn-submit {
+  background: #3a82f6;
+  color: white;
+}
+
+.btn-submit:hover {
+  background: #2563eb;
+}
+</style>
+<script setup lang="ts">
+import { ref } from 'vue'
+
+const props = defineProps<{
+  title: string
+  searchPlaceholder: string
+  searchValue?: string
+  showAddButton?: boolean
+  addButtonLabel?: string
+}>()
+
+const emit = defineEmits<{
+  search: [value: string]
+  add: []
+}>()
+
+const searchQuery = ref(props.searchValue || '')
+
+function handleSearch() {
+  emit('search', searchQuery.value)
+}
+</script>
+
+<template>
+  <div class="page-header">
+    <div class="header-left">
+      <h1 class="page-title">{{ title }}</h1>
+    </div>
+    <div class="header-right">
+      <div class="header-actions">
+        <div class="search-box">
+          <input
+            v-model="searchQuery"
+            type="text"
+            :placeholder="searchPlaceholder"
+            class="search-input"
+            @keyup.enter="handleSearch"
+          />
+          <button class="search-button" @click="handleSearch">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
+          </button>
+        </div>
+        <button
+          v-if="showAddButton"
+          class="add-button"
+          @click="$emit('add')"
+        >
+          {{ addButtonLabel || '添加记录' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.header-left {
+  flex: 1;
+}
+
+.page-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1e1e1e;
+  margin: 0;
+}
+
+.header-right {
+  flex-shrink: 0;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  background: white;
+  border: 1px solid #d0d0d0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.search-input {
+  border: none;
+  outline: none;
+  padding: 10px 16px;
+  font-size: 14px;
+  width: 300px;
+  background: transparent;
+}
+
+.search-input::placeholder {
+  color: #999;
+}
+
+.search-button {
+  border: none;
+  background: #3a82f6;
+  color: white;
+  padding: 10px 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.search-button:hover {
+  background: #2563eb;
+}
+
+.search-button:active {
+  background: #1d4ed8;
+}
+
+.add-button {
+  padding: 10px 20px;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.add-button:hover {
+  background: #059669;
+}
+
+.add-button:active {
+  background: #047857;
+}
+</style>
+
+<script setup lang="ts">
+import { onMounted, reactive, ref, h } from 'vue'
+import DiskTable from './DiskTable.vue'
+import PageHeader from './PageHeader.vue'
+import { listFaultManagement, type FaultManagement } from '../api/mock'
+
+type Column<T> = { key: string; title: string; render?: (value: any, row: T) => unknown }
+type Pagination = { page: number; pageSize: number; total: number; onChange: (page: number) => void }
+
+type State = {
+  loading: boolean
+  page: number
+  pageSize: number
+  total: number
+  data: FaultManagement[]
+  searchQuery: string
+}
+
+const showAddDialog = ref(false)
+const formData = reactive({
+  serial_number: '',
+  fault_date: ''
+})
+
+const state = reactive<State>({ 
+  loading: false, 
+  page: 1, 
+  pageSize: 10, 
+  total: 0, 
+  data: [],
+  searchQuery: ''
+})
+
+function handleDetail(row: FaultManagement) {
+  console.log('View details for:', row)
+  alert(`查看详细信息：${row.serial_number} - ${row.fault_date}`)
+}
+
+function handleDelete(row: FaultManagement) {
+  if (confirm(`确定要删除故障记录 ${row.serial_number} (${row.fault_date}) 吗？`)) {
+    console.log('Delete fault:', row.id)
+    // TODO: 实际删除逻辑
+  }
+}
+
+function handleAdd() {
+  showAddDialog.value = true
+}
+
+function closeAddDialog() {
+  showAddDialog.value = false
+  formData.serial_number = ''
+  formData.fault_date = ''
+}
+
+function submitAddForm() {
+  console.log('Add fault:', formData)
+  alert(`添加故障记录成功：${formData.serial_number}`)
+  closeAddDialog()
+  load()
+}
+
+const columns: Column<FaultManagement>[] = [
+  { key: 'id', title: 'ID' },
+  { key: 'serial_number', title: '序列号' },
+  { key: 'fault_date', title: '故障日期' },
+  {
+    key: 'actions',
+    title: '操作',
+    render: (_value: any, row: FaultManagement) =>
+      h('div', { style: 'display: flex; gap: 8px;' }, [
+        h('button', {
+          class: 'action-btn detail-btn',
+          onClick: () => handleDetail(row)
+        }, '详细信息'),
+        h('button', {
+          class: 'action-btn delete-btn',
+          onClick: () => handleDelete(row)
+        }, '删除故障')
+      ])
+  },
+]
+
+async function load() {
+  state.loading = true
+  try {
+    const res = await listFaultManagement({ 
+      page: state.page, 
+      pageSize: state.pageSize,
+      q: state.searchQuery || undefined
+    })
+    state.data = res.data
+    state.total = res.total
+  } finally {
+    state.loading = false
+  }
+}
+
+function onPageChange(p: number) {
+  state.page = p
+  load()
+}
+
+function onSearch(query: string) {
+  state.searchQuery = query
+  state.page = 1
+  load()
+}
+
+onMounted(load)
+
+const pagination: Pagination = {
+  get page() { return state.page },
+  get pageSize() { return state.pageSize },
+  get total() { return state.total },
+  onChange: onPageChange,
+}
+</script>
+
+<template>
+  <div class="page-container">
+    <PageHeader 
+      title="故障管理" 
+      search-placeholder="故障搜索" 
+      :show-add-button="true"
+      add-button-label="添加故障"
+      @search="onSearch"
+      @add="handleAdd"
+    />
+    <div class="page-body">
+      <DiskTable :data="state.data" :columns="columns" :pagination="pagination" />
+      <div v-if="state.loading" class="loading">Loading...</div>
+    </div>
+
+    <!-- Add Dialog -->
+    <div v-if="showAddDialog" class="dialog-overlay" @click="closeAddDialog">
+      <div class="dialog-content" @click.stop>
+        <div class="dialog-header">
+          <h2>添加故障</h2>
+          <button class="close-btn" @click="closeAddDialog">×</button>
+        </div>
+        <div class="dialog-body">
+          <div class="form-group">
+            <label>序列号 *</label>
+            <input v-model="formData.serial_number" type="text" placeholder="请输入序列号" />
+          </div>
+          <div class="form-group">
+            <label>故障日期 *</label>
+            <input v-model="formData.fault_date" type="date" placeholder="请选择故障日期" />
+          </div>
+        </div>
+        <div class="dialog-footer">
+          <button class="btn-cancel" @click="closeAddDialog">取消</button>
+          <button class="btn-submit" @click="submitAddForm">确定</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.page-container {
+  width: 100%;
+}
+
+.page-body {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.loading {
+  margin-top: 16px;
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+}
+
+:deep(.action-btn) {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+:deep(.detail-btn) {
+  background: #3a82f6;
+  color: white;
+}
+
+:deep(.detail-btn:hover) {
+  background: #2563eb;
+}
+
+:deep(.delete-btn) {
+  background: #ef4444;
+  color: white;
+}
+
+:deep(.delete-btn:hover) {
+  background: #dc2626;
+}
+
+/* Dialog styles */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.dialog-content {
+  background: white;
+  border-radius: 8px;
+  width: 500px;
+  max-width: 90%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.dialog-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e1e1e;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #666;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.dialog-body {
+  padding: 24px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #3a82f6;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.btn-cancel,
+.btn-submit {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancel {
+  background: #f3f4f6;
+  color: #666;
+}
+
+.btn-cancel:hover {
+  background: #e5e7eb;
+}
+
+.btn-submit {
+  background: #3a82f6;
+  color: white;
+}
+
+.btn-submit:hover {
+  background: #2563eb;
+}
+</style>
+<script setup lang="ts">
+import { ref } from 'vue'
+
+defineProps<{ msg: string }>()
+
+const count = ref(0)
+</script>
+
+<template>
+  <h1>{{ msg }}</h1>
+
+  <div class="card">
+    <button type="button" @click="count++">count is {{ count }}</button>
+    <p>
+      Edit
+      <code>components/HelloWorld.vue</code> to test HMR
+    </p>
+  </div>
+
+  <p>
+    Check out
+    <a href="https://vuejs.org/guide/quick-start.html#local" target="_blank"
+      >create-vue</a
+    >, the official Vue + Vite starter
+  </p>
+  <p>
+    Learn more about IDE Support for Vue in the
+    <a
+      href="https://vuejs.org/guide/scaling-up/tooling.html#ide-support"
+      target="_blank"
+      >Vue Docs Scaling up Guide</a
+    >.
+  </p>
+  <p class="read-the-docs">Click on the Vite and Vue logos to learn more</p>
+</template>
+
+<style scoped>
+.read-the-docs {
+  color: #888;
+}
+</style>
+<script setup lang="ts">
+import { onMounted, reactive, ref, h } from 'vue'
+import DiskTable from './DiskTable.vue'
+import PageHeader from './PageHeader.vue'
+import { listDiskManagement, type DiskManagement } from '../api/mock'
+
+type Column<T> = { key: string; title: string; render?: (value: any, row: T) => unknown }
+type Pagination = { page: number; pageSize: number; total: number; onChange: (page: number) => void }
+
+type State = {
+  loading: boolean
+  page: number
+  pageSize: number
+  total: number
+  data: DiskManagement[]
+  searchQuery: string
+}
+
+const showAddDialog = ref(false)
+const formData = reactive({
+  serial_number: '',
+  model_type: '',
+  capacity: '',
+  manifactor: ''
+})
+
+const state = reactive<State>({ 
+  loading: false, 
+  page: 1, 
+  pageSize: 10, 
+  total: 0, 
+  data: [],
+  searchQuery: ''
+})
+
+function handleDetail(row: DiskManagement) {
+  console.log('View details for:', row)
+  alert(`查看详细信息：${row.model_type} (${row.serial_number})`)
+}
+
+function handleDelete(row: DiskManagement) {
+  if (confirm(`确定要删除磁盘 ${row.serial_number} (${row.model_type}) 吗？`)) {
+    console.log('Delete disk:', row.id)
+    // TODO: 实际删除逻辑
+  }
+}
+
+function handleAdd() {
+  showAddDialog.value = true
+}
+
+function closeAddDialog() {
+  showAddDialog.value = false
+  // Reset form
+  formData.serial_number = ''
+  formData.model_type = ''
+  formData.capacity = ''
+  formData.manifactor = ''
+}
+
+function submitAddForm() {
+  console.log('Add disk:', formData)
+  // TODO: 实际添加逻辑
+  alert(`添加磁盘成功：${formData.model_type} (${formData.serial_number})`)
+  closeAddDialog()
+  load()
+}
+
+const columns: Column<DiskManagement>[] = [
+  { key: 'id', title: 'ID' },
+  { key: 'serial_number', title: '序列号' },
+  { key: 'model_type', title: '型号' },
+  { key: 'capacity', title: '容量' },
+  { key: 'manifactor', title: '制造商' },
+  {
+    key: 'actions',
+    title: '操作',
+    render: (_value: any, row: DiskManagement) =>
+      h('div', { style: 'display: flex; gap: 8px;' }, [
+        h('button', {
+          class: 'action-btn detail-btn',
+          onClick: () => handleDetail(row)
+        }, '详细信息'),
+        h('button', {
+          class: 'action-btn delete-btn',
+          onClick: () => handleDelete(row)
+        }, '删除磁盘')
+      ])
+  },
+]
+
+async function load() {
+  state.loading = true
+  try {
+    const res = await listDiskManagement({ 
+      page: state.page, 
+      pageSize: state.pageSize,
+      q: state.searchQuery || undefined
+    })
+    state.data = res.data
+    state.total = res.total
+  } finally {
+    state.loading = false
+  }
+}
+
+function onPageChange(p: number) {
+  state.page = p
+  load()
+}
+
+function onSearch(query: string) {
+  state.searchQuery = query
+  state.page = 1
+  load()
+}
+
+onMounted(load)
+
+const pagination: Pagination = {
+  get page() { return state.page },
+  get pageSize() { return state.pageSize },
+  get total() { return state.total },
+  onChange: onPageChange,
+}
+</script>
+
+<template>
+  <div class="page-container">
+    <PageHeader 
+      title="磁盘管理" 
+      search-placeholder="磁盘搜索" 
+      :show-add-button="true"
+      add-button-label="添加磁盘"
+      @search="onSearch"
+      @add="handleAdd"
+    />
+    <div class="page-body">
+      <DiskTable :data="state.data" :columns="columns" :pagination="pagination" />
+      <div v-if="state.loading" class="loading">Loading...</div>
+    </div>
+
+    <!-- Add Dialog -->
+    <div v-if="showAddDialog" class="dialog-overlay" @click="closeAddDialog">
+      <div class="dialog-content" @click.stop>
+        <div class="dialog-header">
+          <h2>添加磁盘</h2>
+          <button class="close-btn" @click="closeAddDialog">×</button>
+        </div>
+        <div class="dialog-body">
+          <div class="form-group">
+            <label>序列号 *</label>
+            <input v-model="formData.serial_number" type="text" placeholder="请输入序列号" />
+          </div>
+          <div class="form-group">
+            <label>型号 *</label>
+            <input v-model="formData.model_type" type="text" placeholder="请输入型号" />
+          </div>
+          <div class="form-group">
+            <label>容量 *</label>
+            <input v-model="formData.capacity" type="text" placeholder="请输入容量，如 1TB" />
+          </div>
+          <div class="form-group">
+            <label>制造商 *</label>
+            <input v-model="formData.manifactor" type="text" placeholder="请输入制造商" />
+          </div>
+        </div>
+        <div class="dialog-footer">
+          <button class="btn-cancel" @click="closeAddDialog">取消</button>
+          <button class="btn-submit" @click="submitAddForm">确定</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.page-container {
+  width: 100%;
+}
+
+.page-body {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.loading {
+  margin-top: 16px;
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+}
+
+:deep(.action-btn) {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+:deep(.detail-btn) {
+  background: #3a82f6;
+  color: white;
+}
+
+:deep(.detail-btn:hover) {
+  background: #2563eb;
+}
+
+:deep(.delete-btn) {
+  background: #ef4444;
+  color: white;
+}
+
+:deep(.delete-btn:hover) {
+  background: #dc2626;
+}
+
+/* Dialog styles */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.dialog-content {
+  background: white;
+  border-radius: 8px;
+  width: 500px;
+  max-width: 90%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.dialog-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e1e1e;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #666;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.dialog-body {
+  padding: 24px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #3a82f6;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.btn-cancel,
+.btn-submit {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancel {
+  background: #f3f4f6;
+  color: #666;
+}
+
+.btn-cancel:hover {
+  background: #e5e7eb;
+}
+
+.btn-submit {
+  background: #3a82f6;
+  color: white;
+}
+
+.btn-submit:hover {
+  background: #2563eb;
+}
+</style>
+<script setup lang="ts">
+import { computed } from 'vue'
+
+export type Column<T> = {
+  key: string
+  title: string
+  render?: (value: any, row: T) => unknown
+}
+
+export type Pagination = {
+  page: number
+  pageSize: number
+  total: number
+  onChange: (page: number) => void
+}
+
+const props = defineProps<{
+  data: any[]
+  columns: Column<any>[]
+  pagination?: Pagination
+}>()
+
+const pages = computed(() => {
+  if (!props.pagination) return 1
+  return Math.max(1, Math.ceil(props.pagination.total / props.pagination.pageSize))
+})
+</script>
+
+<template>
+  <div class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th v-for="c in columns" :key="c.key" class="table-header">
+            {{ c.title }}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="row in data" :key="(row as any).id" class="table-row">
+          <td v-for="c in columns" :key="c.key" class="table-cell">
+            <component :is="() => c.render ? c.render((row as any)[c.key], row) : String((row as any)[c.key] ?? '')" />
+          </td>
+        </tr>
+        <tr v-if="data.length === 0">
+          <td :colspan="columns.length" class="no-data">
+            No Data
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    
+    <div v-if="pagination" class="pagination">
+      <button 
+        class="page-btn" 
+        @click="pagination!.onChange(Math.max(1, pagination!.page - 1))" 
+        :disabled="pagination!.page <= 1 || pages <= 1"
+      >
+        上一页
+      </button>
+      <span class="page-info">第 {{ pagination!.page }} / {{ pages }} 页 (共 {{ pagination!.total }} 条)</span>
+      <button 
+        class="page-btn" 
+        @click="pagination!.onChange(Math.min(pages as number, pagination!.page + 1))" 
+        :disabled="pagination!.page >= (pages as number) || pages <= 1"
+      >
+        下一页
+      </button>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-header {
+  text-align: left;
+  border-bottom: 2px solid #ddd;
+  padding: 12px 16px;
+  font-weight: 700;
+  color: #1e1e1e;
+  background-color: #f9fafb;
+  white-space: nowrap;
+}
+
+.table-row {
+  transition: background-color 0.2s;
+}
+
+.table-row:hover {
+  background-color: #f9fafb;
+}
+
+.table-cell {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 12px 16px;
+  color: #333;
+  white-space: nowrap;
+}
+
+.no-data {
+  padding: 40px 12px;
+  color: #888;
+  text-align: center;
+  font-size: 14px;
+}
+
+.pagination {
+  margin-top: 20px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+}
+
+.page-btn {
+  padding: 8px 16px;
+  background: #3a82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.page-btn:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+.page-btn:disabled {
+  background: #d1d5db;
+  cursor: not-allowed;
+}
+
+.page-info {
+  color: #666;
+  font-size: 14px;
+  min-width: 180px;
+  text-align: center;
+}
+</style>
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #535bf2;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  height: 100vh;
+  overflow: hidden;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+button:hover {
+  border-color: #646cff;
+}
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+.card {
+  padding: 2em;
+}
+
+#app {
+  width: 100%;
+  height: 100%;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
+}
+// Simple in-memory mock API for SSD data (ported for Vue app)
+export type SmartMap = Record<string, number | string>;
+export type Disk = {
+  id: string;
+  serial: string;
+  model: string;
+  capacityBytes: number;
+  vendor?: string;
+  smart?: SmartMap;
+  createdAt: string;
+};
+
+export type PageParams = { page: number; pageSize: number; q?: string; sortBy?: string; order?: 'asc'|'desc' };
+export type PageResult<T> = { data: T[]; total: number };
+
+let disks: Disk[] = [];
+// SimpleDisk is a lightweight record for the basic list page
+export type SimpleDisk = {
+  id: string;
+  serial_number: string;
+  ds: string;
+  raw_1: number;
+  raw_5: number;
+  raw_9: number;
+  raw_11: number;
+  raw_180: number;
+  raw_194: number;
+  raw_195: number;
+};
+let simpleDisks: SimpleDisk[] = [];
+
+// DiskManagement is for disk management page
+export type DiskManagement = {
+  id: string;
+  serial_number: string;
+  model_type: string;
+  capacity: string;
+  manifactor: string;
+};
+let diskManagementData: DiskManagement[] = [];
+
+// FaultManagement is for fault management page
+export type FaultManagement = {
+  id: string;
+  serial_number: string;
+  fault_date: string;
+};
+let faultManagementData: FaultManagement[] = [];
+
+// Analytics is for analytics/pre-warning management page
+export type LogEntry = {
+  date: string;
+  raw_1: number;
+  raw_5: number;
+  raw_9: number;
+  raw_11: number;
+  raw_180: number;
+  raw_194: number;
+  raw_195: number;
+};
+
+export type AnalyticsItem = {
+  id: string;
+  serial_number: string;
+  warning_date: string;
+  status?: 'pending' | 'confirmed' | 'ignored';
+  logs: LogEntry[];
+};
+let analyticsData: AnalyticsItem[] = [];
+
+function generateId() {
+  return Math.random().toString(36).slice(2) + Date.now().toString(36);
+}
+
+export async function uploadDisks(rows: any[]): Promise<{ inserted: number }>{
+  const normalized: Disk[] = rows.map((r) => ({
+    id: generateId(),
+    serial: String(r.serial ?? r.Serial ?? r.SN ?? ''),
+    model: String(r.model ?? r.Model ?? ''),
+    capacityBytes: Number(r.capacityBytes ?? r.CapacityBytes ?? r.capacity ?? 0),
+    vendor: r.vendor ?? r.Vendor,
+    smart: r.smart ?? r.SMART ?? r.smartData ?? undefined,
+    createdAt: new Date().toISOString(),
+  })).filter(d => d.serial);
+  disks = normalized.concat(disks);
+  return { inserted: normalized.length };
+}
+
+export function computeFaultScore(d: Disk): { score: number; reasons: string[] } {
+  const s = (k: string) => Number((d.smart?.[k] as any) ?? 0) || 0;
+  const reasons: string[] = [];
+  if (s('Reallocated_Sector_Ct') > 0) reasons.push('Reallocated_Sector_Ct>0');
+  if (s('Current_Pending_Sector') > 0) reasons.push('Current_Pending_Sector>0');
+  if (s('Offline_Uncorrectable') > 0) reasons.push('Offline_Uncorrectable>0');
+  if (s('Temperature_Celsius') > 55) reasons.push('Temp>55');
+  const poh = s('Power_On_Hours');
+  if (poh > 40000 && (s('Reallocated_Sector_Ct')>0 || s('Current_Pending_Sector')>0)) reasons.push('High POH + issues');
+  return { score: reasons.length, reasons };
+}
+
+function sortData<T extends Record<string, any>>(arr: T[], sortBy?: string, order?: 'asc'|'desc') {
+  if (!sortBy) return arr;
+  const mult = order === 'desc' ? -1 : 1;
+  return [...arr].sort((a,b) => {
+    const av = a[sortBy]; const bv = b[sortBy];
+    if (av === bv) return 0;
+    return av > bv ? mult : -mult;
+  });
+}
+
+export async function listDisks(p: PageParams): Promise<PageResult<Disk>> {
+  const { page, pageSize, q, sortBy, order } = p;
+  const filtered = (q? disks.filter(d =>
+    d.serial.includes(q) || d.model.includes(q) || (d.vendor??'').includes(q)
+  ): disks);
+  const sorted = sortData(filtered, sortBy, order);
+  const start = (page-1)*pageSize;
+  const data = sorted.slice(start, start+pageSize);
+  return { data, total: filtered.length };
+}
+
+export async function listFaults(p: PageParams): Promise<PageResult<Disk & { score: number; reasons: string[] }>> {
+  const withScores = disks.map(d => ({ ...d, ...computeFaultScore(d) }));
+  const faults = withScores.filter(d => d.score >= 2);
+  const { page, pageSize, q, sortBy, order } = p;
+  const filtered = q? faults.filter(d => d.serial.includes(q) || d.model.includes(q)) : faults;
+  const sorted = sortData(filtered as any[], sortBy, order) as any[];
+  const start = (page-1)*pageSize;
+  const data = sorted.slice(start, start+pageSize) as any[];
+  return { data, total: filtered.length };
+}
+
+// Initialize a mock dataset for SimpleDisk if empty
+function ensureSimpleDisksSeeded() {
+  if (simpleDisks.length > 0) return;
+  const today = new Date();
+  const fmt = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const ds = fmt(today);
+  simpleDisks = [
+    { id: '1', serial_number: 'SN100001', ds, raw_1: 0, raw_5: 0, raw_9: 0, raw_11: 100, raw_180: 50, raw_194: 25, raw_195: 75 },
+    { id: '2', serial_number: 'SN100002', ds, raw_1: 0, raw_5: 0, raw_9: 0, raw_11: 102, raw_180: 52, raw_194: 26, raw_195: 76 },
+    { id: '3', serial_number: 'SN100003', ds, raw_1: 0, raw_5: 0, raw_9: 0, raw_11: 104, raw_180: 54, raw_194: 27, raw_195: 77 },
+    { id: '4', serial_number: 'SN100004', ds, raw_1: 0, raw_5: 0, raw_9: 0, raw_11: 106, raw_180: 56, raw_194: 28, raw_195: 78 },
+    { id: '5', serial_number: 'SN100005', ds, raw_1: 0, raw_5: 0, raw_9: 0, raw_11: 108, raw_180: 58, raw_194: 29, raw_195: 79 },
+    { id: '6', serial_number: 'SN100006', ds, raw_1: 0, raw_5: 0, raw_9: 0, raw_11: 110, raw_180: 60, raw_194: 30, raw_195: 80 },
+    { id: '7', serial_number: 'SN100007', ds, raw_1: 0, raw_5: 0, raw_9: 0, raw_11: 112, raw_180: 62, raw_194: 31, raw_195: 81 },
+    { id: '8', serial_number: 'SN100008', ds, raw_1: 0, raw_5: 0, raw_9: 0, raw_11: 114, raw_180: 64, raw_194: 32, raw_195: 82 },
+    { id: '9', serial_number: 'SN100009', ds, raw_1: 0, raw_5: 0, raw_9: 0, raw_11: 116, raw_180: 66, raw_194: 33, raw_195: 83 },
+    { id: '10', serial_number: 'SN100010', ds, raw_1: 0, raw_5: 0, raw_9: 0, raw_11: 118, raw_180: 68, raw_194: 34, raw_195: 84 },
+    { id: '11', serial_number: 'SN100011', ds, raw_1: 0, raw_5: 0, raw_9: 0, raw_11: 120, raw_180: 70, raw_194: 35, raw_195: 85 },
+    { id: '12', serial_number: 'SN100012', ds, raw_1: 0, raw_5: 0, raw_9: 0, raw_11: 122, raw_180: 72, raw_194: 36, raw_195: 86 },
+  ];
+}
+
+export async function listSimpleDisks(p: PageParams): Promise<PageResult<SimpleDisk>> {
+  ensureSimpleDisksSeeded();
+  const { page, pageSize, q, sortBy, order } = p;
+  const filtered = q? simpleDisks.filter(d => d.serial_number.includes(q) || d.ds.includes(q)) : simpleDisks;
+  const sorted = sortData(filtered as any[], sortBy, order) as any[];
+  const start = (page-1)*pageSize;
+  const data = sorted.slice(start, start+pageSize) as SimpleDisk[];
+  return { data, total: filtered.length };
+}
+
+// Initialize mock data for DiskManagement
+function ensureDiskManagementSeeded() {
+  if (diskManagementData.length > 0) return;
+  diskManagementData = [
+    { id: '1', serial_number: 'SN001234567', model_type: 'Samsung 980 Pro', capacity: '1TB', manifactor: 'Samsung' },
+    { id: '2', serial_number: 'SN002345678', model_type: 'WD Black SN850', capacity: '2TB', manifactor: 'Western Digital' },
+    { id: '3', serial_number: 'SN003456789', model_type: 'Crucial MX500', capacity: '500GB', manifactor: 'Micron' },
+    { id: '4', serial_number: 'SN004567890', model_type: 'Kingston NV2', capacity: '1TB', manifactor: 'Kingston' },
+    { id: '5', serial_number: 'SN005678901', model_type: 'Intel 670p', capacity: '2TB', manifactor: 'Intel' },
+    { id: '6', serial_number: 'SN006789012', model_type: 'Seagate FireCuda', capacity: '1TB', manifactor: 'Seagate' },
+    { id: '7', serial_number: 'SN007890123', model_type: 'Corsair MP600', capacity: '4TB', manifactor: 'Corsair' },
+    { id: '8', serial_number: 'SN008901234', model_type: 'ADATA XPG SX8200', capacity: '1TB', manifactor: 'ADATA' },
+    { id: '9', serial_number: 'SN009012345', model_type: 'SanDisk Extreme Pro', capacity: '2TB', manifactor: 'SanDisk' },
+    { id: '10', serial_number: 'SN010123456', model_type: 'TeamGroup T-Force', capacity: '500GB', manifactor: 'TeamGroup' },
+    { id: '11', serial_number: 'SN011234567', model_type: 'Sabrent Rocket', capacity: '1TB', manifactor: 'Sabrent' },
+    { id: '12', serial_number: 'SN012345678', model_type: 'HP EX950', capacity: '2TB', manifactor: 'HP' },
+  ];
+}
+
+export async function listDiskManagement(p: PageParams): Promise<PageResult<DiskManagement>> {
+  ensureDiskManagementSeeded();
+  const { page, pageSize, q, sortBy, order } = p;
+  const filtered = q? diskManagementData.filter(d => 
+    d.id.includes(q) || 
+    d.serial_number.includes(q) || 
+    d.model_type.includes(q) || 
+    d.capacity.includes(q) || 
+    d.manifactor.includes(q)
+  ) : diskManagementData;
+  const sorted = sortData(filtered as any[], sortBy, order) as any[];
+  const start = (page-1)*pageSize;
+  const data = sorted.slice(start, start+pageSize) as DiskManagement[];
+  return { data, total: filtered.length };
+}
+
+// Initialize mock data for FaultManagement
+function ensureFaultManagementSeeded() {
+  if (faultManagementData.length > 0) return;
+  const today = new Date();
+  const fmt = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const dates = [
+    fmt(new Date(today.getTime() - 5 * 24 * 60 * 60 * 1000)), // 5 days ago
+    fmt(new Date(today.getTime() - 3 * 24 * 60 * 60 * 1000)), // 3 days ago
+    fmt(new Date(today.getTime() - 1 * 24 * 60 * 60 * 1000)), // 1 day ago
+    fmt(today), // today
+  ];
+  faultManagementData = [
+    { id: '1', serial_number: 'SN100001', fault_date: dates[0] },
+    { id: '2', serial_number: 'SN100002', fault_date: dates[1] },
+    { id: '3', serial_number: 'SN100005', fault_date: dates[2] },
+    { id: '4', serial_number: 'SN100008', fault_date: dates[3] },
+    { id: '5', serial_number: 'SN100010', fault_date: dates[0] },
+    { id: '6', serial_number: 'SN100012', fault_date: dates[1] },
+  ];
+}
+
+export async function listFaultManagement(p: PageParams): Promise<PageResult<FaultManagement>> {
+  ensureFaultManagementSeeded();
+  const { page, pageSize, q, sortBy, order } = p;
+  const filtered = q? faultManagementData.filter(d => 
+    d.id.includes(q) || 
+    d.serial_number.includes(q) || 
+    d.fault_date.includes(q)
+  ) : faultManagementData;
+  const sorted = sortData(filtered as any[], sortBy, order) as any[];
+  const start = (page-1)*pageSize;
+  const data = sorted.slice(start, start+pageSize) as FaultManagement[];
+  return { data, total: filtered.length };
+}
+
+// Initialize mock data for Analytics
+function ensureAnalyticsSeeded() {
+  if (analyticsData.length > 0) return;
+  const today = new Date();
+  const fmt = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  
+  // Generate logs for different dates
+  const generateLogs = (serialNum: string, count: number): LogEntry[] => {
+    const logs: LogEntry[] = [];
+    for (let i = 0; i < count; i++) {
+      const date = new Date(today.getTime() - i * 24 * 60 * 60 * 1000);
+      logs.push({
+        date: fmt(date),
+        raw_1: Math.floor(Math.random() * 100),
+        raw_5: Math.floor(Math.random() * 100),
+        raw_9: Math.floor(Math.random() * 100),
+        raw_11: 100 + i * 2,
+        raw_180: 50 + i * 2,
+        raw_194: 25 + i,
+        raw_195: 75 + i,
+      });
+    }
+    return logs.reverse(); // Date ascending
+  };
+  
+  analyticsData = [
+    { id: '1', serial_number: 'SN100001', warning_date: fmt(new Date(today.getTime() - 2 * 24 * 60 * 60 * 1000)), status: 'pending', logs: generateLogs('SN100001', 3) },
+    { id: '2', serial_number: 'SN100002', warning_date: fmt(new Date(today.getTime() - 1 * 24 * 60 * 60 * 1000)), status: 'pending', logs: generateLogs('SN100002', 4) },
+    { id: '3', serial_number: 'SN100005', warning_date: fmt(today), status: 'pending', logs: generateLogs('SN100005', 2) },
+    { id: '4', serial_number: 'SN100008', warning_date: fmt(new Date(today.getTime() - 3 * 24 * 60 * 60 * 1000)), status: 'pending', logs: generateLogs('SN100008', 5) },
+    { id: '5', serial_number: 'SN100010', warning_date: fmt(new Date(today.getTime() - 2 * 24 * 60 * 60 * 1000)), status: 'pending', logs: generateLogs('SN100010', 3) },
+    { id: '6', serial_number: 'SN100012', warning_date: fmt(new Date(today.getTime() - 1 * 24 * 60 * 60 * 1000)), status: 'pending', logs: generateLogs('SN100012', 4) },
+  ];
+}
+
+export async function confirmWarning(id: string): Promise<void> {
+  const item = analyticsData.find(d => d.id === id);
+  if (item) {
+    item.status = 'confirmed';
+  }
+}
+
+export async function ignoreWarning(id: string): Promise<void> {
+  const item = analyticsData.find(d => d.id === id);
+  if (item) {
+    item.status = 'ignored';
+  }
+}
+
+export async function listAnalytics(p: PageParams): Promise<PageResult<AnalyticsItem>> {
+  ensureAnalyticsSeeded();
+  const { page, pageSize, q, sortBy, order } = p;
+  const filtered = q? analyticsData.filter(d => 
+    d.id.includes(q) || 
+    d.serial_number.includes(q)
+  ) : analyticsData;
+  const sorted = sortData(filtered as any[], sortBy, order) as any[];
+  const start = (page-1)*pageSize;
+  const data = sorted.slice(start, start+pageSize) as AnalyticsItem[];
+  return { data, total: filtered.length };
+}
+
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--logos" width="37.07" height="36" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 198"><path fill="#41B883" d="M204.8 0H256L128 220.8L0 0h97.92L128 51.2L157.44 0h47.36Z"></path><path fill="#41B883" d="m0 0l128 220.8L256 0h-51.2L128 132.48L50.56 0H0Z"></path><path fill="#35495E" d="M50.56 0L128 133.12L204.8 0h-47.36L128 51.2L97.92 0H50.56Z"></path></svg>
+
+
+
+
+
+智慧SSD运维软件V1.0源程序                                                              PAGE   \* MERGEFORMAT 60
+
+
+
+
+
+
+
+
+
+
+
