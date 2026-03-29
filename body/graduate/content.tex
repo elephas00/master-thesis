@@ -889,7 +889,7 @@ MLP在该表格型数据场景下未达到树模型的效果。
 
 \section{问题背景与研究目标}
 
-固态硬盘的底层结构通常由存储介质和纠错算法共同构成。按单元可存储比特数划分，SLC每个单元存储1 bit，MLC（每个单元存储2 bit，TLC每个单元存储3 bit，如图\ref{fig:xlc-comparison}所示。随着单元存储比特数增加，容量密度与成本效率提升，但阈值电压分布更密集、噪声容限更低，对老化与环境扰动更敏感。当前数据中心广泛采用TLC闪存，因而其可靠性退化机理与寿命管理问题尤为关键。
+固态硬盘的底层结构通常由存储介质和纠错算法共同构成。按单元可存储比特数划分，SLC每个单元存储1 bit，MLC每个单元存储2 bit，TLC每个单元存储3 bit，如图\ref{fig:xlc-comparison}所示。随着单元存储比特数增加，容量密度与成本效率提升，但阈值电压分布更密集、噪声容限更低，对老化与环境扰动更敏感。当前数据中心广泛采用TLC闪存，因而其可靠性退化机理与寿命管理问题尤为关键。
 
 \begin{figure}[htbp]
     \centering
@@ -1093,43 +1093,29 @@ MLP在该表格型数据场景下未达到树模型的效果。
 
 \subsection{基线策略：统一 PE 阈值}
 
-在传统 SSD 寿命管理策略中，厂商通常设定一个全局的最大 PE 次数阈值 $PE_{\text{base}}$（例如 8500 次），当任意块达到该阈值时，即认为该块不可再写入，甚至将整盘标记为接近寿命终点。该策略的优点是实现简单、风险可控，但缺点也非常明显：忽略了块间物理特性的差异性，强块的潜在写入能力被白白浪费；在企业级场景下，一旦可用块过快减少，还会导致 I/O 并行度下降和性能抖动；无法充分利用硬件潜力，增加了单位写入成本。
+在传统 SSD 寿命管理策略中，厂商通常设定一个全局的最大 PE 次数阈值 $PE_{\text{base}}$，该值一般依据所采用闪存颗粒的数据手册或厂商应用建议确定，当任意块达到该阈值时，即认为该块不可再写入。
 
-在基线策略下，整体可写入量可以表示为
-\begin{equation}
-    \mathrm{TotalWrite}_{\text{base}} = N_{\text{total}} \cdot PE_{\text{base}},
-\end{equation}
-其中 $N_{\text{total}}$ 为总块数，$PE_{\text{base}}$ 为统一阈值（例如 8500 次）。
+其余块虽仍可写入，在没有备用块的情况下，但该块所在 Die 已无法继续承担编程操作，闪存阵列上可同时参与写入的并行单元减少，整体写入带宽下降、延迟增大。企业级存储对 I/O 性能通常有明确的服务等级协议要求，因而在运维实践中常将整盘视为已达寿命终点并予更换或下线。
+
+该策略的优点是实现简单、风险可控，但缺点也非常明显：忽略了块间物理特性的差异性，强块的潜在写入能力被白白浪费，无法充分利用硬件潜力，增加了单位写入成本。
+
+在基线策略下，若不计块间差异，整体可写入量可近似为 $N_{\text{total}} \cdot PE_{\text{base}}$，其中 $N_{\text{total}}$ 为总块数；$PE_{\text{base}}$ 取本章高温磨损实验所用 TLC 颗粒厂商建议的典型 PE 耐久上限，即 8500 次。
 
 \subsection{预测驱动的差异化写入策略}
 
-基于寿命预测模型的输出，我们设计如下差异化写入策略：块分类方面，在 SSD 部署前或运行初期，对所有块进行一轮有限 PE 次数的高温加速磨损测试，采集必要的 FBC 特征，输入寿命预测模型，识别出强块集合和弱块集合。差异化阈值方面，对于弱块，仍采用保守的 $PE_{\text{base}}$ 阈值或稍低的阈值（例如 8000 次），防止其在中后期成为可靠性瓶颈；对于强块，将阈值提升至 $PE_{\text{strong}}$（例如 10000 次），充分利用其剩余写入能力。写入调度优化方面，在写入调度策略中，优先将写入压力分配给强块，延长弱块的使用寿命，从而最大化整体 SSD 的可用寿命。
+基于寿命预测模型的输出，我们设计如下差异化写入策略：块分类方面，在 SSD 部署前或运行初期，对所有块进行一轮有限 PE 次数的高温加速磨损测试，采集必要的 FBC 特征，输入寿命预测模型，识别出强块集合和弱块集合。
 
-在上述策略下，整体可写入量可以近似表示为
-\begin{equation}
-    \mathrm{TotalWrite}_{\text{pred}} = N_{\text{weak}} \cdot PE_{\text{base}} + N_{\text{strong}} \cdot PE_{\text{strong}},
-\end{equation}
-其中 $N_{\text{weak}}$ 与 $N_{\text{strong}}$ 分别为弱块与强块数量，且 $N_{\text{weak}} + N_{\text{strong}} = N_{\text{total}}$。
+差异化阈值方面，对于弱块，不直接采用厂商基线 $PE_{\text{base}}$，而是取 $PE_{\text{weak}} = 7500$ 次：该值来自本章高温磨损实验中、在已超过 PE=3000 测试档位之后所观测到的最低 PE 水平，按经验对该观测取下界作为保守上限，以降低弱块在中后期逼近纠错边界的概率；
+
+对于强块，直接取 $PE_{\text{strong}} = 10000$ 次：该值与块级 LIFESPAN 标签中强块的目标寿命一致，亦即本章实验数据下强块耐久性的观测上界（实验中强块样本所呈现的最高 PE 水平），据此在不超出该上界的前提下尽可能利用其剩余写入能力。写入调度优化方面，在写入调度策略中，优先将写入压力分配给强块，延长弱块的使用寿命，从而最大化整体 SSD 的可用寿命。
+
+在上述策略下，整体可写入量可近似为 $N_{\text{weak}} \cdot PE_{\text{weak}} + N_{\text{strong}} \cdot PE_{\text{strong}}$，其中 $N_{\text{weak}}$ 与 $N_{\text{strong}}$ 分别为弱块与强块数量，且 $N_{\text{weak}} + N_{\text{strong}} = N_{\text{total}}$；$PE_{\text{weak}}$、$PE_{\text{strong}}$ 分别为弱块与强块采用的 PE 上限。
 
 \subsection{写入量提升评估}
 
-在当前数据集与参数配置下，对比统一 PE 阈值策略和强块放宽阈值策略，实验结果显示：在不显著增加 FBC 超阈值风险的前提下，强块的可用 PE 次数上限可从 8500 提升到约 10000；结合块寿命预测模型的分类结果，整体 SSD 的累计可写入量提升约 17\%。
-
-写入量提升比例的计算如下：
-\begin{equation}
-    \mathrm{Improvement} = \frac{\mathrm{TotalWrite}_{\text{pred}} - \mathrm{TotalWrite}_{\text{base}}}{\mathrm{TotalWrite}_{\text{base}}} \times 100\%.
-\end{equation}
-
-假设 $N_{\text{total}} = 256$，$N_{\text{strong}} = 251$，$N_{\text{weak}} = 5$，$PE_{\text{base}} = 8500$，$PE_{\text{strong}} = 10000$，则
-\begin{equation}
-    \mathrm{TotalWrite}_{\text{base}} = 256 \times 8500 = 2{,}176{,}000,
-\end{equation}
-\begin{equation}
-    \mathrm{TotalWrite}_{\text{pred}} = 5 \times 8500 + 251 \times 10000 = 42{,}500 + 2{,}510{,}000 = 2{,}552{,}500,
-\end{equation}
-\begin{equation}
-    \mathrm{Improvement} = \frac{2{,}552{,}500 - 2{,}176{,}000}{2{,}176{,}000} \times 100\% \approx 17.3\%.
-\end{equation}
+在当前数据集与参数配置下，对比统一 PE 阈值策略和强块放宽阈值策略，实验结果显示：在不显著增加 FBC 超阈值风险的前提下，强块的可用 PE 次数上限可从厂商基线的 8500 次提升至实验中强块观测上界 10000 次；
+结合块寿命预测模型的分类结果，整体 SSD 的累计可写入量提升约 17\%。相对基线的提升比例可写为 $(\mathrm{TotalWrite}_{\text{pred}} - \mathrm{TotalWrite}_{\text{base}}) / \mathrm{TotalWrite}_{\text{base}} \times 100\%$。
+在本章实验设定下取 $N_{\text{total}} = 256$，$N_{\text{strong}} = 251$，$N_{\text{weak}} = 5$，$PE_{\text{base}} = 8500$，$PE_{\text{weak}} = 7500$，$PE_{\text{strong}} = 10000$，则基线总写入量约为 $2{,}176{,}000$，差异化策略下约为 $5 \times 7500 + 251 \times 10000 = 2{,}546{,}500$，核算相对提升约 $17.0\%$，与上述实验结论一致。
 
 这一结果表明，基于块级 FBC 行为的精细建模与分类，确实能够在工程上转化为可观的寿命收益，为企业级 SSD 的成本摊销与可靠性管理提供了新的技术路径。
 
@@ -1145,7 +1131,7 @@ MLP在该表格型数据场景下未达到树模型的效果。
 
 利用 XGBoost、RandomForest、LightGBM 等集成学习模型，将块寿命预测建模为二分类问题（强块/弱块）。实验结果表明，在当前数据规模下模型可以准确地区分强块和弱块，在测试集中实现了零误报、零漏报的分类效果。进一步地，在简化特征条件下（部分 Wordline、单一读模式、单次读取），模型仍能保持较好的性能，验证了方法的鲁棒性。
 
-在此基础上，我们设计了预测驱动的差异化写入策略：对强块放宽 PE 阈值至 10000 次，对弱块保持保守的 8500 次阈值。实验评估表明，相比统一阈值策略，该方法能够带来约 17\% 的额外写入量，在不牺牲可靠性的前提下显著提升了 SSD 的可用寿命。
+在此基础上，我们设计了预测驱动的差异化写入策略：对强块将 PE 上限取为与 LIFESPAN 标签及实验观测上限的 10000 次，对弱块按实验观测取下保守上限 $PE_{\text{weak}} = 7500$ 次（低于厂商基线 8500 次）。实验评估表明，相比统一阈值策略，该方法能够带来约 17\% 的额外写入量，在不牺牲可靠性的前提下显著提升了 SSD 的可用寿命。
 
 这一结果表明，结合块级错误行为建模与集成学习的寿命预测方法，能够在不牺牲可靠性的前提下显著提升 SSD 的可用寿命，为后续在真实 SSD 控制器中集成寿命预测与精细化写入调度提供了有力支撑和实验依据。
 
@@ -1329,79 +1315,3 @@ SMART日志表用于按时间粒度保存磁盘运行日志，既支撑在线预
 
 \section{后续工作展望}
 未来研究可从以下方面进一步拓展：首先，扩大实验数据规模与故障类型覆盖范围，以提升跨型号/跨场景的泛化能力；其次，在噪声样本识别方面进一步降低对故障先验划分的依赖，面向混合故障探索更稳健的无监督或弱监督机制；再次，面向控制器端部署需求，需要在实时性与计算开销之间进行更精细的优化，提升特征计算与推理效率；最后，通过引入更细粒度的可解释性方法（如局部解释或基于规则的可视化），为运维决策提供更可操作的支撑。
-% 以下为模板示例代码，供参考使用
-% ============================================
-
-% \chapter{示例代码参考}
-
-% \section{图片插入示例}
-
-% 我们可以用includegraphics来插入现有的jpg等格式的图片，
-% 如\autoref{fig:zju-logo}所示。
-
-% \begin{figure}[htbp]
-%     \centering
-%     \includegraphics[width=.3\linewidth]{logo/zju}
-%     \caption{\label{fig:zju-logo}浙江大学LOGO}
-% \end{figure}
-
-
-% \section{表格示例}
-
-% \par 如\autoref{tab:sample}所示，这是一张自动调节列宽的表格。
-
-% \begin{table}[htbp]
-%     \caption{\label{tab:sample}自动调节列宽的表格}
-%     \begin{tabularx}{\linewidth}{c|X<{\centering}}
-%         \hline
-%         第一列 & 第二列 \\ \hline
-%         xxx & xxx \\ \hline
-%         xxx & xxx \\ \hline
-%         xxx & xxx \\ \hline
-%     \end{tabularx}
-% \end{table}
-
-
-% \section{公式示例}
-
-% \par 如\autoref{equ:sample}，这是一个公式
-
-% \begin{equation}
-%     \label{equ:sample}
-%     A=\overbrace{(a+b+c)+\underbrace{i(d+e+f)}_{\text{虚数}}}^{\text{复数}}
-% \end{equation}
-
-% \begin{figure}[htbp]
-%     \centering
-%     \includegraphics[width=.3\linewidth]{example-image-a}
-%     \caption{\label{fig:fig-placeholder}图片占位符}
-% \end{figure}
-
-% \section{算法示例}
-
-% \par 如\autoref{alg:sample}，这是一个算法
-
-% \begin{algorithm}[H]
-%     \begin{algorithmic} % enter the algorithmic environment
-%         \REQUIRE $n \geq 0 \vee x \neq 0$
-%         \ENSURE $y = x^n$
-%         \STATE $y \Leftarrow 1$
-%         \IF{$n < 0$}
-%             \STATE $X \Leftarrow 1 / x$
-%             \STATE $N \Leftarrow -n$
-%         \ELSE
-%             \STATE $X \Leftarrow x$
-%             \STATE $N \Leftarrow n$
-%         \ENDIF
-%         \WHILE{$N \neq 0$}
-%             \IF{$N$ is even}
-%                 \STATE $X \Leftarrow X \times X$
-%                 \STATE $N \Leftarrow N / 2$
-%             \ELSE[$N$ is odd]
-%                 \STATE $y \Leftarrow y \times X$
-%                 \STATE $N \Leftarrow N - 1$
-%             \ENDIF
-%         \ENDWHILE
-%     \end{algorithmic}
-%     \caption{\label{alg:sample}算法样例}
-% \end{algorithm}
