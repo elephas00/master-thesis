@@ -719,7 +719,7 @@ Lag特征的构建基于以下假设：故障发生前的异常变化往往具�
 \begin{table}[htbp]
     \centering
     \caption{\label{tab:rf-hyperparams}随机森林主要超参数设置}
-    \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}Xc}
+    \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}X >{\centering\arraybackslash}X}
         \toprule
         参数名称 & 设置值 \\
         \midrule
@@ -743,7 +743,7 @@ Lag特征的构建基于以下假设：故障发生前的异常变化往往具�
 \begin{table}[htbp]
     \centering
     \caption{\label{tab:feature-engineering}不同特征组合下的预测性能对比}
-    \begin{tabular}{@{}ccccc@{}}
+    \begin{tabular*}{0.88\linewidth}{@{\extracolsep{\fill}}ccccc@{}}
         \toprule
         Lag特征 & 统计特征 & 原始特征 & TPR & FPR \\
         \midrule
@@ -753,7 +753,7 @@ Lag特征的构建基于以下假设：故障发生前的异常变化往往具�
         $\bullet$ & $\bullet$ & & 39.21\% & $\leq 0.035\%$ \\
         $\bullet$ & $\bullet$ & $\bullet$ & 39.65\% & $\leq 0.035\%$ \\
         \bottomrule
-    \end{tabular}
+    \end{tabular*}
 \end{table}
 
 由表\ref{tab:feature-engineering}可知，仅使用 16 维原始 SMART 属性时 TPR 仅为 4.46\%；单独引入 Lag 特征或时间窗口统计特征时，TPR 分别升至 33.48\% 与 32.30\%，说明相对单点原始读数，时序构造特征能更有效地反映故障前兆。将两类构造特征联用后（约 200+ 维），TPR 达到 39.21\%，相对基线提升约 8.8 倍；再并入当前时刻的原始属性列后，TPR 进一步提高至 39.65\%。Lag 特征引入历史轨迹，时间窗口统计量刻画区间内的边界与波动强度，二者与原始属性互补，有助于同时捕捉渐进退化与短期异常。结合前文所述数据质量相关特征等构造，可在低误报率约束下更充分地刻画故障征兆。
@@ -765,7 +765,7 @@ Lag特征的构建基于以下假设：故障发生前的异常变化往往具�
 \begin{table}[htbp]
     \centering
     \caption{\label{tab:label-comparison}不同标记策略性能对比}
-    \begin{tabular}{@{}lccc@{}}
+    \begin{tabularx}{0.88\linewidth}{>{\raggedright\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X}
         \toprule
         标记策略 & TPR & FPR & 预警时间 \\
         \midrule
@@ -775,7 +775,7 @@ Lag特征的构建基于以下假设：故障发生前的异常变化往往具�
         label\_14 & 39.21\% & $\leq 0.035\%$ & 14天 \\
         label\_30 & 39.65\% & $\leq 0.035\%$ & 30天 \\
         \bottomrule
-    \end{tabular}
+    \end{tabularx}
 \end{table}
 
 由表~\ref{tab:label-comparison} 可见，在 FPR 均满足 $\leq 0.035\%$ 的前提下，TPR 随预警窗口变化并不呈简单单调关系：3 天与 14 天窗口均为 39.21\%，7 天窗口略降至 38.33\%，可视为标记边界与样本划分带来的正常波动，整体仍处在同一性能水平。
@@ -788,7 +788,7 @@ Lag特征的构建基于以下假设：故障发生前的异常变化往往具�
 \begin{table}[htbp]
     \centering
     \caption{\label{tab:spearman-topk-comparison}Spearman降维不同Top-$k$设置对比}
-    \begin{tabularx}{0.72\linewidth}{Xcc}
+    \begin{tabularx}{0.72\linewidth}{>{\raggedright\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X}
         \toprule
         降维方式 & TPR & 运行时间 \\
         \midrule
@@ -819,7 +819,7 @@ Lag特征的构建基于以下假设：故障发生前的异常变化往往具�
 \begin{table}[htbp]
     \centering
     \caption{\label{tab:noise-removal}噪声样本移除前后性能对比}
-    \begin{tabularx}{0.62\linewidth}{Xcc}
+    \begin{tabularx}{0.72\linewidth}{>{\raggedright\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X}
         \toprule
         噪声样本处理 & TPR & FPR \\
         \midrule
@@ -838,7 +838,7 @@ Lag特征的构建基于以下假设：故障发生前的异常变化往往具�
 \begin{table}[htbp]
     \centering
     \caption{\label{tab:model-comparison}不同学习模型性能对比}
-    \begin{tabularx}{0.62\linewidth}{Xcc}
+    \begin{tabularx}{0.72\linewidth}{>{\raggedright\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X}
         \toprule
         模型 & TPR & FPR \\
         \midrule
@@ -979,13 +979,14 @@ MLP在该表格型数据场景下未达到树模型的效果。
 \end{equation}
 其中 $P_{99}$ 表示 99 分位数函数。选择 99 分位数而非均值或中位数的原因在于：在工程实践中，更关心最坏情况下的错误水平，高分位数能够更好地反映块在极端条件下的行为，更贴近 LDPC 纠错能力的实际边界。
 
-随后，参考 TLC 颗粒厂商建议的使用读写次数（例如 8500 次 PE），选定 151 作为极限使用 FBC 阈值。该阈值的设定基于以下考虑：一是 151 个错误比特接近当前 TLC SSD 中 LDPC 译码器的纠错能力上限，超过该阈值后译码失败概率显著增加；二是考虑到实际运行环境中的温度波动、数据保持时间等因素，需要在理论纠错上限之下预留一定安全裕量；三是该阈值与厂商推荐的 8500 次 PE 寿命相对应，在工程实践中已有经验支撑。
+随后，参考 TLC 颗粒厂商建议的使用读写次数8500 次 PE，选定 151 作为极限使用 FBC 阈值。该阈值的设定基于以下考虑：一是 151 个错误比特接近当前 TLC SSD 中 LDPC 译码器的纠错能力上限，超过该阈值后译码失败概率显著增加；二是考虑到实际运行环境中的温度波动、数据保持时间等因素，需要在理论纠错上限之下预留一定安全裕量；三是该阈值与厂商推荐的 8500 次 PE 寿命相对应，在工程实践中已有经验支撑。
 
-由于无法采集更密集的 PE 档位（例如每 100 次 PE 采集一次），为保证在标记的寿命时间内 FBC 一定小于阈值，将第一次观测到代表性 FBC 达到或超过 151 时的 PE 档位的前一个档位视为该块的极限可用 PE 次数，并将该字段记为 LIFESPAN。数学上，LIFESPAN 定义为
+由于无法采集更密集的 PE 档位，如每 100 次 PE 采集一次，为保证在标记的寿命时间内 FBC 一定小于阈值，将第一次观测到代表性 FBC 达到或超过 151 时的 PE 档位的前一个档位视为该块的极限可用 PE 次数，并将该字段记为 LIFESPAN。数学上，LIFESPAN 定义为
 \begin{equation}
     \mathrm{LIFESPAN}_i = \max\{p : \mathrm{FBC}_{i,p} < 151\} - \Delta p,
+    \label{eq:lifespan-delta}
 \end{equation}
-其中 $\Delta p$ 表示 PE 档位的间隔（例如 500 次）。
+其中 $\Delta p$ 表示 PE 档位的间隔。
 
 \subsection{二分类标签构造}
 
@@ -1022,7 +1023,7 @@ MLP在该表格型数据场景下未达到树模型的效果。
 
 \subsection{模型选择与训练策略}
 
-考虑到特征数量中等（约 30 到 40 个）、存在非线性关系、且样本数量有限（256 个块），本文采用集成学习模型进行寿命预测。集成学习通过组合多个弱学习器，能够提升模型的泛化能力和鲁棒性，特别适合小样本场景。
+考虑到特征数量中等、存在非线性关系、且样本数量有限（仅 256 个块），本文采用集成学习模型进行寿命预测。集成学习通过组合多个弱学习器，能够提升模型的泛化能力和鲁棒性，特别适合小样本场景。
 
 我们分别使用以下三种集成学习模型进行对比：XGBoost，基于梯度提升的集成方法，通过逐步拟合残差优化目标函数，具备较强的非线性建模能力和特征重要性分析功能；RandomForest，基于 Bagging 的集成方法，通过随机采样和特征选择降低方差，对噪声和异常值具有较强的鲁棒性；LightGBM，基于梯度提升的高效实现，采用直方图算法和按叶生长策略，在保证性能的同时显著提升训练速度。
 
@@ -1044,7 +1045,7 @@ MLP在该表格型数据场景下未达到树模型的效果。
 \begin{table}[htbp]
     \centering
     \caption{\label{tab:read-mode-best-default}不同读模式下各模型在LP/MP/UP区间的性能变化}
-    \begin{tabularx}{0.9\linewidth}{Xccccc}
+    \begin{tabularx}{0.92\linewidth}{>{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X}
         \toprule
         读取方式 & 模型 & LP & MP & UP & 集成 \\
         \midrule

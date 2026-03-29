@@ -1,6 +1,9 @@
 % Vertical align for tabularx cells
 \renewcommand{\tabularxcolumn}[1]{m{#1}}
 
+% 略增列间距，减轻表格中「一列过宽、其余列挤在一起」的视觉不均（预答辩意见：列间隔观感）
+\setlength{\tabcolsep}{8pt}
+
 % Font type inside float
 \makeatletter
 \appto{\@floatboxreset}{\songti\linespreadsingle{}}
