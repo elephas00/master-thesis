@@ -375,7 +375,7 @@ XGBoost（Extreme Gradient Boosting）属于梯度提升树（Gradient Boosting 
 \end{algorithm}
 \subsection{LightGBM}
 LightGBM 是基于梯度提升框架的高效决策树集成算法，由 Guolin Ke 等人在 2017 年提出\cite{ke2017lightgbm}。其核心特点包括基于直方图的离散化分裂算法（Histogram-based Decision Tree）、按叶生长（Leaf-wise）的树生长策略以及对大规模数据友好的高效并行机制。
-相比 XGBoost，LightGBM 在特征分桶、梯度直方图复用和单边梯度采样（GOSS）、互斥特征捆绑（EFB）等方面进一步降低了内存占用和计算开销，适合在大规模、高维度数据集上训练复杂模型。
+相比 XGBoost，LightGBM 在特征分桶、梯度直方图复用和单边梯度采样（Gradient-based One-Side Sampling, GOSS）、互斥特征捆绑（Exclusive Feature Bundling, EFB）等方面进一步降低了内存占用和计算开销，适合在大规模、高维度数据集上训练复杂模型。
 在面向数据中心 SSD 故障预测的应用中，LightGBM 常用于在保证预测性能的前提下缩短训练与推理时间，便于在实际运维系统中进行周期性模型更新与在线部署。
 \begin{algorithm}[H]
     \begin{algorithmic}
