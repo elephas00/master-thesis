@@ -1,15 +1,36 @@
 \cleardoublepage
 \chapternonum{摘要}
+随着云计算、大数据与人工智能应用的快速发展，数据存储与计算需求持续增长，推动数据中心规模不断扩大。固态硬盘作为关键存储介质，其可靠性与寿命利用效率直接影响业务连续性和运维成本。
+针对这一应用场景，本文关注两个相互关联但侧重点不同的问题：
+其一，故障预测问题，即在监控数据早期信息有限且噪声较多的条件下，如何在低误报约束下稳定识别潜在故障盘；
+其二，寿命提升问题，即在统一寿命阈值策略难以刻画块间耐久差异的情况下，如何有效识别块的使用寿命，并在近零误报约束下尽可能准确地预测出块寿命，进而将预测结果转化为可执行策略以提高整体可写入量。围绕上述问题，本文开展了如下工作：
 
-\noindent 本文面向数据中心中固态硬盘（SSD）的可靠性保障需求，研究在早期、有限且包含噪声的监控数据条件下的故障预测与寿命提升方法。针对SSD故障的时序演化与块级个体差异，本文基于块级错误比特计数（FBC）构建数据集与寿命标签体系，并通过时间序列交叉验证实现符合预警场景的数据划分。在故障预测阶段，提出面向早期PE档位的Lag特征与时间窗口统计特征的特征工程方法；进一步根据故障机理区分磨损相关与突发异常特征，识别并移除噪声样本。实验在假阳性率（False Positive Rate, FPR）约束（$\leq 0.035\%$）下进行评估，结果表明所提方法可有效提升故障预测性能；在MB1型号SSD数据集上采用随机森林分类器时，真正例率（True Positive Rate, TPR）为41.23\%。在寿命提升阶段，本文将寿命预测结果转化为差异化写入策略：基于块级FBC预测强块与弱块，并对弱块保持保守阈值、对强块放宽阈值，从而在不突破纠错安全边界的前提下提升SSD整体可写入量。实验结果显示，相比统一PE阈值策略，该方法可带来约17\%的累计写入量提升。
+（1）围绕故障预测问题，针对 MB1 型号固态硬盘日志数据，提出基于 Lag 特征与时间窗口统计特征的时序特征工程方法，并结合故障机理设计噪声样本识别与移除策略；通过时间序列交叉验证与阈值调整，构建贴近实际预警流程的评估方案。实验结果表明，在假阳性率约束为 $\leq 0.035\%$ 的条件下，能够达到 41.23\% 的真正例率，验证了所提方法在低误报约束下的有效性。
 
-\bigskip
-\noindent \textbf{关键词}：固态硬盘；故障预测；SMART与Lag特征；集成学习；低误报率约束；寿命提升
+（2）围绕寿命提升问题，基于块级错误比特计数（Fault Bit Count, FBC）构建寿命标签，并将块寿命预测问题转化为强块/弱块分类问题：对弱块采用更保守写入上限、对强块在安全边界内适度放宽阈值，以提升整体可写入量。实验结果显示，相比统一 PE 阈值策略，该方法可带来约 17\% 的累计写入量提升，验证了预测驱动寿命优化策略的有效性。
+
+（3）最后，基于本文提出的故障预测与寿命提升方法，设计并实现智慧固态硬盘运维软件，形成从预警生成到状态管理的闭环流程，并实现资产管理、日志管理、故障记录与预警处理等功能，验证了方法在工程场景中的可部署性与实用性。
+
+综上，本文按“故障预测—寿命优化—系统落地”的结构形成了较完整的技术链路，在不显著增加误报风险的前提下提升了故障识别能力与存储资源利用效率，为数据中心固态硬盘的可靠性运维与成本优化提供了可行方法与实践参考。
+
+\textbf{关键词}：固态硬盘；机器学习；故障预测；寿命提升；低误报率约束
 
 \cleardoublepage
 \chapternonum{Abstract}
 
-\noindent This thesis investigates SSD fault prediction and lifetime improvement under early-stage monitoring data that is limited and noisy. To address the temporal evolution and block-level heterogeneity of SSD degradation, we construct a dataset and lifespan labels based on block-level Fault Bit Count (FBC), and adopt time-series cross-validation for realistic warning-oriented data splitting. For fault prediction, we propose feature engineering tailored to early PE intervals, including Lag features and statistics aggregated over time windows. Moreover, guided by fault mechanisms, we separate wear-related signals and sudden abnormal signals to identify and remove noise samples. Under an FPR constraint ($\leq 0.035\%$), the proposed method achieves a TPR of 41.23\% on the MB1 SSD dataset using a Random Forest classifier. For lifetime improvement, we convert prediction results into differentiated write strategies: blocks are classified into strong and weak groups via block-level FBC-based lifespan prediction, where conservative thresholds are kept for weak blocks and relaxed thresholds are applied to strong blocks without violating the LDPC error-correction safety boundary. Experimental results show that, compared with a uniform PE-threshold policy, the proposed strategy yields about a 17\% increase in the cumulative writable amount.
+With the rapid development of cloud computing, big data, and artificial intelligence applications, storage and computing demands continue to grow, which drives the continuous expansion of data centers.
+As a key storage medium, the reliability and lifetime utilization efficiency of solid-state drives (SSDs) directly affect service continuity and operation costs. 
+In this context, this thesis focuses on two related but distinct problems:
+ (1) failure prediction, i.e., how to stably identify potential faulty drives under low false-alarm constraints when early monitoring signals are weak and noisy; and 
+ (2) lifetime enhancement, i.e., how to identify strong and weak blocks and accurately detect blocks eligible for threshold relaxation under near-zero false alarms, then translate prediction results into executable write policies.
+The main contributions are as follows:
 
-\bigskip
-\noindent \textbf{Keywords}：SSD fault prediction; SMART; Lag features; ensemble learning; low-FPR constraint; lifetime improvement
+(1) For failure prediction, this thesis proposes a time-series feature engineering method based on Lag features and time-window statistics for the MB1 SSD dataset, and further introduces a mechanism-guided noise-sample identification and removal strategy. With time-series cross-validation and threshold tuning, the evaluation protocol is aligned with practical warning scenarios. Under an FPR constraint of $\leq 0.035\%$, the Random Forest model achieves a TPR of 41.23\%.
+
+(2) For lifetime enhancement, this thesis constructs lifespan labels from block-level Fault Bit Count (FBC) and converts block-level prediction results into a differentiated write strategy: conservative write limits are applied to weak blocks, while thresholds for strong blocks are moderately relaxed within safety boundaries. Experimental results show that, compared with a uniform PE-threshold policy, the proposed strategy increases cumulative writable amount by about 17\%.
+
+(3) Based on the proposed failure prediction and lifetime enhancement methods, this thesis designs and implements an intelligent SSD operation and maintenance software system, forming a closed loop from warning generation to status management, and realizing key functions such as asset management, log management, fault records, and warning handling.
+
+In summary, this thesis forms an integrated technical pipeline from failure prediction to lifetime optimization and system implementation. It improves failure identification capability and storage resource utilization without significantly increasing false alarms, and provides a practical reference for reliable SSD operation and cost optimization in data centers.
+
+\textbf{Keywords}：solid-state drive; machine learning; failure prediction; lifetime enhancement; low false-positive-rate constraint
