@@ -26,7 +26,7 @@ SSD 故障可以表现为多种形式。Xu 等人\cite{xu2019lessons}对部署�
 目前，无论是 HDD 还是 SSD，均普遍搭载自我监控、分析和报告技术（Self-Monitoring, Analysis And Report Technology，简称 SMART）硬盘自检系统以保障可靠性。
 借助 SMART 采集的硬盘监控指标，通过主动预测硬盘故障，可提前预判潜在故障风险，主动移除即将发生故障的 SSD，从而避免故障恢复带来的时间开销，降低 SSD 故障引发的数据丢失风险。
 
-\section{SSD故障国内外研究现状}
+\section{固态硬盘故障国内外研究现状}
 早期存储设备故障预测研究主要集中于传统的HDD，通常使用 SMART 指标或硬件自定义观测指标或设备运行的软件监控性能指标，利用磁盘的历史监控指标训练模型。
 鉴于 HDD 与 SSD 在实现原理上的根本差异，以及不同厂商对统一指标定义的不一致性，即便设备均兼容 SMART 标准，其故障特征仍会随型号与厂商的变化而显著不同。
 由此导致现有针对 HDD 的故障预测研究难以直接应用于 SSD，甚至不同型号的 SSD 之间也难以复用同一套预测模型与经验结论。
@@ -59,7 +59,7 @@ Lu 等人\cite{lu2022nvme} 聚焦 NVMe SSD，基于阿里巴巴超过一百万�
 研究发现，相比传统 SATA SSD，NVMe SSD 在早期失效和访问模式差异方面表现出更强的鲁棒性，高写放大因子与故障率之间的相关性显著减弱，但节点内、机架内的相关故障更为集中，且 fail-slow 故障广泛存在且危害严重：在四个月监测期内约有 1.41\% 的 NVMe SSD 发生 fail-slow 故障，其性能可退化至 SATA SSD 甚至 HDD 水平。
 进一步分析表明，NVMe SSD 的 fail-slow 故障难以通过 SMART 属性提前识别，且极少演化为 fail-stop 故障，它们认为仅依赖传统 SMART 监控难以及时发现并缓解此类性能退化问题，需要结合运行时时延观测与系统级信号设计新的检测与应对机制。
 
-\subsection{SSD故障预测算法}
+\subsection{固态硬盘故障预测算法}
 SSD 故障预测算法主要致力于构建机器学习模型，利用历史故障数据学习硬盘由“健康”状态演化为“故障”状态的概率。常用特征包括硬盘内置的 SMART 指标、厂商自定义的硬件观测量以及设备运行过程中的软件监控性能指标等。
 评价预测模型时，通常采用真正例率（True Positive Rate, TPR）和假阳性率（False Positive Rate, FPR）等指标；部分工作也使用硬盘故障检测率（Failure Detection Rate, FDR）和故障报警误报率（Failure Alarm Rate, FAR）分别对应 TPR 和 FPR。
 近年来针对 SSD 的故障预测研究主要包括如下几类工作。近年来针对 SSD 的故障预测研究主要包括如下几类工作。
@@ -176,7 +176,7 @@ NAND 闪存以浮栅场效应晶体管（Floating Gate MOSFET）作为基本存�
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=.8\linewidth]{figure/SSD结构.jpg}
-    \caption{SSD基本结构\cite{ssdfans_ssd_2021} }
+    \caption{固态硬盘基本结构\cite{ssdfans_ssd_2021} }
     \label{fig:ssd_basic_structure}
 \end{figure}
 
@@ -441,7 +441,7 @@ MB1型号SSD数据集的基本统计信息如表\ref{tab:mb1-dataset-stats}所�
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.9\linewidth]{figure/failure-by-month.png}
-    \caption{MB1型号SSD月度故障数量分布}
+    \caption{MB1型号固态硬盘月度故障数量分布}
     \label{fig:failure-by-month}
 \end{figure}
 
@@ -973,7 +973,7 @@ MLP在该表格型数据场景下未达到树模型的效果。
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.75\linewidth]{figure/逻辑组划分.jpg}
-    \caption{BlockFilter 分组逻辑示意图}
+    \caption{分组逻辑示意图}
     \label{fig:blockfilter-grouping}
 \end{figure}
 
@@ -985,7 +985,7 @@ MLP在该表格型数据场景下未达到树模型的效果。
 
 这种处理虽然引入了一定近似误差，但在有限实验样本下显著提升了轨迹的完整性，使得我们能够在每个逻辑块上获得更密集的 PE 档位观测。
 
-\subsection{块级 FBC 聚合与 LIFESPAN 定义}
+\subsection{块级 FBC 聚合与寿命定义}
 
 为了确定单个块的可读写次数上限，需要先从多次读取得到的 FBC 中提取稳定的块级指标。本文的做法是：对于每个逻辑块和每个 PE 档位，聚合该块所有 Wordline、所有 PageType 在 BestRead 条件下的 Value0--Value3，计算其 99 分位数作为当前块在该 PE 档位的代表性 FBC。
 
@@ -1154,7 +1154,7 @@ MLP在该表格型数据场景下未达到树模型的效果。
 这一结果表明，结合块级错误行为建模与集成学习的寿命预测方法，能够在不牺牲可靠性的前提下显著提升 SSD 的可用寿命，为后续在真实 SSD 控制器中集成寿命预测与精细化写入调度提供了有力支撑和实验依据。
 
 
-\chapter{智慧SSD运维软件设计与实现}
+\chapter{智慧固态硬盘运维软件设计与实现}
 
 \section{需求分析与总体设计}
 为验证前文提出的 SSD 故障预测与寿命提升方法在真实运维场景中的可落地性，本文进一步设计并实现智慧SSD运维软件。系统建设目标包括：对SSD资产、运行日志与故障事件进行统一管理；提供基于历史SMART日志的故障预警能力；形成“预警生成--人工确认/忽略--结果沉淀”的闭环流程；为后续策略优化与模型迭代提供可追溯的数据基础。
@@ -1169,7 +1169,7 @@ MLP在该表格型数据场景下未达到树模型的效果。
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.95\linewidth]{figure/software_structure.png}
-    \caption{智慧SSD运维软件总体架构图}
+    \caption{软件总体架构图}
     \label{fig:software-structure}
 \end{figure}
 
