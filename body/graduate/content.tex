@@ -3,7 +3,7 @@
 \section{研究背景}
 随着数字化转型和云计算、大数据、物联网、人工智能等技术在各行业的广泛应用，业务系统不断产生和累积海量数据，这些数据被集中部署在数据中心，使数据中心的存储规模快速膨胀。
 根据Cloudscene平台统计\cite{shankar2024challenging}，2024年世界上的数据中心总量超过11,800个，国内数据中心为449个。
-从数据产生规模的角度来看，根据 2024 版《数据存储2030》白皮书\cite{huawei_storage_2030_2024}，如图1-1所示，世界上产生的数据总量2020年为44ZB，2025年将达175ZB，到2030 年将达到 1003ZB。
+从数据产生规模的角度来看，根据 2024 版《数据存储2030》白皮书\cite{huawei_storage_2030_2024}，如图~\ref{fig:global-data-growth}所示，世界上产生的数据总量2020年为44ZB，2025年将达175ZB，到2030 年将达到 1003ZB。
 如此庞大的数据集中存储于数据中心的存储系统中，如何保障数据的可靠性已成为一个重要挑战。
 
 \begin{figure}[htbp]
@@ -118,7 +118,7 @@ Zhou 等人\cite{zhou2023proactive} 研究了华为数据中心采集的 SSD 私
 在华为 SSD 私有数据集和得到100\%的TPR和0.06\%的FPR。
 
 \section{本文主要研究内容}
-本文主要研究内容框架如图1-2所示。
+本文主要研究内容框架如图~\ref{fig:framework}所示。
 
 \begin{figure}[htbp]
     \centering
@@ -152,6 +152,7 @@ Zhou 等人\cite{zhou2023proactive} 研究了华为数据中心采集的 SSD 私
 
 \chapter{相关理论基础}
 本章节详细介绍与本文相关的研究技术及原理。
+其中，第二章中关于固态硬盘存储结构、读写/擦除机制、错误产生机理与纠错编码等原理性内容，主要参考专著《深入浅出SSD》\cite{ssdfans_ssd_2021}，并结合本文研究问题进行整理与归纳。
 
 \section{固态硬盘存储原理}
 
@@ -159,7 +160,7 @@ Zhou 等人\cite{zhou2023proactive} 研究了华为数据中心采集的 SSD 私
 
 \subsection{NAND 闪存基本结构}
 
-NAND 闪存以浮栅场效应晶体管（Floating Gate MOSFET）作为基本存储单元（Cell），并通过浮栅中电子的存储状态来表示数据。其物理结构通常采用分层组织方式，如图2-1所示，主要包括：
+NAND 闪存以浮栅场效应晶体管（Floating Gate MOSFET）作为基本存储单元（Cell），并通过浮栅中电子的存储状态来表示数据。其物理结构通常采用分层组织方式，如图~\ref{fig:ssd_basic_structure}所示，主要包括：
 
 \begin{itemize}
     \item \textbf{存储单元（Cell）}：最基本的存储单位。按单元可存储的比特数可分为单层单元（Single-Level Cell, SLC）、多层单元（Multi-Level Cell, MLC）和三层单元（Triple-Level Cell, TLC）。其中，SLC 每单元存储 1 比特，可靠性与耐久性最好但成本较高；MLC 每单元存储 2 比特，在容量与成本之间折中；TLC 每单元存储 3 比特，容量密度更高、单位成本更低，但对噪声与老化更敏感。
@@ -183,7 +184,7 @@ NAND 闪存以浮栅场效应晶体管（Floating Gate MOSFET）作为基本存�
 
 \subsection{编程与擦除操作}
 
-NAND 闪存的数据操作主要包括编程（Program）和擦除（Erase）两个基本操作，如图2-2所示：
+NAND 闪存的数据操作主要包括编程（Program）和擦除（Erase）两个基本操作，如图~\ref{fig:ssd_read_write}所示：
 
 \begin{enumerate}
     \item \textbf{编程操作}：将数据写入存储单元的过程。通过向控制栅施加高电压，使电子通过隧道氧化层注入浮栅，改变浮栅中的电子数量，从而改变存储单元的阈值电压，实现数据写入。编程操作以页为单位进行，但只能将存储单元从低电压状态（擦除状态）编程到高电压状态，不能反向操作。
@@ -304,15 +305,15 @@ SMART 是一种自动的硬盘状态检测与预警系统和规范，通过在�
 集成学习（Ensemble Learning）通过构建并组合多个“弱学习器”（Weak Learners），以提升整体预测性能和泛化能力。与单一模型相比，集成方法能够在一定程度上降低方差和偏差，对噪声和异常点更具鲁棒性，在工业界的大规模故障预测任务中得到广泛应用。
 
 \subsection{随机森林模型}
+随机森林（Random Forest, RF）是一种典型的 Bagging 集成算法，由 Leo Breiman 于 2001 年提出\cite{breiman2001random}。
+其基本思想是对训练集进行自助采样（Bootstrap），训练多个相互独立的决策树分类器，并在预测阶段通过投票或平均的方式得到最终预测结果，如图~\ref{fig:random_forest}所示。
 
-随机森林（Random Forest, RF）是一种典型的 Bagging 集成算法，其基本思想是对训练集进行自助采样（Bootstrap），训练多个相互独立的决策树分类器，并在预测阶段通过投票或平均的方式得到最终预测结果，如图2-3所示。
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=.8\linewidth]{figure/随机森林示意图.jpg}
     \caption{随机森林示意图 }
     \label{fig:random_forest}
 \end{figure}
-
 
 在每棵树的训练过程中，随机森林在节点划分时仅从特征子集中选择最优划分特征，从而引入额外的随机性，降低不同树之间的相关性。
 得益于多棵树的集成，随机森林对单棵树容易出现的过拟合问题有一定抑制作用，同时在处理高维特征、非线性关系以及特征尺度差异时表现稳定，适合作为 SSD 故障预测中的基线模型。
@@ -339,7 +340,8 @@ SMART 是一种自动的硬盘状态检测与预警系统和规范，通过在�
 
 
 \subsection{XGBoost}
-XGBoost（Extreme Gradient Boosting）属于梯度提升树（Gradient Boosting Decision Tree, GBDT）家族，如图2-4所示，通过加法模型和前向分步优化的方式逐步叠加弱学习器，每一棵新树拟合上一轮模型的残差，从而不断提升整体拟合能力。
+XGBoost（Extreme Gradient Boosting）属于梯度提升树（Gradient Boosting Decision Tree, GBDT）家族，由 Tianqi Chen 和 Carlos Guestrin 于 2016 年提出\cite{chen2016xgboost}。
+图~\ref{fig:gbdt_flow}展示了 GBDT 的基本迭代流程；XGBoost 在该流程基础上引入二阶信息、正则化项与工程化优化，在保持逐步拟合残差这一核心思想的同时进一步提升了模型性能与训练效率。
 
 \begin{figure}[htbp]
 \centering
@@ -372,7 +374,7 @@ XGBoost（Extreme Gradient Boosting）属于梯度提升树（Gradient Boosting 
     \caption{\label{alg:xgb}XGBoost 训练流程}
 \end{algorithm}
 \subsection{LightGBM}
-LightGBM 是基于梯度提升框架的高效决策树集成算法，核心特点包括基于直方图的离散化分裂算法（Histogram-based Decision Tree）、按叶生长（Leaf-wise）的树生长策略以及对大规模数据友好的高效并行机制。
+LightGBM 是基于梯度提升框架的高效决策树集成算法，由 Guolin Ke 等人在 2017 年提出\cite{ke2017lightgbm}。其核心特点包括基于直方图的离散化分裂算法（Histogram-based Decision Tree）、按叶生长（Leaf-wise）的树生长策略以及对大规模数据友好的高效并行机制。
 相比 XGBoost，LightGBM 在特征分桶、梯度直方图复用和单边梯度采样（GOSS）、互斥特征捆绑（EFB）等方面进一步降低了内存占用和计算开销，适合在大规模、高维度数据集上训练复杂模型。
 在面向数据中心 SSD 故障预测的应用中，LightGBM 常用于在保证预测性能的前提下缩短训练与推理时间，便于在实际运维系统中进行周期性模型更新与在线部署。
 \begin{algorithm}[H]
@@ -917,7 +919,7 @@ MLP在该表格型数据场景下未达到树模型的效果。
 
 随着读写次数的增加，单元中的陷阱对电子的捕获能力逐渐下降；长时间静置或在高温环境下，单元中存储的电子可能从陷阱中逃逸，或者在多次读操作过程中受到读干扰，导致读出的数据与写入的数据并不一致，形成错误比特。为抵御这些错误，企业级 SSD 控制器中通常内置基于 LDPC 码的纠错模块：在写入数据前，对原始比特序列进行编码，插入冗余比特；在读取时，只要错误比特数量不超过 LDPC 的纠错能力上限，译码器便可以恢复原始数据；一旦错误比特数量超过阈值，对应块会被标记为坏块。厂商通常预留一定数量的冗余块以替换坏块，但冗余资源有限，当坏块数量过多时，SSD 的可用容量和并行写入能力都会明显下降。
 
-在传统工程实践中，为了简化寿命管理策略，厂商往往采用统一 PE 阈值的粗粒度策略：不区分块间差异，只要某个块的 PE 次数达到预设上限（例如 8500 次），便认为整盘已接近寿命终点。该策略隐含地假定所有块具有相同的耐久性，但实验表明，在相同使用条件下，不同块的错误比特计数（Fault Bit Count, FBC）随 PE 增长的速度存在显著差异：部分弱块在较低 PE 次数下就接近纠错能力上限，而部分强块即便在较高 PE 档位 FBC 仍然较低，尚有较大冗余空间。简单采用统一阈值会导致强块剩余可写入能力被浪费，如下图4.1所示。
+在传统工程实践中，为了简化寿命管理策略，厂商往往采用统一 PE 阈值的粗粒度策略：不区分块间差异，只要某个块的 PE 次数达到预设上限（例如 8500 次），便认为整盘已接近寿命终点。该策略隐含地假定所有块具有相同的耐久性，但实验表明，在相同使用条件下，不同块的错误比特计数（Fault Bit Count, FBC）随 PE 增长的速度存在显著差异：部分弱块在较低 PE 次数下就接近纠错能力上限，而部分强块即便在较高 PE 档位 FBC 仍然较低，尚有较大冗余空间。简单采用统一阈值会导致强块剩余可写入能力被浪费，如图~\ref{fig:pe-comparison}所示。
 
 \begin{figure}[htb]
     \centering
