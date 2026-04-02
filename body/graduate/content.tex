@@ -664,22 +664,40 @@ Lag特征的构建基于以下假设：故障发生前的异常变化往往具�
 
 \subsubsection{数据集划分}
 
-采用时间序列交叉验证方法进行数据集划分：
+如图~\ref{fig:dataset-split-timeline}所示，采用时间序列交叉验证方法进行数据集划分：
 \begin{itemize}
-    \item \textbf{训练集}：2018年1月至2019年8月的数据（19个月）
-    \item \textbf{测试集}：2019年9月至2019年11月的数据（3个月）
+    \item \textbf{训练集}：2018年1月至2019年7月的数据（共计19个月）
+    \item \textbf{测试集}：2019年9月至2019年11月的数据（共计3个月）
 \end{itemize}
 
-这种划分方式符合实际应用场景，即使用历史数据训练模型，预测未来数据。测试区间选择2019年9月至11月而不包含12月，主要是因为12月数据位于观测期末端，数据集中没有2020年1月的故障清单，会因为故障标签不完整导致评估失真。
+% 数据集划分时间轴示意图
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.85\linewidth]{figure/timeline.pdf}
+    \caption{训练集与测试集划分时间轴示意图}
+    \label{fig:dataset-split-timeline}
+\end{figure}
+
+这种划分方式是为了符合实际应用场景，即使用历史数据训练模型，预测未来数据。
+
+需要说明的是，为避免训练与测试窗口之间的时间重叠带来数据泄露风险，训练集在 2019 年 7 月结束，不包含 2019 年 8 月的数据。
+测试区间选择2019年9月至11月而不包含12月，主要是因为12月数据位于观测期末端，数据集中没有2020年1月的故障清单，会因为故障标签不完整导致评估失真。
 
 \subsubsection{评估指标}
 
-本研究采用盘级评估方式，即对于每块SSD，在评估窗口内若存在预测为故障的记录，则取最早一次预测为故障的日期，判断该日期后30天内SSD是否实际发生故障。
+本研究采用盘级评估方式，即对于每块SSD，在评估窗口内若存在预测为故障的记录，则取最早一次预测为故障的日期，并判断该日期后30天内SSD是否实际发生故障，具体的判定规则如图~\ref{fig:tp-fp-tn-fn}所示。
 
-基于混淆矩阵，定义以下评估指标：
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.85\linewidth]{figure/tp_tn_fp_fn.pdf}
+    \caption{盘级评估中 TP/FP/TN/FN 判定规则示意图}
+    \label{fig:tp-fp-tn-fn}
+\end{figure}
+
+基于上述判定规则得到的混淆矩阵，定义以下评估指标：
 \begin{itemize}
-    \item \textbf{真正例率}：$TPR = \frac{TP}{TP+FN}$，表示实际故障盘中被正确预测的比例，也称为召回率（Recall）
-    \item \textbf{假正例率}：$FPR = \frac{FP}{FP+TN}$，表示正常盘中被错误预测为故障的比例
+    \item \textbf{真正例率}：$TPR = \frac{TP}{TP+FN}$，表示实际故障盘中被正确预测的比例，也称为召回率（Recall；对应图中时间窗口内的命中判定）
+    \item \textbf{假正例率}：$FPR = \frac{FP}{FP+TN}$，表示正常盘中被错误预测为故障的比例（对应图中的误报判定）
 \end{itemize}
 
 在实际应用中，FPR过高会导致运维成本增加，因此需要在控制FPR的前提下最大化TPR。本研究设定FPR约束条件为$\leq 0.035\%$，通过调整分类阈值来满足该约束。
