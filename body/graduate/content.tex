@@ -342,30 +342,32 @@ SMART 是一种自动的硬盘状态检测与预警系统和规范，通过在�
 在每棵树的训练过程中，随机森林在节点划分时仅从特征子集中选择最优划分特征，从而引入额外的随机性，降低不同树之间的相关性。
 得益于多棵树的集成，随机森林对单棵树容易出现的过拟合问题有一定抑制作用，同时在处理高维特征、非线性关系以及特征尺度差异时表现稳定，适合作为 SSD 故障预测中的基线模型。
 
-\begin{algorithm}[H]
-    \begin{algorithmic}
-        \REQUIRE 训练集 $D = \{(x_i, y_i)\}_{i=1}^{N}$，模型数量 $n$，每次分裂使用的特征数 $m$
-        \ENSURE 训练好的随机森林模型 $F(x)$
-        \FOR{$i = 1$ to $n$}
-            \STATE 使用自助采样（Bootstrap）从 $D$ 中有放回地采样，得到子集 $D_i$
-            \STATE 在 $D_i$ 上训练一个模型 $T_i$：
-            \WHILE{未满足停止条件}
-                \STATE 从全部 $M$ 个特征中随机选择 $m$ 个特征构成候选集合 $S$
-                \STATE 在 $S$ 中选择使得划分增益，如信息增益或基尼指数，最大的特征及其划分点
-                \STATE 根据该特征及划分点对当前节点进行分裂
-            \ENDWHILE
-            \STATE 将模型 $T_i$ 加入模型集合
-        \ENDFOR
-        \STATE 对于新的输入样本 $x$，将其分别输入所有模型，得到预测集合 $\{T_i(x)\}_{i=1}^{n}$
-        \STATE 对于分类任务，采用多数投票法得到最终预测 $F(x)$；对于回归任务，采用平均值法得到最终预测 $F(x)$
-    \end{algorithmic}
-    \caption{\label{alg:rf}随机森林训练流程}
-\end{algorithm} 
+随机森林的训练与预测过程可用如下文字与公式表示。给定训练集
+\begin{equation}
+    D=\{(x_i,y_i)\}_{i=1}^{N},
+\end{equation}
+设森林中决策树数量为 $n$，每个节点分裂时从全部 $M$ 个特征中随机抽取 $m$ 个特征作为候选集合。
+
+对于第 $k$ 棵树（$k=1,\dots,n$），先通过有放回抽样得到子集 $D_k\sim \text{Bootstrap}(D)$，再在 $D_k$ 上训练决策树 $T_k$。在每个节点处，从候选特征集合 $S_k$ 中选择使划分指标最大的特征与阈值，即
+\begin{equation}
+    (j^*,s^*)=\arg\max_{j\in S_k,\;s}\,\Delta(j,s),
+\end{equation}
+其中 $\Delta(j,s)$ 表示按特征 $j$ 和划分点 $s$ 划分后的增益（如信息增益或基尼指数下降量）。
+
+对新样本 $x$，所有子树给出预测 $\{T_k(x)\}_{k=1}^{n}$。最终类别由多数投票确定：
+\begin{equation}
+    F(x)=\arg\max_{c}\sum_{k=1}^{n}\mathbf{1}\!\left(T_k(x)=c\right),
+\end{equation}
+其中 $c$ 为类别标签，$\mathbf{1}(\cdot)$ 为示性函数。
 
 
 \subsection{XGBoost}
 XGBoost（Extreme Gradient Boosting）属于梯度提升树（Gradient Boosting Decision Tree, GBDT）家族，由 Tianqi Chen 和 Carlos Guestrin 于 2016 年提出\cite{chen2016xgboost}。
-图~\ref{fig:gbdt_flow}展示了 GBDT 的基本迭代流程；XGBoost 在该流程基础上引入二阶信息、正则化项与工程化优化，在保持逐步拟合残差这一核心思想的同时进一步提升了模型性能与训练效率。
+图~\ref{fig:gbdt_flow}展示了 GBDT 的基本迭代流程。在分类任务中，GBDT 以加性模型逐轮叠加树基学习器：
+\begin{equation}
+    F_t(x)=F_{t-1}(x)+\eta f_t(x), \quad t=1,\dots,T,
+\end{equation}
+并据此得到类别预测。XGBoost 在该框架上引入二阶信息与显式复杂度正则化，同时结合缺失值处理、近似分裂搜索与并行化等工程优化，在精度与训练效率之间取得较好平衡。
 
 \begin{figure}[htbp]
 \centering
@@ -375,49 +377,10 @@ XGBoost（Extreme Gradient Boosting）属于梯度提升树（Gradient Boosting 
 \end{figure}
 
 
-与传统 GBDT 相比，XGBoost 在目标函数中显式加入了树的复杂度正则项，并在分裂搜索中采用近似算法与多线程并行加速，同时支持缺失值处理和多种损失函数，使其在精度与效率之间取得较好平衡。
-在 SSD 故障预测场景下，XGBoost 能够有效建模高维稀疏特征与非线性关系，并通过特征重要性度量为后续的特征筛选和可解释性分析提供参考。
-
-\begin{algorithm}[H]
-    \begin{algorithmic}
-        \REQUIRE 训练集 $D = \{(x_i, y_i)\}_{i=1}^{N}$，损失函数 $L(\cdot)$，迭代轮数 $T$，学习率 $\eta$
-        \ENSURE 训练好的 XGBoost 模型 $F(x)$
-        \STATE 初始化模型 $F_0(x) = 0$，或目标值的均值
-        \FOR{$t = 1$ to $T$}
-            \STATE 对每个样本 $i$ 计算一阶梯度 $g_i = \frac{\partial L(y_i, F_{t-1}(x_i))}{\partial F_{t-1}(x_i)}$ 和二阶梯度 $h_i = \frac{\partial^2 L(y_i, F_{t-1}(x_i))}{\partial F_{t-1}(x_i)^2}$
-            \STATE 基于梯度和 Hessian 构建第 $t$ 棵回归树 $f_t(x)$：
-            \WHILE{存在可分裂的叶子节点}
-                \STATE 枚举候选特征及其划分点，计算每个划分的增益 $Gain$
-                \STATE 选择增益最大的划分进行叶子节点分裂
-            \ENDWHILE
-            \STATE 使用贪心算法完成整棵树的构建，并对叶子节点赋予权重 $w_j$
-            \STATE 更新模型：$F_t(x) = F_{t-1}(x) + \eta \cdot f_t(x)$
-        \ENDFOR
-        \STATE 输出最终模型：$F(x) = F_T(x)$
-    \end{algorithmic}
-    \caption{\label{alg:xgb}XGBoost 训练流程}
-\end{algorithm}
+在 SSD 故障预测场景下，XGBoost 能够较好地建模高维稀疏特征与非线性关系，并可通过特征重要性度量为特征筛选与可解释性分析提供依据。
 \subsection{LightGBM}
 LightGBM 是基于梯度提升框架的高效决策树集成算法，由 Guolin Ke 等人在 2017 年提出\cite{ke2017lightgbm}。其核心特点包括基于直方图的离散化分裂算法（Histogram-based Decision Tree）、按叶生长（Leaf-wise）的树生长策略以及对大规模数据友好的高效并行机制。
-相比 XGBoost，LightGBM 在特征分桶、梯度直方图复用和单边梯度采样（Gradient-based One-Side Sampling, GOSS）、互斥特征捆绑（Exclusive Feature Bundling, EFB）等方面进一步降低了内存占用和计算开销，适合在大规模、高维度数据集上训练复杂模型。
-在面向数据中心 SSD 故障预测的应用中，LightGBM 常用于在保证预测性能的前提下缩短训练与推理时间，便于在实际运维系统中进行周期性模型更新与在线部署。
-\begin{algorithm}[H]
-    \begin{algorithmic}
-        \REQUIRE 训练集 $D = \{(x_i, y_i)\}_{i=1}^{N}$，损失函数 $L(\cdot)$，迭代轮数 $T$，最大叶子节点数和树深度等超参数
-        \ENSURE 训练好的 LightGBM 模型 $F(x)$
-        \STATE 对连续特征进行离散化，将其映射到有限个直方图桶（bin），预先统计每个桶中的梯度与样本数量
-        \STATE 初始化模型 $F_0(x) = 0$
-        \FOR{$t = 1$ to $T$}
-            \STATE 基于当前模型 $F_{t-1}(x)$ 计算每个样本的一阶与二阶梯度
-            \STATE 采用单边梯度采样（GOSS），保留梯度绝对值较大的样本，并对子样本施加权重以保持梯度分布
-            \STATE 基于直方图统计量，枚举候选划分点，计算每个划分的增益，选择增益最大的叶子节点进行分裂（Leaf-wise 策略）
-            \STATE 对互斥特征进行捆绑（EFB），在降低特征维度的同时更新对应直方图
-            \STATE 完成当前轮的基学习器 $f_t(x)$ 构建，并更新模型：$F_t(x) = F_{t-1}(x) + \eta \cdot f_t(x)$
-        \ENDFOR
-        \STATE 输出最终模型：$F(x) = F_T(x)$
-    \end{algorithmic}
-    \caption{\label{alg:lgbm}LightGBM 训练流程}
-\end{algorithm}
+相比 XGBoost，LightGBM 更侧重训练效率优化：通过特征分桶与直方图复用降低分裂计算开销，并采用单边梯度采样（GOSS）与互斥特征捆绑（EFB）进一步减少计算量和内存占用，使其更适用于大规模、高维数据的快速训练与迭代。在数据中心 SSD 故障预测中，LightGBM 常用于在保证效果的前提下缩短训练与推理时间，便于周期性更新与部署。
 
 
 
