@@ -826,7 +826,9 @@ Lag特征的构建基于以下假设：故障发生前的异常变化往往具�
 为验证随机森林模型的选择合理性，对比了多种机器学习模型的性能，结果如表\ref{tab:model-comparison}所示。
 
 对比对象涵盖不同方法范式：
-单树模型决策树，树集成模型随机森林、XGBoost 和 LightGBM，无监督异常检测模型孤立森林，神经网络模型 MLP，以及时序建模模型 PatchTST；PatchTST 通过将时间序列切分为 patch 并输入 Transformer 进行建模\cite{huang2024long}。为保证结论可比性，所有模型均在相同数据划分与一致的 FPR 约束下进行评估。
+单树模型决策树，树集成模型随机森林、XGBoost 和 LightGBM，无监督异常检测模型孤立森林，神经网络模型 MLP，以及时序建模模型 PatchTST；
+PatchTST 采用分块建模思想：先将输入时间序列划分为长度固定的局部片段（patch），再以片段为粒度进行表示学习与依赖建模。\cite{huang2024long}。
+为保证结论可比性，所有模型均在相同数据划分与一致的 FPR 约束下进行评估。
 
 
 \begin{table}[htbp]
@@ -1086,10 +1088,10 @@ PatchTST虽具备较强的长序列建模能力，但本任务以结构化SMART�
 
 \begin{table}[htbp]
     \centering
-    \caption{\label{tab:partial-wl-results}仅使用部分 WL 的实验结果对比}
+    \caption{\label{tab:partial-wl-results}仅使用部分 Wordline 的实验结果对比}
     \begin{tabularx}{0.85\linewidth}{X<{\centering}X<{\centering}X<{\centering}}
         \toprule
-        ReadType & wordline & 提升率 \\
+        ReadType & Wordline & 提升率 \\
         \midrule
         DefaultRead & 0-0 & 16.25\% \\
         DefaultRead & 0-1 & 14.25\% \\
@@ -1104,7 +1106,7 @@ PatchTST虽具备较强的长序列建模能力，但本任务以结构化SMART�
     \end{tabularx}
 \end{table}
 
-由表~\ref{tab:partial-wl-results} 可见：在 Wordline 覆盖较少时，如 0--0、0--1、0--9，提升率相对偏低，约为 13.7\%--16.3\%；当采样范围扩大至 0--49 及以上时，提升率稳定在 17.08\%，与使用全部 Wordline 时一致，说明中等规模的 Wordline 采样即可逼近全量 WL 特征下的寿命收益。与之相应，在该部分 Wordline 设置下，分类准确率较全量特征略有下降（约 95\% 至 98\%），但仍能有效区分强块与弱块。进一步地，在单一读模式与单次读取等设置下，模型整体仍保持较好区分能力：DefaultRead 的准确率略低于 BestRead，但差异不大（约 2 到 3 个百分点）；仅使用单次读取时，准确率下降约 3 到 5 个百分点，但仍能维持 95\% 以上。综上，所提特征设计与建模方法对数据采样条件具有一定鲁棒性，在实际部署中即便数据采集受限，仍可获得可观的预测与寿命评估效果。
+由表~\ref{tab:partial-wl-results} 可见：在 Wordline 覆盖较少时，如 0--0、0--1、0--9，提升率相对偏低，约为 13.7\%--16.3\%；当采样范围扩大至 0--49 及以上时，提升率稳定在 17.08\%，与使用全部 Wordline 时一致，说明中等规模的 Wordline 采样即可逼近全量特征下的寿命收益。与之相应，在该部分 Wordline 设置下，分类准确率较全量特征略有下降（约 95\% 至 98\%），但仍能有效区分强块与弱块。进一步地，在单一读模式与单次读取等设置下，模型整体仍保持较好区分能力：DefaultRead 的准确率略低于 BestRead，但差异不大（约 2 到 3 个百分点）；仅使用单次读取时，准确率下降约 3 到 5 个百分点，但仍能维持 95\% 以上。综上，所提特征设计与建模方法对数据采样条件具有一定鲁棒性，在实际部署中即便数据采集受限，仍可获得可观的预测与寿命评估效果。
 
 \section{寿命提升策略与写入量评估}
 
