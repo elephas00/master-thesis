@@ -1009,7 +1009,25 @@ PatchTST虽具备较强的长序列建模能力，但本任务以结构化SMART�
 \subsection{二分类标签构造}
 
 在完成寿命标签定义后，可以统计所有逻辑块的寿命分布。
-当前实验数据中，共有 256 个逻辑块，其中寿命为 10000 的块有 251 个，占比约 98\%，而寿命小于 10000 的块仅有 5 个。这种高度不平衡的分布反映了测试样本中强块占主导地位的特点。
+当前实验数据中，共有 256 个逻辑块，其中寿命为 10000 的块有 251 个，而寿命小于 10000 的块仅有 5 个。这种高度不平衡的分布反映了测试样本中强块占主导地位的特点。
+各寿命档位的细分统计如表\ref{tab:lifespan-distribution}所示。
+
+\begin{table}[htbp]
+    \centering
+    \caption{\label{tab:lifespan-distribution}逻辑块寿命分布统计}
+    \begin{tabularx}{0.56\linewidth}{>{\centering\arraybackslash}X >{\centering\arraybackslash}X}
+        \toprule
+        寿命（LIFESPAN） & 块数量 \\
+        \midrule
+        7500 & 1 \\
+        8000 & 0 \\
+        8500 & 1 \\
+        9000 & 2 \\
+        9500 & 1 \\
+        10000 & 251 \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
 
 \begin{figure}[htbp]
     \centering
