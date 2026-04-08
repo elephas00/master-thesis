@@ -1,0 +1,146 @@
+<mxfile host="app.diagrams.net" modified="2026-04-02T00:00:00.000Z" agent="draw.io" version="22.1.0">
+  <diagram id="tp-fp-tn-fn-timeline" name="盘级TP/FP/TN/FN示意图（30天窗口）">
+    <mxGraphModel dx="1200" dy="650" grid="10" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1000" pageHeight="420" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- ===== Legend box ===== -->
+        <mxCell id="legendTitle" value="图例" style="text;html=1;strokeColor=none;fillColor=none;fontSize=14;fontStyle=1;fontFamily=SansSerif;" vertex="1" parent="1">
+          <mxGeometry x="70" y="20" width="80" height="24" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="lgTP" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#4CAF50;strokeColor=#2E7D32;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="155" y="28" width="14" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="lgTPt" value="TP（窗口内预警）" style="text;html=1;strokeColor=none;fillColor=none;fontSize=12;fontFamily=SansSerif;" vertex="1" parent="1">
+          <mxGeometry x="175" y="25" width="170" height="20" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="lgFP" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#E53935;strokeColor=#B71C1C;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="360" y="28" width="14" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="lgFPt" value="FP（误报）" style="text;html=1;strokeColor=none;fillColor=none;fontSize=12;fontFamily=SansSerif;" vertex="1" parent="1">
+          <mxGeometry x="380" y="25" width="120" height="20" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="lgTN" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1E88E5;strokeColor=#0D47A1;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="510" y="28" width="14" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="lgTNT" value="TN（正确不预警）" style="text;html=1;strokeColor=none;fillColor=none;fontSize=12;fontFamily=SansSerif;" vertex="1" parent="1">
+          <mxGeometry x="530" y="25" width="190" height="20" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="lgFN" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FBC02D;strokeColor=#F57F17;strokeWidth=1;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="740" y="28" width="14" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="lgFNT" value="FN（窗口内未预警）" style="text;html=1;strokeColor=none;fillColor=none;fontSize=12;fontFamily=SansSerif;" vertex="1" parent="1">
+          <mxGeometry x="760" y="25" width="190" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- ===== Row 1: fault timeline ===== -->
+        <!-- Row title -->
+        <mxCell id="r1title" value="1）有故障：故障发生时刻 t0" style="text;html=1;strokeColor=none;fillColor=none;fontSize=13;fontFamily=SansSerif;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="70" width="330" height="24" as="geometry"/>
+        </mxCell>
+
+        <!-- Baseline 截断在 t0 位置，表示故障后无数据 -->
+        <mxCell id="r1base" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#B0B0B0;strokeColor=#B0B0B0;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="120" y="98" width="560" height="4" as="geometry"/>
+        </mxCell>
+
+        <!-- 窗口开始标记线 -->
+        <mxCell id="windowStartLine" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#2E7D32;strokeColor=#2E7D32;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="440" y="82" width="1" height="36" as="geometry"/>
+        </mxCell>
+        
+        <!-- 窗口标签 -->
+        <mxCell id="r1windowLabel" value="时间窗口：t0-30d ~ t0" style="text;html=1;strokeColor=none;fillColor=none;fontSize=12;fontFamily=SansSerif;" vertex="1" parent="1">
+          <mxGeometry x="450" y="68" width="220" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- t0 marker -->
+        <mxCell id="r1t0" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E53935;strokeColor=#E53935;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="680" y="70" width="3" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="r1t0Text" value="故障发生 t0" style="text;html=1;strokeColor=none;fillColor=none;fontSize=12;fontFamily=SansSerif;" vertex="1" parent="1">
+          <mxGeometry x="695" y="78" width="120" height="22" as="geometry"/>
+        </mxCell>
+
+        <!-- FP point: earlier than window -->
+        <mxCell id="r1fpDot" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#E53935;strokeColor=#B71C1C;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="250" y="87" width="20" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="r1fpText" value="FP：窗口前预警" style="text;html=1;strokeColor=none;fillColor=none;fontSize=12;fontFamily=SansSerif;" vertex="1" parent="1">
+          <mxGeometry x="225" y="112" width="170" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- TP point -->
+        <mxCell id="r1tpDot" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#4CAF50;strokeColor=#2E7D32;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="480" y="87" width="20" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="r1tpText" value="TP：窗口内预警" style="text;html=1;strokeColor=none;fillColor=none;fontSize=12;fontFamily=SansSerif;" vertex="1" parent="1">
+          <mxGeometry x="465" y="112" width="170" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- FN -->
+        <mxCell id="r1fnCircle" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FBC02D;strokeColor=#F57F17;strokeWidth=1;dashed=1;opacity=40;" vertex="1" parent="1">
+          <mxGeometry x="620" y="87" width="20" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="r1fnText" value="FN：整个时间段内不触发预警" style="text;html=1;strokeColor=none;fillColor=none;fontSize=12;fontFamily=SansSerif;" vertex="1" parent="1">
+          <mxGeometry x="590" y="112" width="240" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- Row labels for time axis -->
+        <mxCell id="r1leftLabel" value="更早时刻" style="text;html=1;strokeColor=none;fillColor=none;fontSize=12;fontFamily=SansSerif;" vertex="1" parent="1">
+          <mxGeometry x="130" y="112" width="90" height="18" as="geometry"/>
+        </mxCell>
+        <mxCell id="r1winStartLabel" value="t0-30d" style="text;html=1;strokeColor=none;fillColor=none;fontSize=12;fontFamily=SansSerif;" vertex="1" parent="1">
+          <mxGeometry x="420" y="112" width="70" height="18" as="geometry"/>
+        </mxCell>
+
+        <!-- ===== Row 2: TN timeline (no fault, no alarm) ===== -->
+        <mxCell id="r2title" value="2）无故障：无误报 => TN" style="text;html=1;strokeColor=none;fillColor=none;fontSize=13;fontFamily=SansSerif;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="165" width="260" height="24" as="geometry"/>
+        </mxCell>
+
+        <!-- Baseline -->
+        <mxCell id="r2base" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#B0B0B0;strokeColor=#B0B0B0;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="120" y="193" width="770" height="4" as="geometry"/>
+        </mxCell>
+
+        <!-- TN 蓝色标记点 -->
+        <mxCell id="r2tnDot" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1E88E5;strokeColor=#0D47A1;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="420" y="182" width="22" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="r2tnText" value="TN：整个时间段内不触发预警" style="text;html=1;strokeColor=none;fillColor=none;fontSize=12;fontFamily=SansSerif;" vertex="1" parent="1">
+          <mxGeometry x="395" y="208" width="260" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- ===== Row 3: FP timeline (no fault, but alarm) ===== -->
+        <mxCell id="r3title" value="3）无故障：发生误报 => FP" style="text;html=1;strokeColor=none;fillColor=none;fontSize=13;fontFamily=SansSerif;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="275" width="260" height="24" as="geometry"/>
+        </mxCell>
+
+        <!-- Baseline -->
+        <mxCell id="r3base" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#B0B0B0;strokeColor=#B0B0B0;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="120" y="303" width="770" height="4" as="geometry"/>
+        </mxCell>
+
+        <!-- FP alarm point on row 3 -->
+        <mxCell id="r3fpDot" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#E53935;strokeColor=#B71C1C;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="420" y="292" width="22" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="r3fpText" value="FP：无故障但触发预警" style="text;html=1;strokeColor=none;fillColor=none;fontSize=12;fontFamily=SansSerif;" vertex="1" parent="1">
+          <mxGeometry x="395" y="318" width="220" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- Note at bottom -->
+        <mxCell id="noteBottom" value="说明：窗口固定为30天；盘级判据按“首次预警时刻”计入TP/FP；未在窗口内预警则可能形成FN。" style="text;html=1;strokeColor=none;fillColor=none;fontSize=11;fontFamily=SansSerif;" vertex="1" parent="1">
+          <mxGeometry x="60" y="372" width="880" height="30" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

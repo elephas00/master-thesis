@@ -1,0 +1,92 @@
+<mxfile host="app.diagrams.net" modified="2025-03-25T10:00:00.000Z" agent="Mozilla" etag="abc123" version="20.7.4" type="device">
+  <diagram id="SLC_MLC_TLC_Voltage" name="Page-1">
+    <mxGraphModel dx="1000" dy="700" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- SLC -->
+        <mxCell id="slcTitle" value="SLC (2 states)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=14;fontBold=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="40" width="150" height="20" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="slcCurve" style="line;strokeColor=#0066cc;strokeWidth=2;html=1;rounded=1;edgeStyle=none;" edge="1" parent="1">
+          <mxGeometry relative="0" as="geometry">
+            <Array as="points">
+              <mxPoint x="150" y="180"/>
+              <mxPoint x="180" y="120"/>
+              <mxPoint x="210" y="180"/>
+              <mxPoint x="270" y="180"/>
+              <mxPoint x="300" y="120"/>
+              <mxPoint x="330" y="180"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- MLC -->
+        <mxCell id="mlcTitle" value="MLC (4 states)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=14;fontBold=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="220" width="150" height="20" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="mlcCurve" style="line;strokeColor=#0066cc;strokeWidth=2;html=1;rounded=1;edgeStyle=none;" edge="1" parent="1">
+          <mxGeometry relative="0" as="geometry">
+            <Array as="points">
+              <mxPoint x="150" y="360"/>
+              <mxPoint x="170" y="320"/>
+              <mxPoint x="190" y="360"/>
+              <mxPoint x="210" y="360"/>
+              <mxPoint x="230" y="320"/>
+              <mxPoint x="250" y="360"/>
+              <mxPoint x="270" y="360"/>
+              <mxPoint x="290" y="320"/>
+              <mxPoint x="310" y="360"/>
+              <mxPoint x="330" y="360"/>
+              <mxPoint x="350" y="320"/>
+              <mxPoint x="370" y="360"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- TLC -->
+        <mxCell id="tlcTitle" value="TLC (8 states)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=14;fontBold=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="400" width="150" height="20" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="tlcCurve" style="line;strokeColor=#0066cc;strokeWidth=2;html=1;rounded=1;edgeStyle=none;" edge="1" parent="1">
+          <mxGeometry relative="0" as="geometry">
+            <Array as="points">
+              <mxPoint x="150" y="540"/><mxPoint x="160" y="510"/><mxPoint x="170" y="540"/>
+              <mxPoint x="180" y="540"/><mxPoint x="190" y="510"/><mxPoint x="200" y="540"/>
+              <mxPoint x="210" y="540"/><mxPoint x="220" y="510"/><mxPoint x="230" y="540"/>
+              <mxPoint x="240" y="540"/><mxPoint x="250" y="510"/><mxPoint x="260" y="540"/>
+              <mxPoint x="270" y="540"/><mxPoint x="280" y="510"/><mxPoint x="290" y="540"/>
+              <mxPoint x="300" y="540"/><mxPoint x="310" y="510"/><mxPoint x="320" y="540"/>
+              <mxPoint x="330" y="540"/><mxPoint x="340" y="510"/><mxPoint x="350" y="540"/>
+              <mxPoint x="360" y="540"/><mxPoint x="370" y="510"/><mxPoint x="380" y="540"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Axis -->
+        <mxCell id="xAxis" value="" style="line;strokeColor=#000;strokeWidth=1;" edge="1" parent="1">
+          <mxGeometry relative="0" as="geometry">
+            <Array as="points"><mxPoint x="140" y="600"/><mxPoint x="400" y="600"/></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="xLabel" value="Voltage" style="text;html=1;strokeColor=none;fillColor=none;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="400" y="590" width="60" height="20" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="yAxis1" style="line;strokeColor=#000;strokeWidth=1;" edge="1" parent="1">
+          <mxGeometry relative="0" as="geometry">
+            <Array as="points"><mxPoint x="140" y="100"/><mxPoint x="140" y="600"/></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="yLabel" value="Probability" style="text;html=1;strokeColor=none;fillColor=none;fontSize=12;rotated=1;" vertex="1" parent="1">
+          <mxGeometry x="110" y="300" width="80" height="20" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
