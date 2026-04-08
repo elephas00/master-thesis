@@ -360,24 +360,27 @@ SMART 是一种自动的硬盘状态检测与预警系统和规范，通过在�
 \end{equation}
 其中 $c$ 为类别标签，$\mathbf{1}(\cdot)$ 为示性函数。
 
-
 \subsection{XGBoost}
-XGBoost（Extreme Gradient Boosting）属于梯度提升树（Gradient Boosting Decision Tree, GBDT）家族，由 Tianqi Chen 和 Carlos Guestrin 于 2016 年提出\cite{chen2016xgboost}。
-图~\ref{fig:gbdt_flow}展示了 GBDT 的基本迭代流程。在分类任务中，GBDT 以加性模型逐轮叠加树基学习器：
-\begin{equation}
-    F_t(x)=F_{t-1}(x)+\eta f_t(x), \quad t=1,\dots,T,
-\end{equation}
-并据此得到类别预测。XGBoost 在该框架上引入二阶信息与显式复杂度正则化，同时结合缺失值处理、近似分裂搜索与并行化等工程优化，在精度与训练效率之间取得较好平衡。
+XGBoost（Extreme Gradient Boosting）是梯度提升树（Gradient Boosting Decision Tree, GBDT）算法的高效实现，由 Chen 和 Guestrin 于 2016 年正式提出\cite{chen2016xgboost}。
+图~\ref{fig:gbdt_flow}展示了 GBDT 算法的基本迭代流程。
 
 \begin{figure}[htbp]
-\centering
+    \centering
     \includegraphics[width=.8\linewidth]{figure/gbdt.pdf}
-    \caption{GBDT示意图 }
+    \caption{GBDT算法迭代流程示意图}
     \label{fig:gbdt_flow}
 \end{figure}
 
+GBDT 采用加性模型（Additive Model）策略，通过串行训练的方式逐轮叠加树基学习器。在每一轮迭代 $t$ 中，算法通过拟合当前模型损失函数的负梯度（即残差近似）来生成新的决策树 $f_t(x)$，并按如下方式更新模型：
+\begin{equation}
+    F_t(x)=F_{t-1}(x)+\eta f_t(x), \quad t=1,\dots,T,
+\end{equation}
+其中 $\eta$ 为学习率，用于控制模型的收敛速度与泛化能力。最终的强学习器 $F_T(x)$ 即为所有弱学习器的线性组合。
 
-在 SSD 故障预测场景下，XGBoost 能够较好地建模高维稀疏特征与非线性关系，并可通过特征重要性度量为特征筛选与可解释性分析提供依据。
+相较于传统 GBDT，XGBoost 在目标函数中引入了二阶泰勒展开（利用二阶导数信息）及显式的正则化项，有效防止了过拟合。同时，结合缺失值自动处理、加权分位数 sketch 近似分裂及并行化计算等工程优化，XGBoost 在保持高预测精度的同时显著提升了训练效率。
+
+针对 SSD 故障预测任务，XGBoost 具备显著优势：一方面，它能有效捕捉 SMART 属性等高维特征间的非线性关系与复杂交互；另一方面，模型输出的特征重要性评分（Feature Importance）能够为关键故障指标的筛选及结果的可解释性分析提供量化依据。
+
 \subsection{LightGBM}
 LightGBM 是基于梯度提升框架的高效决策树集成算法，由 Guolin Ke 等人在 2017 年提出\cite{ke2017lightgbm}。其核心特点包括基于直方图的离散化分裂算法（Histogram-based Decision Tree）、按叶生长（Leaf-wise）的树生长策略以及对大规模数据友好的高效并行机制。
 相比 XGBoost，LightGBM 更侧重训练效率优化：通过特征分桶与直方图复用降低分裂计算开销，并采用单边梯度采样（GOSS）与互斥特征捆绑（EFB）进一步减少计算量和内存占用，使其更适用于大规模、高维数据的快速训练与迭代。在数据中心 SSD 故障预测中，LightGBM 常用于在保证效果的前提下缩短训练与推理时间，便于周期性更新与部署。
