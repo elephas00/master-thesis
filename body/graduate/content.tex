@@ -1099,22 +1099,87 @@ PatchTST虽具备较强的长序列建模能力，但本任务以结构化SMART�
 实验结果表明，在当前数据规模和设置下，三种集成学习模型在测试集中都实现了零误报、零漏报的分类效果，验证了基于早期 FBC 特征进行块寿命预测的可行性。这一结果说明：从早期 PE 档位的 FBC 分布中提取的统计和变化特征，能够有效区分强块和弱块；不同的集成学习方法都取得了相近的效果，说明该问题对模型选择不敏感，方法具有一定的通用性；即使在有限的数据规模下，模型仍能实现完美的分类效果，为实际应用提供了信心。
 
 结合表\ref{tab:read-mode-best-default}可见，不同读模式下各模型在 LP、MP、UP 区间呈现明显差异。总体上，DefaultRead 在多数区间取得正向提升，且集成结果稳定在 17\% 左右，整体优于 BestRead。按页类型看，MP 区间相对稳定，而 LP 与 UP 区间波动更大，尤其在 BestRead 条件下多次出现负提升。按模型看，随机森林在 DefaultRead 下各区间及集成结果均为正，稳健性更好；XGBoost 与 LightGBM 在 MP 区间表现较好，但在 UP 区间仍有不稳定。上述结果进一步支持前文“分区建模+投票融合”的策略，即通过跨区间集成降低单一区间波动，提升总体稳定性，并为后续采用更贴近部署场景的 DefaultRead 配置提供依据。
+对于 BestRead 在部分设置下弱于 DefaultRead 的现象，可能原因是：BestRead 通过动态读阈值选择降低了单次读取误码，但同时会改变块间误差分布形态，使部分原本有助于区分强块与弱块的差异被“平滑”；在小样本条件下，这种分布重排可能进一步放大区间波动。相较之下，DefaultRead 更接近实际运行时的默认读路径，其数据分布与部署场景一致性更高，因此在寿命分层与策略收益评估任务中表现出更稳定的泛化能力。
 
 \subsection{简化特征条件下的模型表现}
 
 考虑到 SSD 在实际运行时往往无法收集到如实验室环境般完备的数据，我们还探索了在特征受限条件下模型的表现。这些简化条件更贴近实际部署场景，验证了方法的实用性。
 
-实验设置包括：部分 Wordline 采样，不使用所有 Wordline 数据，只选取部分 Wordline 构造特征，这模拟了实际场景中可能无法对所有 Wordline 进行完整测试的情况；单一读模式，不同时使用 BestRead 和 DefaultRead，而是仅使用其中一种读模式，DefaultRead 更贴近正常操作模式，BestRead 虽然更准确但耗时更长；单次读取，只使用一次读取的 FBC 值，即仅使用 Value0，不再使用 Value0--Value3 的统计聚合，这模拟了快速测试场景，减少数据采集时间。
+\subsubsection{读取值（Value）消融}
 
-针对部分 Wordline 与 DefaultRead 的组合，本文在与前文相同的差异化写入评估口径下统计了相对统一 PE 基线的累计可写入量提升率，结果汇总于表~\ref{tab:partial-wl-results}。
+首先固定其余设置，仅比较单次读取值（Value0--Value3）与全量读取值组合的效果，结果如表\ref{tab:partial-value-results}所示。
+
+\begin{table}[htbp]
+    \centering
+    \caption{\label{tab:partial-value-results}仅使用部分读取值（Value）的实验结果对比}
+    \begin{tabularx}{0.9\linewidth}{X<{\centering}X<{\centering}X<{\centering}}
+        \toprule
+        ReadType & Value 设置 & 提升率 \\
+        \midrule
+        BestRead & 全部 & 11.99\% \\
+        BestRead & Value0 & 11.43\% \\
+        BestRead & Value1 & 11.99\% \\
+        BestRead & Value2 & 11.99\% \\
+        BestRead & Value3 & 10.29\% \\
+        DefaultRead & 全部 & 17.08\% \\
+        DefaultRead & Value0 & 17.08\% \\
+        DefaultRead & Value1 & 16.52\% \\
+        DefaultRead & Value2 & 17.08\% \\
+        DefaultRead & Value3 & 17.08\% \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+由表\ref{tab:partial-value-results}可见，在 BestRead 下仅使用 Value1 或 Value2 即可达到全量读取值的效果；在 DefaultRead 下，仅使用 Value0、Value2 或 Value3 也可达到与全量读取值一致的提升率。这说明在部分场景中无需进行多次重复读取，即可保持较高寿命评估收益。
+
+\subsubsection{磨损档位（Level）消融}
+
+进一步固定其余特征，仅保留单个早期磨损档位（Level）参与建模，结果如表\ref{tab:partial-level-results}所示。
+
+\begin{table}[htbp]
+    \centering
+    \caption{\label{tab:partial-level-results}仅使用部分磨损档位（Level）的实验结果对比}
+    \begin{tabularx}{0.9\linewidth}{X<{\centering}X<{\centering}X<{\centering}}
+        \toprule
+        ReadType & Level 设置 & 提升率 \\
+        \midrule
+        BestRead & 全部 & 11.99\% \\
+        BestRead & 0 & 11.99\% \\
+        BestRead & 1000 & 1.24\% \\
+        BestRead & 2000 & 2.94\% \\
+        BestRead & 3000 & -0.45\% \\
+        DefaultRead & 全部 & 17.08\% \\
+        DefaultRead & 0 & 13.12\% \\
+        DefaultRead & 1000 & 15.95\% \\
+        DefaultRead & 2000 & 13.69\% \\
+        DefaultRead & 3000 & 10.29\% \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+结果表明，在 BestRead 下仅使用 Level=0 即可达到全量档位效果；在 DefaultRead 下仅使用 Level=1000 虽略低于全量设置，但仍保持可观收益。这说明在采集资源受限时，选取少量代表性磨损档位能够兼顾成本与效果。
+
+\subsubsection{Wordline 采样消融}
+
+在保持其他条件一致的前提下，对 Wordline 采样范围进行消融，结果如表\ref{tab:partial-wl-results}所示。
 
 \begin{table}[htbp]
     \centering
     \caption{\label{tab:partial-wl-results}仅使用部分 Wordline 的实验结果对比}
-    \begin{tabularx}{0.85\linewidth}{X<{\centering}X<{\centering}X<{\centering}}
+    \begin{tabularx}{0.9\linewidth}{X<{\centering}X<{\centering}X<{\centering}}
         \toprule
-        ReadType & Wordline & 提升率 \\
+        ReadType & Wordline 设置 & 提升率 \\
         \midrule
+        BestRead & 全部 & 11.43\% \\
+        BestRead & 0-0 & 17.08\% \\
+        BestRead & 0-1 & 17.08\% \\
+        BestRead & 0-9 & 17.08\% \\
+        BestRead & 0-49 & 17.08\% \\
+        BestRead & 0-99 & 15.95\% \\
+        BestRead & 0-199 & 17.08\% \\
+        BestRead & 0-399 & 17.08\% \\
+        BestRead & 0-799 & 13.69\% \\
+        DefaultRead & 全部 & 17.08\% \\
         DefaultRead & 0-0 & 16.25\% \\
         DefaultRead & 0-1 & 14.25\% \\
         DefaultRead & 0-9 & 13.69\% \\
@@ -1123,18 +1188,15 @@ PatchTST虽具备较强的长序列建模能力，但本任务以结构化SMART�
         DefaultRead & 0-199 & 17.08\% \\
         DefaultRead & 0-399 & 17.08\% \\
         DefaultRead & 0-799 & 17.08\% \\
-        DefaultRead & 全部 & 17.08\% \\
         \bottomrule
     \end{tabularx}
 \end{table}
 
-由表~\ref{tab:partial-wl-results} 可见：
-在 Wordline 覆盖较少时，如 0--0、0--1、0--9，提升率相对偏低，约为 13.7\%--16.3\%；
-当采样范围扩大至 0--49 及以上时，提升率稳定在 17.08\%，与使用全部 Wordline 时一致，说明中等规模的 Wordline 采样即可逼近全量特征下的寿命收益。
-与之相应，在该部分 Wordline 设置下，分类准确率较全量特征略有下降，但仍能有效区分强块与弱块。
-进一步地，在单一读模式与单次读取等设置下，模型整体仍保持较好区分能力：DefaultRead 的准确率略低于 BestRead，仅相差 2 到 3 个百分点；
-仅使用单次读取时，准确率下降约 3 到 5 个百分点，但仍能维持 95\% 以上。
-综上，所提特征设计与建模方法对数据采样条件具有一定鲁棒性，在实际部署中即便数据采集受限，仍可获得可观的预测与寿命评估效果。
+由表\ref{tab:partial-wl-results}可见，在 BestRead 下，部分 Wordline 采样在若干设置下甚至可超过全量 Wordline 的结果；在 DefaultRead 下，当采样范围达到 0--49 及以上时，提升率即可稳定达到 17.08\%，与全量设置一致。该结果说明中等规模 Wordline 采样已能逼近全量特征收益。
+
+\subsubsection{低开销组合配置与收益}
+
+综合上述 Value、Level 与 Wordline 三类消融结果，本文进一步构造低开销组合配置：仅使用 DefaultRead、Level=1000、Value0 与 Wordline=0--49。该配置下累计可写入量提升率仍可达到 15.38\%。这一结果表明，在保持较低采集与测试成本的同时，方法仍具有较好的寿命优化能力，具备较强的工程可落地性。
 
 \section{寿命提升策略与写入量评估}
 
