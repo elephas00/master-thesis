@@ -200,8 +200,8 @@ NAND 闪存以浮栅场效应晶体管（Floating Gate MOSFET）作为基本存�
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=.8\linewidth]{figure/SSD结构.jpg}
-    \caption{固态硬盘基本结构\cite{ssdfans_ssd_2021} }
+    \includegraphics[width=.8\linewidth]{figure/SSD结构.png}
+    \caption{固态硬盘基本结构}
     \label{fig:ssd_basic_structure}
 \end{figure}
 
@@ -218,8 +218,8 @@ NAND 闪存的数据操作主要包括编程（Program）和擦除（Erase）两
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=.8\linewidth]{figure/SSD读写原理.jpg}
-    \caption{左：写原理；右：擦除原理\cite{ssdfans_ssd_2021} }
+    \includegraphics[width=.8\linewidth]{figure/SSD读写原理.png}
+    \caption{闪存擦写原理}
     \label{fig:ssd_read_write}
 \end{figure}
 
@@ -729,7 +729,7 @@ Lag特征的构建基于以下假设：故障发生前的异常变化往往具�
 
 \subsection{特征工程效果分析}
 
-为验证特征工程的有效性并分析各类特征的贡献，在随机森林模型与 FPR $\leq 0.035\%$ 的约束下，对不同特征组合进行了对比，结果如表\ref{tab:feature-engineering}所示。表中 Lag、统计、原始三列以实心圆点（$\bullet$）表示该类型特征参与建模，空白表示不纳入。
+为验证特征工程的有效性并分析各类特征的贡献，本文在随机森林模型与 FPR $\leq 0.035\%$ 的统一约束下，对不同特征组合进行对比实验，并从检出率提升与误报控制两个维度评估其效果，结果如表\ref{tab:feature-engineering}所示。
 
 \begin{table}[htbp]
     \centering
@@ -745,6 +745,11 @@ Lag特征的构建基于以下假设：故障发生前的异常变化往往具�
         $\bullet$ & $\bullet$ & $\bullet$ & 39.65\% & $\leq 0.035\%$ \\
         \bottomrule
     \end{tabular*}
+    
+    \vspace{2pt}
+    \begin{minipage}{0.88\linewidth}
+        \footnotesize 注：Lag、统计、原始三列中，实心圆点（$\bullet$）表示该类型特征参与建模，空白表示不纳入。
+    \end{minipage}
 \end{table}
 
 由表\ref{tab:feature-engineering}可知，仅使用 16 维原始 SMART 属性时 TPR 仅为 4.46\%；单独引入 Lag 特征或时间窗口统计特征时，TPR 分别升至 33.48\% 与 32.30\%，说明相对单点原始读数，时序构造特征能更有效地反映故障前兆。将两类构造特征联用后（约 200+ 维），TPR 达到 39.21\%，相对基线提升约 7.8 倍；再并入当前时刻的原始属性列后，TPR 进一步提高至 39.65\%。Lag 特征引入历史轨迹，时间窗口统计量刻画区间内的边界与波动强度，二者与原始属性互补，有助于同时捕捉渐进退化与短期异常。
@@ -851,12 +856,17 @@ PatchTST 采用分块建模思想：先将输入时间序列划分为长度固�
         PatchTST & 31.29\% & $\leq 0.035\%$ \\
         \bottomrule
     \end{tabularx}
+    
+    \vspace{2pt}
+    \begin{minipage}{0.72\linewidth}
+        \footnotesize 注：TPR 为“-”表示该模型在调参后仍无法满足 FPR 约束（$>0.035\%$），因此不报告对应 TPR。
+    \end{minipage}
 \end{table}
 
 实验结果表明，随机森林在满足 FPR 约束的前提下取得最高 TPR，整体表现最优。
 XGBoost 和 LightGBM 虽同属集成学习，但在当前噪声条件下略低于随机森林，可能是由于 Boosting 对噪声与弱表征正样本更敏感；
 MVTRF 的 TPR 为 40.47\%，高于 XGBoost 和 LightGBM，说明融合时序与统计多视图特征（其中包含 Lag 信息）对提升检出能力具有积极作用；但其仍略低于本文随机森林方案，可能与当前任务以单一低 FPR 目标优化为主、样本规模有限且类别不平衡有关，多视图与多任务耦合带来的额外建模复杂度未能在该设定下充分转化为增益；
-决策树一行中 TPR 记为“-”，因为其过拟合较明显，调参后仍无法将 FPR 控制在约束范围内；
+决策树在当前数据规模与噪声条件下易产生过拟合，导致其对局部异常模式过度敏感，调参后仍难以将 FPR 控制在约束范围内；
 孤立森林因无法利用监督标签而表现较弱，MLP 在该表格型数据场景下也未达到树模型效果；
 PatchTST 虽具备长序列建模能力，但本任务以结构化 SMART 特征与中短期退化信号为主，且样本噪声与类别不平衡较明显，在低 FPR 约束下其优势未能充分体现；
 随机森林在本任务中兼顾了稳健性与预测性能，具有更好的适用性。
