@@ -1226,7 +1226,7 @@ PatchTST 虽具备长序列建模能力，但本任务以结构化 SMART 特征�
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.95\linewidth]{figure/software_structure.png}
+    \includegraphics[width=0.98\linewidth]{figure/software_structure.pdf}
     \caption{软件总体架构图}
     \label{fig:software-structure}
 \end{figure}
@@ -1234,15 +1234,18 @@ PatchTST 虽具备长序列建模能力，但本任务以结构化 SMART 特征�
 核心业务流程可概括为：首先，运维人员录入或导入磁盘基础信息，并持续写入 SMART 日志；其次，服务层按周期对增量日志进行预处理与预测计算，生成预警记录并写入数据层；最后，运维人员在预警页面查看详情并执行“确认故障”或“忽略预警”操作，系统同步更新预警状态并在需要时沉淀故障记录。通过该流程，系统实现了从数据采集、预测输出到人工处置的闭环管理。
 
 \section{数据库表设计}
-为支撑上述功能，系统围绕业务对象设计了四类核心数据表。
+为支撑上述功能，系统围绕“资产管理—日志采集—预警生成—故障沉淀”的业务链路设计了四类核心数据表。
+整体设计遵循结构清晰、关系可追溯和查询高效的原则，在保证数据一致性的同时兼顾后续扩展性。
+其中，磁盘信息表用于维护资产主数据，SMART日志表用于沉淀运行时序信息，预警记录表用于保存模型输出与处置状态，故障记录表用于沉淀已确认事件并支撑评估分析。
 
 \subsection{磁盘信息表设计}
-磁盘信息表用于维护SSD资产主数据，是日志表、故障表与预警表的关联基础。其字段设计如表\ref{tab:disk-info-schema}所示。
+磁盘信息表用于维护SSD资产主数据，是日志表、故障表与预警表进行关联查询的基础。
+该表重点记录磁盘序列号、型号、容量、厂商等相对稳定的信息，用于支撑设备唯一标识、资产检索与跨表关联。其字段设计如表\ref{tab:disk-info-schema}所示：
 
 \begin{table}[htbp]
     \centering
     \caption{\label{tab:disk-info-schema}磁盘信息表字段设计}
-    \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{2.8cm} >{\raggedright\arraybackslash}p{2.6cm} X >{\raggedright\arraybackslash}p{1.8cm}}
+    \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{2.4cm} >{\raggedright\arraybackslash}p{2.2cm} >{\raggedright\arraybackslash}p{5.0cm} >{\raggedright\arraybackslash}p{3.0cm}}
         \toprule
         字段名 & 字段类型 & 字段表述 & 备注 \\
         \midrule
@@ -1257,7 +1260,9 @@ PatchTST 虽具备长序列建模能力，但本任务以结构化 SMART 特征�
 \end{table}
 
 \subsection{SMART日志表设计}
-SMART日志表用于按时间粒度保存磁盘运行日志，既支撑在线预警，也可用于离线建模。其字段设计如表\ref{tab:smart-log-schema}所示。
+SMART日志表用于按时间粒度保存磁盘运行日志，是预警分析与历史追溯的核心数据来源。
+该表除记录磁盘标识与采集时间外，还按统一命名规则存储SMART原始属性值，以支持特征构造、时序统计与模型推理。需要说明的是，受版面限制，表\ref{tab:smart-log-schema}仅列出部分代表性SMART字段，并未覆盖系统中采集的全部SMART属性，其余属性可按相同字段规范扩展。
+其字段设计如表\ref{tab:smart-log-schema}所示：
 
 \begin{table}[htbp]
     \centering
@@ -1269,20 +1274,19 @@ SMART日志表用于按时间粒度保存磁盘运行日志，既支撑在线预
         id & BIGINT & 记录主键 & 主键 \\
         serial\_number & VARCHAR & 关联磁盘序列号 & 外键 \\
         ds & DATE & 日志采集日期 &  \\
-        raw\_1 & DECIMAL & SMART RAW\_1 &  \\
-        raw\_5 & DECIMAL & SMART RAW\_5 &  \\
-        raw\_9 & DECIMAL & SMART RAW\_9 &  \\
-        raw\_11 & DECIMAL & SMART RAW\_11 &  \\
-        raw\_180 & DECIMAL & SMART RAW\_180 &  \\
-        raw\_194 & DECIMAL & SMART RAW\_194 &  \\
-        raw\_195 & DECIMAL & SMART RAW\_195 &  \\
+        raw\_5 & DECIMAL & 重映射扇区计数 &  \\
+        raw\_9 & DECIMAL & 通电时间 &  \\
+        raw\_194 & DECIMAL & 温度 &  \\
+        raw\_195 & DECIMAL & 硬件ECC恢复 &  \\
         created\_at & DATETIME & 记录创建时间 &  \\
         \bottomrule
     \end{tabularx}
 \end{table}
 
 \subsection{故障记录表设计}
-故障记录表用于维护已确认故障事件，用于评估预警有效性并沉淀真实故障样本。其字段设计如表\ref{tab:fault-schema}所示。
+故障记录表用于维护已确认故障事件，是预警处置闭环中的关键数据载体。
+该表重点记录故障发生时间、事件来源与关联磁盘标识，可用于支撑预警命中率评估、误报复盘与真实故障样本沉淀。
+其字段设计如表\ref{tab:fault-schema}所示：
 
 \begin{table}[htbp]
     \centering
@@ -1301,7 +1305,8 @@ SMART日志表用于按时间粒度保存磁盘运行日志，既支撑在线预
 \end{table}
 
 \subsection{预警记录表设计}
-预警记录表用于保存模型输出结果与处置状态，是预测分析页面的直接数据来源，也是形成运维闭环的关键数据表。其字段设计如表\ref{tab:warning-schema}所示。
+预警记录表用于保存模型输出结果与处置状态，是预测分析页面的直接数据来源，也是形成运维闭环的关键数据表。
+其字段设计如表\ref{tab:warning-schema}所示：
 
 \begin{table}[htbp]
     \centering
@@ -1328,44 +1333,46 @@ SMART日志表用于按时间粒度保存磁盘运行日志，既支撑在线预
 基于上述设计，本文完成了智慧SSD运维软件原型系统实现。系统采用前后端分离架构：前端基于 Vue3 与 TypeScript 实现页面组织与交互逻辑，后端基于JAVA分层接口服务实现数据读写、任务调度与预警状态流转。整体实现围绕“数据管理--预测预警--人工处置--结果沉淀”的闭环目标展开。
 
 \subsection{管理员模块实现}
-在后台管理模块中，系统按业务对象划分为磁盘管理、日志管理与故障管理三个核心单元。磁盘管理模块负责维护 SSD 基础信息，支持列表查询、新增、编辑与删除；日志管理模块负责维护 SMART 日志记录，支持按序列号与日期检索并进行增删改查；故障管理模块负责维护已确认故障事件，支持故障日期登记、回溯查询与记录管理。通过模块化划分，系统将运维高频操作统一纳入标准化流程，提升了后台管理效率。
+在后台管理模块中，系统按业务对象划分为磁盘管理、日志管理与故障管理三个核心单元。
+磁盘管理模块负责维护 SSD 基础信息，支持列表查询、新增、编辑与删除；日志管理模块负责维护 SMART 日志记录，支持按序列号与日期检索并进行增删改查；故障管理模块负责维护已确认故障事件，支持故障日期登记、回溯查询与记录管理。通过模块化划分，系统将运维高频操作统一纳入标准化流程，提升了后台管理效率。
+对应的页面实现效果分别如图\ref{fig:ssd-disk-ui}、图\ref{fig:ssd-log-ui}与图\ref{fig:ssd-fault-ui}所示。
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.88\linewidth]{figure/磁盘管理页.png}
+    \includegraphics[width=0.95\linewidth]{figure/磁盘管理页.png}
     \caption{磁盘管理界面}
     \label{fig:ssd-disk-ui}
 \end{figure}
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.88\linewidth]{figure/日志管理页.png}
+    \includegraphics[width=0.95\linewidth]{figure/日志管理页.png}
     \caption{日志管理界面}
     \label{fig:ssd-log-ui}
 \end{figure}
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.88\linewidth]{figure/故障管理页.png}
+    \includegraphics[width=0.95\linewidth]{figure/故障管理页.png}
     \caption{故障管理界面}
     \label{fig:ssd-fault-ui}
 \end{figure}
 
 \subsection{预警生成与处置流程实现}
-预警功能由离线任务与在线服务协同完成。离线任务按固定周期拉取增量 SMART 日志，完成数据清洗、特征构造与模型推理后生成预警记录，并写入预警表。在线服务根据页面请求返回预警列表、关联日志明细与当前处置状态。运维人员可在故障处理页面执行“确认故障”或“忽略预警”操作，系统同步更新预警状态，并在确认故障时写入故障记录表，形成从模型输出到运维动作的闭环链路。
+预警功能由离线任务与在线服务协同完成。离线任务按固定周期拉取增量 SMART 日志，完成数据清洗、特征构造与模型推理后生成预警记录，并写入预警表。在线服务根据页面请求返回预警列表、关联日志明细与当前处置状态。运维人员可在故障处理页面执行“确认故障”或“忽略预警”操作，系统同步更新预警状态，并在确认故障时写入故障记录表，形成从模型输出到运维动作的闭环链路。对应的页面交互与处置流程如图\ref{fig:ssd-warning-flow-ui}所示。
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.88\linewidth]{figure/故障处理页.png}
+    \includegraphics[width=0.95\linewidth]{figure/故障处理页.png}
     \caption{故障处理界面}
     \label{fig:ssd-warning-flow-ui}
 \end{figure}
 
 \subsection{功能落地效果分析}
-从工程落地效果看，系统已实现以下关键能力：第一，完成 SSD 资产与运行日志的结构化管理，满足日常数据治理需求；第二，实现预警记录与关联日志的联动展示，提升故障定位效率；第三，打通预警状态流转与故障沉淀流程，使模型输出可直接转化为可执行运维动作；第四，为后续模型重训练、阈值优化与策略迭代提供持续数据闭环。综上，系统已具备在实际运维场景中开展小规模试运行与持续优化的基础条件。
+从工程落地效果看，系统已实现以下关键能力：第一，完成 SSD 资产与运行日志的结构化管理，满足日常数据治理需求；第二，实现预警记录与关联日志的联动展示，提升故障定位效率；第三，打通预警状态流转与故障沉淀流程，使模型输出可直接转化为可执行运维动作；第四，为后续模型重训练、阈值优化与策略迭代提供持续数据闭环。与此同时，系统在功能组织与数据链路上保持了较好的模块解耦性，便于后续按业务需求逐步扩展模型服务、规则引擎与可视化能力。综上，系统已具备在实际运维场景中开展小规模试运行与持续优化的基础条件，并可作为后续灰度部署与效果评估的工程基座。
 
 \section{本章小结}
-本章围绕智慧SSD运维软件的工程落地展开，完成了需求分析与总体设计、系统架构与关键流程梳理、数据库表设计以及系统实现说明。通过将前文故障预测与寿命提升方法嵌入统一的软件流程，本文构建了可运行、可扩展、可闭环的运维原型系统，验证了相关研究成果在实际场景中的应用可行性。
+本章围绕智慧SSD运维软件的工程落地展开，完成了需求分析与总体设计、系统架构与关键流程梳理、数据库表设计以及系统实现说明。通过将前文故障预测与寿命提升方法嵌入统一的软件流程，本文构建了可运行、可扩展、可闭环的运维原型系统，验证了相关研究成果在实际场景中的应用可行性。整体上，系统将“数据采集—模型推理—人工处置—结果沉淀”串联为可追踪流程，为后续在真实生产环境中开展策略迭代、指标评估与跨版本对比提供了统一的平台支撑。
 
 \chapter{总结与展望}
 
