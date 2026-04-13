@@ -147,7 +147,6 @@ Fang 等人\cite{fang2022work, fang2023high} 进一步聚焦热数据存储场�
 其二，如何利用块级寿命预测结果设计差异化写入策略，在不突破可靠性边界的前提下提升 SSD 整体可写入量。
 
 整体研究框架如图~\ref{fig:framework}所示：
-
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=1.0\textwidth]{figure/框架图.pdf}
@@ -186,11 +185,11 @@ Fang 等人\cite{fang2022work, fang2023high} 进一步聚焦热数据存储场�
 
 \section{固态硬盘存储原理}
 
-SSD 是一种基于闪存（Flash Memory）技术的非易失性存储设备，其核心存储介质为 NAND 闪存芯片。与传统的机械磁盘相比，SSD 具有读写速度快、抗震性强、功耗低等优势，已广泛应用于数据中心和个人计算设备中。
+SSD 是一种基于闪存（Flash Memory）技术的非易失性存储设备，其核心存储介质为 NAND 闪存芯片。与传统的 HDD 相比，SSD 具有读写速度快、抗震性强、功耗低等优势，已广泛应用于数据中心和个人计算设备中。
 
 \subsection{NAND 闪存基本结构}
 
-NAND 闪存以浮栅场效应晶体管（Floating Gate MOSFET）作为基本存储单元（Cell），并通过浮栅中电子的存储状态来表示数据。其物理结构通常采用分层组织方式，如图~\ref{fig:ssd_basic_structure}所示，主要包括：
+NAND 闪存以浮栅场效应晶体管（Floating Gate MOSFET）作为基本存储单元（Cell），并通过浮栅中电子的存储状态来表示数据。其分层组织结构示意如图~\ref{fig:ssd_basic_structure}所示。对应的主要层级包括：
 
 \begin{itemize}
     \item 存储单元（Cell）：最基本的存储单位。按单元可存储的比特数可分为单层单元（Single-Level Cell, SLC）、多层单元（Multi-Level Cell, MLC）和三层单元（Triple-Level Cell, TLC）。其中，SLC 每单元存储 1 比特，可靠性与耐久性最好但成本较高；MLC 每单元存储 2 比特，在容量与成本之间折中；TLC 每单元存储 3 比特，容量密度更高、单位成本更低，但对噪声与老化更敏感。
@@ -214,7 +213,7 @@ NAND 闪存以浮栅场效应晶体管（Floating Gate MOSFET）作为基本存�
 
 \subsection{编程与擦除操作}
 
-NAND 闪存的数据操作主要包括编程（Program）和擦除（Erase）两个基本操作，如图~\ref{fig:ssd_read_write}所示：
+NAND 闪存的数据操作可归纳为编程（Program）与擦除（Erase）两类。两者的基本机理如图~\ref{fig:ssd_read_write}所示，具体过程如下：
 
 \begin{enumerate}
     \item 编程操作：将数据写入存储单元的过程。通过向控制栅施加高电压，使电子通过隧道氧化层注入浮栅，改变浮栅中的电子数量，从而改变存储单元的阈值电压，实现数据写入。编程操作以页为单位进行，但只能将存储单元从低电压状态（擦除状态）编程到高电压状态，不能反向操作。
@@ -228,7 +227,6 @@ NAND 闪存的数据操作主要包括编程（Program）和擦除（Erase）两
     \caption{闪存擦写原理}
     \label{fig:ssd_read_write}
 \end{figure}
-
 
 每次完整的编程-擦除循环称为一次 PE（Program-Erase）操作。随着 PE 次数的增加，存储单元的物理特性会逐渐退化：浮栅捕获电子的能力下降，阈值电压窗口变窄，导致读取时更容易出现错误。因此，PE 次数是衡量 SSD 寿命和可靠性的重要指标。
 
@@ -336,8 +334,7 @@ SMART 是一种自动的硬盘状态检测与预警系统和规范，通过在�
 
 \subsection{随机森林模型}
 随机森林（Random Forest, RF）是一种典型的 Bagging 集成算法，由 Leo Breiman 于 2001 年提出\cite{breiman2001random}。
-其基本思想是对训练集进行自助采样（Bootstrap），训练多个相互独立的决策树分类器，并在预测阶段通过投票或平均的方式得到最终预测结果，如图~\ref{fig:random_forest}所示。
-
+其基本思想是对训练集进行自助采样（Bootstrap），训练多个相互独立的决策树分类器，并在预测阶段通过投票或平均的方式得到最终预测结果，如图~\ref{fig:random_forest}所示：
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=.8\linewidth]{figure/随机森林示意图.jpg}
@@ -655,7 +652,6 @@ Lag特征的构建基于以下假设：故障发生前的异常变化往往具�
 公式中的$\theta_A$和$\theta_B$分别为磨损特征和突发异常特征的阈值。这类故障盘仅表现出磨损特征的增加，而没有任何突发异常特征的变化，与正常磨损的健康盘在特征空间上难以区分，容易导致模型学习到错误的模式。
 
 为直观说明该类样本的可分性问题，本文抽取部分磁盘样本的相关属性进行可视化，如图\ref{fig:mutation-feature-noise}所示：
-
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.72\linewidth]{figure/突变特征.png}
@@ -685,8 +681,7 @@ Lag特征的构建基于以下假设：故障发生前的异常变化往往具�
 
 \subsubsection{评估指标}
 
-盘级故障预测效果的评估流程参考了数据算法赛 PAKDD2020 阿里巴巴智能运维算法大赛所公开的评测设定\cite{he2020large}。在此基础上，本研究采用盘级评估方式，即对于每块SSD，在评估窗口内若存在预测为故障的记录，则取最早一次预测为故障的日期，并判断该日期后30天内SSD是否实际发生故障，具体的判定规则如图~\ref{fig:tp-fp-tn-fn}所示。
-
+盘级故障预测效果的评估流程参考了数据算法赛 PAKDD2020 阿里巴巴智能运维算法大赛所公开的评测设定\cite{he2020large}。在此基础上，本研究采用盘级评估方式，即对于每块SSD，在评估窗口内若存在预测为故障的记录，则取最早一次预测为故障的日期，并判断该日期后30天内SSD是否实际发生故障，具体的判定规则如图~\ref{fig:tp-fp-tn-fn}所示：
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.85\linewidth]{figure/tp_tn_fp_fn.pdf}
@@ -880,8 +875,7 @@ PatchTST 虽具备长序列建模能力，但本任务以结构化 SMART 特征�
 \subsection{误报与检出的权衡}
 
 前文各表均在 FPR  $\leq 0.035\%$ 约束下报告 TPR，以便与运维可接受的误报水平对齐。为刻画误报约束放松时检出率如何变化，在相同的随机森林模型、特征工程与噪声样本处理流程下，通过调整分类器输出阈值，对测试集进行扫描，得到 FPR 与 TPR 的对应关系。
-扫描结果如图~\ref{fig:fpr-tpr-tradeoff}所示。
-
+扫描结果如图~\ref{fig:fpr-tpr-tradeoff}所示：
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.7\linewidth]{figure/roc.png}
@@ -940,8 +934,7 @@ PatchTST 虽具备长序列建模能力，但本任务以结构化 SMART 特征�
 然而，这类“全局阈值 + 磨损均衡”的组合仍隐含块耐久性同质假设。
 实际上，不同块的 FBC 随 PE 增长的速度存在显著差异：
 部分弱块在较低 PE 次数下就接近纠错能力上限，而部分强块即便在较高 PE 档位 FBC 仍然较低，尚有较大冗余空间。
-因此，仅依赖统一阈值会导致强块剩余可写入能力被浪费，如图~\ref{fig:pe-comparison}所示。
-
+因此，仅依赖统一阈值会导致强块剩余可写入能力被浪费，如图~\ref{fig:pe-comparison}所示：
 \begin{figure}[htb]
     \centering
     \includegraphics[width=0.8\linewidth]{chap4_pe_comparison}
@@ -993,7 +986,6 @@ PatchTST 虽具备长序列建模能力，但本任务以结构化 SMART 特征�
 由于数据采集时间有限，我们无法在所有 PE 档位下同时采集同一物理块在 Fresh 状态和 3M40C 状态下的完整 FBC 轨迹。为在分析上近似获得同一块在不同 PE 次数和不同保持条件下的行为，本文做出如下假设：同一标签下但编号不同的块由于物理位置相近、工艺一致，具有相似的磨损特性。
 
 基于该假设，将块编号 BlockFilter 的数值对 4 取余进行分组，在逻辑上认为每个组对应一个逻辑块，组内不同物理块在不同 PE 档位上的数据共同构成该逻辑块的观测轨迹。如图\ref{fig:blockfilter-grouping}所示：
-
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.75\linewidth]{figure/逻辑组划分.jpg}
@@ -1085,8 +1077,7 @@ PatchTST 虽具备长序列建模能力，但本任务以结构化 SMART 特征�
 
 训练策略如下：数据集划分方面，按 8:2 的比例划分训练集和测试集。由于正样本仅 5 个，数量较少，为避免测试集中某一类别缺失，划分时采用分层抽样机制，确保训练集和测试集中两类样本的比例大致一致。交叉验证方面，在训练集上进行 3 折交叉验证，用于模型选择和超参数调优。交叉验证能够更准确地估计模型的泛化性能，避免过拟合。超参数优化方面，对于每种模型，通过网格搜索或随机搜索优化关键超参数，例如 XGBoost 的树深度、学习率、子采样比例等；RandomForest 的树的数量、最大深度、最小样本分裂数等；LightGBM 的叶子节点数、学习率、特征采样比例等。分类阈值优化方面，在最优超参数配置下，通过调整分类阈值来平衡召回率和精确率。由于正样本稀少，更关注对弱块的准确识别，因此倾向于选择能够最大化召回率的阈值。
 
-同时，由于 LP、MP、UP 与 label 的对应关系存在一定差异，且原始特征列相对较多，在数据量有限的情况下容易导致过拟合。为提升结果稳定性，本文分别针对 LP、MP、UP 建模，并采用投票机制对最终分类结果进行融合，从而降低单一分布建模带来的偏差。集成投票流程如图\ref{fig:ensemble-voting-flow}所示。
-
+同时，由于 LP、MP、UP 与 label 的对应关系存在一定差异，且原始特征列相对较多，在数据量有限的情况下容易导致过拟合。为提升结果稳定性，本文分别针对 LP、MP、UP 建模，并采用投票机制对最终分类结果进行融合，从而降低单一分布建模带来的偏差。集成投票流程如图\ref{fig:ensemble-voting-flow}所示：
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.6\linewidth]{figure/集成投票流程.jpg}
