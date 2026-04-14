@@ -333,7 +333,7 @@ SMART 是一种自动的硬盘状态检测与预警系统和规范，通过在�
 在机器学习框架下，集成学习（Ensemble Learning）通过构建并组合多个“弱学习器”（Weak Learners），以提升整体预测性能与泛化能力\cite{周志华2016机器学习}。与单一模型相比，集成方法能够在一定程度上降低方差和偏差，对噪声和异常点更具鲁棒性，在工业界的大规模故障预测任务中得到广泛应用。下文在不展开一般性理论证明的前提下，结合本文所用树模型基学习器，概述随机森林与梯度提升族算法的要点。
 
 \subsection{随机森林模型}
-随机森林（RF）是一种典型的 Bagging 集成算法，由 Leo Breiman 于 2001 年提出\cite{breiman2001random}。
+随机森林是一种典型的 Bagging 集成算法，由 Leo Breiman 于 2001 年提出\cite{breiman2001random}。
 其基本思想是对训练集进行自助采样（Bootstrap），训练多个相互独立的决策树分类器，并在预测阶段通过投票或平均的方式得到最终预测结果，如图~\ref{fig:random_forest}所示：
 \begin{figure}[htbp]
     \centering
@@ -489,20 +489,20 @@ MB1型号SSD数据集的基本统计信息如表\ref{tab:mb1-dataset-stats}所�
         \toprule
         ID & 中文名称 & 英文名称 & 特征类型 \\
         \midrule
-        5 & 重映射扇区计数 & Reallocated Sectors Count & 错误计数 \\
+        5 & 重映射扇区计数 & \mbox{Reallocated Sectors Count} & 错误计数 \\
         9 & 通电时间累计 & Power-On Time Count & 磨损相关 \\
         12 & 通电周期计数 & Power Cycle Count & 磨损相关 \\
         177 & 磨损范围对比值 & Wear Range Delta & 磨损相关 \\
         180 & 未用的备用块计数 & Unused Reserved Block Count Total & 磨损相关 \\
         181 & 编程失败计数 & Program Fail Count & 错误计数 \\
         182 & 擦写失败计数 & Erase Fail Count & 错误计数 \\
-        183 & 串口降速错误计数 & SATA Downshift Error Count & 错误计数 \\
+        183 & 串口降速错误计数 & \mbox{SATA Downshift Error Count} & 错误计数 \\
         184 & 点到点错误检测计数 & End to End Error Detection Count & 错误计数 \\
-        187 & 无法校正的错误 & Reported Uncorrectable Errors & 错误计数 \\
+        187 & 无法校正的错误 & \mbox{Reported Uncorrectable Errors} & 错误计数 \\
         190 & 气流温度 & Airflow Temperature & 环境指标 \\
         194 & 温度 & Temperature & 环境指标 \\
-        195 & 编程错误块计数 & Program Failure block Count & 错误计数 \\
-        199 & Ultra ATA访问校验错误率 & Ultra ATA CRC Error Rate & 错误计数 \\
+        195 & 编程错误块计数 & \mbox{Program Failure block Count} & 错误计数 \\
+        199 & Ultra ATA 访问校验 \newline 错误率 & \mbox{Ultra ATA CRC Error Rate} & 错误计数 \\
         241 & LBA写入总数 & Total LBAs Written & 磨损相关 \\
         242 & LBA读取总数 & Total LBAs Read & 磨损相关 \\
         \bottomrule
