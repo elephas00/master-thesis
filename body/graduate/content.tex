@@ -337,7 +337,7 @@ SMART 是一种自动的硬盘状态检测与预警系统和规范，通过在�
 其基本思想是对训练集进行自助采样（Bootstrap），训练多个相互独立的决策树分类器，并在预测阶段通过投票或平均的方式得到最终预测结果，如图~\ref{fig:random_forest}所示：
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=.8\linewidth]{figure/随机森林示意图.jpg}
+    \includegraphics[width=.8\linewidth]{figure/随机森林示意图.png}
     \caption{随机森林示意图 }
     \label{fig:random_forest}
 \end{figure}
@@ -378,7 +378,11 @@ GBDT 采用加性模型（Additive Model）策略，通过串行训练的方式�
 \begin{equation}
     F_t(x)=F_{t-1}(x)+\eta f_t(x), \quad t=1,\dots,T,
 \end{equation}
-其中 $\eta$ 为学习率，用于控制模型的收敛速度与泛化能力。最终的强学习器 $F_T(x)$ 即为所有弱学习器的线性组合。
+其中 $\eta$ 为学习率，$F_t(x)$ 表示第 $t$ 轮迭代后的强学习器，$f_t(x)$ 为第 $t$ 棵弱学习器（CART 树）。由上述递推关系反复展开，可得最终强学习器的显式形式：
+\begin{equation}
+    F_T(x)=F_0(x)+\eta\sum_{t=1}^{T}f_t(x),
+\end{equation}
+即 $F_T(x)$ 由初始模型 $F_0(x)$ 与 $T$ 棵弱学习器的加权和构成，体现了 GBDT 的线性叠加结构。
 
 相较于传统 GBDT，XGBoost 在目标函数中引入了二阶泰勒展开（利用二阶导数信息）及显式的正则化项，有效防止了过拟合。同时，结合缺失值自动处理、加权分位数 sketch 近似分裂及并行化计算等工程优化，XGBoost 在保持高预测精度的同时显著提升了训练效率。
 
