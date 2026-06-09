@@ -20,16 +20,16 @@
 
         <!-- Layer labels on the left -->
         <mxCell id="layer1_label" value="业务层" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=19;align=center;" vertex="1" parent="1">
-          <mxGeometry x="280" y="140" width="120" height="55" as="geometry"/>
+          <mxGeometry x="280" y="143" width="120" height="55" as="geometry"/>
         </mxCell>
         <mxCell id="layer2_label" value="服务层" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=19;align=center;" vertex="1" parent="1">
-          <mxGeometry x="280" y="330" width="120" height="55" as="geometry"/>
+          <mxGeometry x="280" y="378" width="120" height="55" as="geometry"/>
         </mxCell>
         <mxCell id="layer3_label" value="数据层" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=19;align=center;" vertex="1" parent="1">
-          <mxGeometry x="280" y="520" width="120" height="55" as="geometry"/>
+          <mxGeometry x="280" y="598" width="120" height="55" as="geometry"/>
         </mxCell>
         <mxCell id="layer4_label" value="基础层" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;fontSize=19;align=center;" vertex="1" parent="1">
-          <mxGeometry x="280" y="700" width="120" height="55" as="geometry"/>
+          <mxGeometry x="280" y="783" width="120" height="55" as="geometry"/>
         </mxCell>
 
         <!-- Layer 1 content area -->
@@ -48,19 +48,19 @@
           <mxGeometry x="430" y="280" width="1220" height="250" as="geometry"/>
         </mxCell>
         <mxCell id="svc1" value="磁盘数据管理服务" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=16;" vertex="1" parent="1">
-          <mxGeometry x="460" y="320" width="220" height="72" as="geometry"/>
+          <mxGeometry x="570" y="302" width="220" height="72" as="geometry"/>
         </mxCell>
         <mxCell id="svc2" value="日志数据管理服务" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=16;" vertex="1" parent="1">
-          <mxGeometry x="710" y="320" width="220" height="72" as="geometry"/>
+          <mxGeometry x="910" y="302" width="220" height="72" as="geometry"/>
         </mxCell>
         <mxCell id="svc3" value="故障数据管理服务" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=16;" vertex="1" parent="1">
-          <mxGeometry x="960" y="320" width="220" height="72" as="geometry"/>
+          <mxGeometry x="1250" y="302" width="220" height="72" as="geometry"/>
         </mxCell>
         <mxCell id="svc4" value="预警数据管理服务" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=16;" vertex="1" parent="1">
-          <mxGeometry x="1210" y="320" width="220" height="72" as="geometry"/>
+          <mxGeometry x="745" y="422" width="220" height="72" as="geometry"/>
         </mxCell>
-        <mxCell id="svc5" value="故障预测算法服务&#xa;预处理 / 特征构造 / 模型推理 / 阈值判定" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9673a6;fontSize=16;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="710" y="410" width="420" height="90" as="geometry"/>
+        <mxCell id="svc5" value="故障预测算法服务" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9673a6;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1075" y="422" width="220" height="72" as="geometry"/>
         </mxCell>
 
         <!-- Layer 3 content area -->
@@ -89,44 +89,19 @@
         </mxCell>
 
         <!-- Horizontal connectors from left labels to layers -->
-        <mxCell id="l1_edge" style="endArrow=none;html=1;strokeWidth=2;strokeColor=#6c8ebf;" edge="1" parent="1" source="layer1_label" target="layer1">
+        <mxCell id="l1_edge" style="endArrow=none;html=1;strokeWidth=2;strokeColor=#6c8ebf;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="layer1_label" target="layer1">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
-        <mxCell id="l2_edge" style="endArrow=none;html=1;strokeWidth=2;strokeColor=#82b366;" edge="1" parent="1" source="layer2_label" target="layer2">
+        <mxCell id="l2_edge" style="endArrow=none;html=1;strokeWidth=2;strokeColor=#82b366;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="layer2_label" target="layer2">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
-        <mxCell id="l3_edge" style="endArrow=none;html=1;strokeWidth=2;strokeColor=#d6b656;" edge="1" parent="1" source="layer3_label" target="layer3">
+        <mxCell id="l3_edge" style="endArrow=none;html=1;strokeWidth=2;strokeColor=#d6b656;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="layer3_label" target="layer3">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
-        <mxCell id="l4_edge" style="endArrow=none;html=1;strokeWidth=2;strokeColor=#b85450;" edge="1" parent="1" source="layer4_label" target="layer4">
+        <mxCell id="l4_edge" style="endArrow=none;html=1;strokeWidth=2;strokeColor=#b85450;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="layer4_label" target="layer4">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
 
-        <!-- Vertical process arrows -->
-        <mxCell id="e1" style="endArrow=block;html=1;strokeWidth=2;strokeColor=#666666;" edge="1" parent="1" source="biz1" target="svc1">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e2" style="endArrow=block;html=1;strokeWidth=2;strokeColor=#666666;" edge="1" parent="1" source="biz2" target="svc4">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e2b" style="endArrow=block;html=1;strokeWidth=2;strokeColor=#9673a6;" edge="1" parent="1" source="biz2" target="svc5">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e3" style="endArrow=block;html=1;strokeWidth=2;strokeColor=#666666;" edge="1" parent="1" source="svc2" target="db1">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e3b" style="endArrow=block;html=1;strokeWidth=2;strokeColor=#666666;dashed=1;" edge="1" parent="1" source="svc5" target="svc2">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e3c" style="endArrow=block;html=1;strokeWidth=2;strokeColor=#666666;" edge="1" parent="1" source="svc5" target="svc4">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e4" style="endArrow=block;html=1;strokeWidth=2;strokeColor=#666666;" edge="1" parent="1" source="svc3" target="db1">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e5" style="endArrow=block;html=1;strokeWidth=2;strokeColor=#666666;" edge="1" parent="1" source="db1" target="infra2">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
