@@ -11,6 +11,10 @@ diff/*
 *.nlg
 *.nls
 
+### Local experiment code and data (not versioned) ###
+codes/
+data/
+
 ### Overleaf repo dir ###
 /zjuthesis/*
 
