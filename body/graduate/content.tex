@@ -406,13 +406,22 @@ LightGBM 是基于梯度提升框架的高效决策树集成算法，由 Guolin 
 对此，本章依据突变强度将样本划分为 S1--S4 四级盘况，以区分不同程度的故障前兆。
 此外，盘级正负样本极度不平衡，单一分类器又易受模型偏置影响、判别稳定性不足\cite{li2025mtms}；
 为此，本章采用多种异构基学习器，将其输出的故障概率堆叠融合，并由元学习器进一步学习；训练时引入 Focal Loss，以缓解类别不平衡并提升判别能力。
+上述三部分依次衔接，构成本章 SSD 盘级故障预测方法，总体流程如图~\ref{fig:chap3-pipeline} 所示。
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.92\linewidth]{figure/chap3-pipeline.png}
+    \caption{本章 SSD 故障预测方法总体流程}
+    \label{fig:chap3-pipeline}
+\end{figure}
 
 \section{任务目标与问题设定}
 
 \subsection{盘级预测任务}
 
 设数据中心内第 $i$ 块 SSD 在离散日历日 $t$ 产生一条 SMART 日志，记其原始属性向量为 $\mathbf{x}_{i,t} \in \mathbb{R}^{d}$。
-给定该盘截至时刻 $T$ 的历史观测序列 $\{\mathbf{x}_{i,t}\}_{t \leq T}$，盘级故障预测任务旨在判断该盘在评估窗口内是否会在未来 $H$ 天内发生故障；若判定为有风险，则进一步给出最早一次故障告警日期，供盘级评估使用。
+给定该盘截至时刻 $T$ 的历史观测序列 $\{\mathbf{x}_{i,t}\}_{t \leq T}$，盘级故障预测任务旨在判断该盘在评估窗口内是否会在未来 $H$ 天内发生故障；
+若判定为有风险，则进一步给出最早一次故障告警日期，供盘级评估使用。
 
 本文盘级任务与评估口径参考 PAKDD2020 阿里巴巴智能运维算法大赛公开设定\cite{he2020large}，预测窗口取 $H=30$ 天。
 与逐日样本二分类相比，盘级任务更贴近生产部署——同一磁盘的多条日志需聚合为一次告警，过早误报会导致健康盘被提前更换，从而抬高运维成本。
@@ -469,18 +478,48 @@ Xu 等人\cite{xu2021general}指出，一旦 SSD 被预测为故障，运维人�
     F_{0.5} = \frac{(1+0.5^2) \cdot \mathrm{Precision} \cdot \mathrm{TPR}}{0.5^2 \cdot \mathrm{Precision} + \mathrm{TPR}}.
 \end{equation}
 
-\subsection{数据集划分与同构/异构设定}
-
-
-\subsection{本章方法概览}
-
-% TODO: 三模块流水线（图~\ref{fig:chap3-pipeline}，需重绘）
-
 \section{数据集与预处理}
 
-\subsection{数据集描述（MB1 / MB2）}
+\subsection{数据集描述}
 
-% TODO: 表~\ref{tab:mb1-mb2-dataset-stats}；图~\ref{fig:failure-by-month}
+本研究采用 Xu 等人\cite{xu2021general}开源的阿里云 SMART 公开数据集。
+数据来自阿里云五个 SSD 数据中心，观测期为 2018 年 1 月至 2019 年 12 月，主要包含两类信息：一是日级 SMART 日志，即每块盘在各自然日的监控快照；二是故障工单（trouble ticket），记录故障盘的设备标识与故障发生时间。
+数据集涵盖多种 SSD 型号，其中 MB1 与 MB2 均为 MLC-SSD 且 SMART 属性集合相近，故选为本文的研究对象。
+
+表~\ref{tab:mb1-mb2-dataset-stats} 汇总两型号基本统计：
+
+\begin{table}[htbp]
+    \centering
+    \caption{\label{tab:mb1-mb2-dataset-stats}MB1 与 MB2 数据集基本统计（据 Xu 等\cite{xu2021general}）}
+    \begin{tabularx}{0.88\linewidth}{l>{\centering\arraybackslash}X>{\centering\arraybackslash}X}
+        \toprule
+        统计项 & MB1 & MB2 \\
+        \midrule
+        闪存类型 & MLC & MLC \\
+        占全数据集 SSD 数量比例 & 8.9\% & 10.4\% \\
+        占全数据集故障工单比例 & 15.7\% & 6.0\% \\
+        年化故障率 AFR & 2.52\% & 0.71\% \\
+        本文实验角色 & 主实验；全部消融 & 同协议复现 \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+从故障时间分布看，图~\ref{fig:failure-by-month} 展示了 MB1 月度故障盘数量。
+除 2018 年 5 月出现明显峰值外，其余月份故障数量整体较为分散，表明模型需在长期观测下保持稳定，而非仅拟合单一批次异常。
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.88\linewidth]{figure/failure-by-month.png}
+    \caption{MB1 型号 SSD 月度故障数量分布}
+    \label{fig:failure-by-month}
+\end{figure}
+
+对本文使用的公开子集进一步统计表明：原始字段含原始与归一化 SMART 共约 102 维，各列缺失率差异较大（约 0\%--85\%）；约 83\% 的磁盘存在随机日志缺失或连续中断。
+因此，后续需对高缺失列、常量列及缺失日志进行针对性处理（见 3.2.2 节）。
+Xu 等亦指出，不同型号的 SMART 属性与故障相关性存在差异，且 MB1、MB2 的磨损指标（MWI）取值范围较窄、随磨损变化的故障概率拐点不如 TLC 型号显著\cite{xu2021general}，这与本文采用突变类 B 组属性而非磨损老化量分级的建模取向相一致。
+
+实验过程中采用 GroupKFold 交叉验证，分组键为磁盘序列号 \texttt{disk\_id}，保证同盘样本不跨折泄漏。
+盘况分级阈值等统计量仅在训练集估计，验证集用于调参，测试集用于最终报告。
 
 \subsection{数据预处理与 SMART 属性归纳（含 A/B 表）}
 
@@ -509,7 +548,7 @@ Xu 等人\cite{xu2021general}指出，一旦 SSD 被预测为故障，运维人�
 
 \subsection{分级引导的异构集成预测}
 
-% TODO: 贡献③；RF/XGB/LGB OOF + MLP + 盘况 one-hot；图~\ref{fig:chap3-ensemble}
+% TODO: 贡献③；S1-S4 各一套 RF/XGB/LGB OOF + MLP · 分级路由；图~\ref{fig:chap3-ensemble}
 
 \section{实验与分析}
 
@@ -517,9 +556,10 @@ Xu 等人\cite{xu2021general}指出，一旦 SSD 被预测为故障，运维人�
 
 % TODO: 软硬件环境；RF/XGB/LGB/MVTRF/PatchTST 等基线
 
-\subsection{整体性能（同构 / 异构主表）}
+\subsection{整体性能（MB1 与 MB2）}
 
-% TODO: 表~\ref{tab:chap3-main-homo}、表~\ref{tab:chap3-main-hetero}；图~\ref{fig:chap3-threshold-curve}
+% TODO: 表~\ref{tab:chap3-main-mb1}（主表）、表~\ref{tab:chap3-main-mb2}（复现）；图~\ref{fig:chap3-threshold-curve}
+% 消融见 3.4.3--3.4.5，均在 MB1 上完成
 
 \subsection{突变时序特征有效性分析}
 
@@ -531,7 +571,7 @@ Xu 等人\cite{xu2021general}指出，一旦 SSD 被预测为故障，运维人�
 
 \subsection{分级引导集成有效性分析}
 
-% TODO: 单模型 / 一层集成 / 二层无盘况 / 二层+盘况 / +Focal
+% TODO: 单模型 / 全局一套集成 / 分等级四套集成 / +Focal
 
 \subsection{标签策略与突变假设验证；基线对比}
 

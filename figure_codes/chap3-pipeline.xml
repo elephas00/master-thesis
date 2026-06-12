@@ -1,0 +1,107 @@
+<mxfile host="app.diagrams.net" modified="2026-06-11T00:00:00.000Z" agent="Cursor" version="22.1.0">
+  <diagram id="chap3-pipeline" name="图3.1-方法总体流程">
+    <mxGraphModel dx="1200" dy="720" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="360" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- 输入 -->
+        <mxCell id="input" value="SMART 日级日志&lt;br&gt;&lt;font style=&quot;font-size:11px;color:#666666;&quot;&gt;MB1 / MB1+MB2&lt;/font&gt;" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#EEEEEE;strokeColor=#757575;strokeWidth=1.5;fontSize=13;fontFamily=Helvetica;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry x="30" y="118" width="130" height="64" as="geometry"/>
+        </mxCell>
+
+        <!-- 模块 0：预处理 -->
+        <mxCell id="prep" value="&lt;b&gt;SMART 预处理与 A/B 归纳&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:11px;color:#555555;&quot;&gt;（3.2 节）&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#9E9E9E;strokeWidth=1.5;fontSize=13;fontFamily=Helvetica;arcSize=12;" vertex="1" parent="1">
+          <mxGeometry x="200" y="110" width="168" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="prepNote" value="缺失/常量处理 · 16维 raw SMART · A/B 机制归纳" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#BDBDBD;dashed=1;dashPattern=4 4;fontSize=10;fontFamily=Helvetica;fontColor=#666666;align=center;" vertex="1" parent="1">
+          <mxGeometry x="188" y="205" width="192" height="36" as="geometry"/>
+        </mxCell>
+
+        <!-- 模块 1：突变特征 -->
+        <mxCell id="feat" value="&lt;b&gt;① 超短期突变时序特征&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:11px;color:#555555;&quot;&gt;（3.3.1 节）&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1565C0;strokeWidth=1.5;fontSize=13;fontFamily=Helvetica;arcSize=12;" vertex="1" parent="1">
+          <mxGeometry x="410" y="110" width="168" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="featNote" value="B 组 · 3 日窗 · 当前值 / Lag / 增量" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#90CAF9;dashed=1;dashPattern=4 4;fontSize=10;fontFamily=Helvetica;fontColor=#1565C0;align=center;" vertex="1" parent="1">
+          <mxGeometry x="398" y="205" width="192" height="36" as="geometry"/>
+        </mxCell>
+
+        <!-- 模块 2：盘况分级 -->
+        <mxCell id="grade" value="&lt;b&gt;② 突变感知四级盘况分级&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:11px;color:#555555;&quot;&gt;（3.3.2 节）&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1565C0;strokeWidth=1.5;fontSize=13;fontFamily=Helvetica;arcSize=12;" vertex="1" parent="1">
+          <mxGeometry x="620" y="110" width="178" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="gradeNote" value="按突变强度划分 S1–S4" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#90CAF9;dashed=1;dashPattern=4 4;fontSize=10;fontFamily=Helvetica;fontColor=#1565C0;align=center;" vertex="1" parent="1">
+          <mxGeometry x="613" y="205" width="192" height="36" as="geometry"/>
+        </mxCell>
+
+        <!-- 模块 3：集成预测 -->
+        <mxCell id="ens" value="&lt;b&gt;③ 分级引导异构集成预测&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:11px;color:#555555;&quot;&gt;（3.3.3 节）&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1565C0;strokeWidth=1.5;fontSize=13;fontFamily=Helvetica;arcSize=12;" vertex="1" parent="1">
+          <mxGeometry x="840" y="110" width="178" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="ensNote" value="S1-S4 各一套 RF/XGB/LGB+MLP · 分级路由" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#90CAF9;dashed=1;dashPattern=4 4;fontSize=10;fontFamily=Helvetica;fontColor=#1565C0;align=center;" vertex="1" parent="1">
+          <mxGeometry x="833" y="205" width="192" height="36" as="geometry"/>
+        </mxCell>
+
+        <!-- 输出：盘级评估 -->
+        <mxCell id="eval" value="&lt;b&gt;盘级最早告警评估&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:11px;color:#555555;&quot;&gt;（3.1.2 节）&lt;/font&gt;" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#F5F5F5;strokeColor=#9E9E9E;strokeWidth=1.5;fontSize=13;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="1060" y="118" width="150" height="64" as="geometry"/>
+        </mxCell>
+        <mxCell id="evalNote" value="TP / FP / TPR / F0.5" style="text;html=1;strokeColor=none;fillColor=none;fontSize=10;fontFamily=Helvetica;fontColor=#666666;align=center;" vertex="1" parent="1">
+          <mxGeometry x="1075" y="205" width="120" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- 主流程箭头 -->
+        <mxCell id="e0" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#424242;endArrow=block;endFill=1;" edge="1" parent="1" source="input" target="prep">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#424242;endArrow=block;endFill=1;" edge="1" parent="1" source="prep" target="feat">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#424242;endArrow=block;endFill=1;" edge="1" parent="1" source="feat" target="grade">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#424242;endArrow=block;endFill=1;" edge="1" parent="1" source="grade" target="ens">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#424242;endArrow=block;endFill=1;" edge="1" parent="1" source="ens" target="eval">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 虚线注释连线 -->
+        <mxCell id="n1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#BDBDBD;dashed=1;endArrow=none;" edge="1" parent="1" source="prep" target="prepNote">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="n2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#90CAF9;dashed=1;endArrow=none;" edge="1" parent="1" source="feat" target="featNote">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="n3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#90CAF9;dashed=1;endArrow=none;" edge="1" parent="1" source="grade" target="gradeNote">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="n4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#90CAF9;dashed=1;endArrow=none;" edge="1" parent="1" source="ens" target="ensNote">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 图例 -->
+        <mxCell id="legendBox" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#E0E0E0;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="30" y="270" width="340" height="58" as="geometry"/>
+        </mxCell>
+        <mxCell id="legendTitle" value="图例" style="text;html=1;strokeColor=none;fillColor=none;fontSize=12;fontStyle=1;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="42" y="278" width="40" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="lgGray" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#9E9E9E;" vertex="1" parent="1">
+          <mxGeometry x="88" y="292" width="28" height="16" as="geometry"/>
+        </mxCell>
+        <mxCell id="lgGrayT" value="数据预处理 / 盘级评估" style="text;html=1;strokeColor=none;fillColor=none;fontSize=11;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="120" y="288" width="130" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="lgBlue" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1565C0;" vertex="1" parent="1">
+          <mxGeometry x="260" y="292" width="28" height="16" as="geometry"/>
+        </mxCell>
+        <mxCell id="lgBlueT" value="本章方法三模块（①–③）" style="text;html=1;strokeColor=none;fillColor=none;fontSize=11;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="292" y="288" width="140" height="20" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
