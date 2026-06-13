@@ -4,17 +4,42 @@
 
     \appendixsecmajornumbering
 
-    % \section{一个附录}
+    \section{SMART 属性原始读数与归一化读数的 Spearman 相关}
 
-    % \begin{figure}[htb]
-    %     \centering
-    %     \includegraphics{example-image}
-    %     \caption{附录中的图片}
-    %     \label{fig:test-appendix}
-    % \end{figure}
+    表~\ref{tab:app-raw-norm-spearman} 列出正文公式~(\ref{equ:spearman-rn}) 所依据的各属性 Spearman 系数：在剔除零方差原始读数列后的有效属性上，于 MB1/MB2 全量日日志按「盘--日」行级配对计算。
 
-    % \section{另一个附录}
+    \begin{table}[htbp]
+        \centering
+        \footnotesize
+        \caption{\label{tab:app-raw-norm-spearman}字段筛选后 SMART 原始读数与归一化读数的 Spearman 相关（MB1/MB2）}
+        \begin{tabularx}{\linewidth}{c X >{\centering\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X}
+            \toprule
+            ID & SMART 属性 & MB1 $\rho_s$ & MB2 $\rho_s$ &  保留列 \\
+            \midrule
+            5  & 重映射扇区计数           & $-1.0000$ & $-1.0000$ & $r_{5}$ \\
+            9  & 通电时间累计             & $-0.9682$ & $-0.9681$ & $r_{9}$ \\
+            12 & 通电周期计数             & $-0.0183$ & $-0.0472$ & $r_{12}$/$n_{12}$ \\
+            177 & 磨损范围对比值          & $-0.9274$ & $-0.8269$ & $r_{177}$ \\
+            180 & 未用的备用块计数        & $0.0407$  & $0.1512$  & $r_{180}$/$n_{180}$ \\
+            181 & 编程失败计数            & $-1.0000$ & $-1.0000$ & $r_{181}$ \\
+            182 & 擦写失败计数            & $-1.0000$ & $-1.0000$ & $r_{182}$ \\
+            183 & 串口降速错误计数        & $-1.0000$ & $-1.0000$ & $r_{183}$ \\
+            184 & 点到点错误检测计数      & $-1.0000$ & ---       & $r_{184}$ \\
+            187 & 无法校正的错误          & $-1.0000$ & $-1.0000$ & $r_{187}$ \\
+            190 & 气流温度                & $-1.0000$ & $-1.0000$ & $r_{190}$ \\
+            194 & 温度                    & $-1.0000$ & ---       & $r_{194}$ \\
+            195 & 编程错误块计数          & $-1.0000$ & $-1.0000$ & $r_{195}$ \\
+            199 & Ultra ATA CRC 错误率    & $-0.9987$ & $-0.9993$ & $r_{199}$ \\
+            241 & LBA 写入总数            & $-0.0842$ & $-0.1709$ & $r_{241}$/$n_{241}$ \\
+            242 & LBA 读取总数            & $-0.0881$ & $-0.0922$ & $r_{242}$/$n_{242}$ \\
+            \bottomrule
+        \end{tabularx}
 
-    % End of appendix
+        \vspace{4pt}
+        \begin{minipage}{\linewidth}
+            \footnotesize 注：$\rho_s$ 按正文公式~(\ref{equ:spearman-rn}) 在同行 $r_i$ 与 $n_i$ 上配对计算；「---」表示该型号上 $r_i$ 与 $n_i$ 至少一侧为零方差而未列入相关统计。正文以 $|\rho_s|>0.8$ 作为冗余判定阈值：超过阈值时仅保留 $r_i$，否则 $r_i$ 与 $n_i$ 均保留。
+        \end{minipage}
+    \end{table}
+
     \removeappendixsecmajornumbering
 }
