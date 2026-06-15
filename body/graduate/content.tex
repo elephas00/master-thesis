@@ -484,9 +484,8 @@ Xu 等人\cite{xu2021general}指出，一旦 SSD 被预测为故障，运维人�
 
 本研究采用开源的阿里云 SMART 公开数据集\cite{xu2021general}。
 数据来自阿里云五个 SSD 数据中心，观测期为 2018 年 1 月至 2019 年 12 月，内容包括日级 SMART 日志及故障工单记录。
-每条样本以「盘--日」为粒度，以 SMART 属性为输入特征、以未来窗口内是否故障为监督标签。
-MB1 与 MB2 均为 MLC-SSD，SMART 属性集合相近；MB1 年化故障率（AFR）高于 MB2，故障样本活跃，因此选择作为研究对象。
-表~\ref{tab:mb1-mb2-subset-stats} 汇总本文实验所用数据集的主要规模与字段统计
+MB1 与 MB2 均为 MLC-SSD，SMART 属性集合相近，故障样本活跃，因此选择作为研究对象。
+表~\ref{tab:mb1-mb2-subset-stats} 汇总本文实验所用数据集的主要规模与字段统计。
 
 \begin{table}[htbp]
     \centering
@@ -495,24 +494,20 @@ MB1 与 MB2 均为 MLC-SSD，SMART 属性集合相近；MB1 年化故障率（AF
         \toprule
         统计项 & MB1 & MB2 \\
         \midrule
-        SSD 总数 & 38\,270 & 41\,022 \\
+        SSD 总数 & 44\,401 & 48\,811 \\
         故障工单数（盘级） & 1\,807 & 604 \\
-        可标注正样本故障盘数 & 1\,580 & 548 \\
         年化故障率 AFR & 2.52\% & 0.71\% \\
-        平均每盘记录数 & 600.2 & 661.1 \\
-        记录数量 & 22{,}970{,}148 & 27{,}120{,}095 \\
-        空值率（保留特征列） & 0.011\% & 0.009\% \\
+        平均每盘记录数 & 591.5 & 635.3 \\
+        记录数量 & 26{,}261{,}218 & 31{,}008{,}712 \\
+        空值率 & 62.79\% & 64.76\% \\
         \bottomrule
     \end{tabularx}
-
-    \vspace{2pt}
-    \begin{minipage}{\linewidth}
-        \footnotesize 注：盘数与记录数为剔除 2018-01-01/02 无效样本及 $G_{\max}>30$ 或 $\mathrm{cov}<0.5$ 重度盘后的建模集合；空值率为保留 SMART 特征列的单元格缺失率。
-    \end{minipage}
 \end{table}
 
-从故障时间分布看，图~\ref{fig:failure-by-month} 展示了 MB1 与 MB2 月度故障盘数量对比。
-两型号均在 2018 年 5 月出现明显峰值（MB1 当月 395 块、MB2 当月 55 块）；除该批次异常外，MB1 其余月份故障数量整体较为分散（月均约 75 块），MB2 分布更为平缓（月均约 25 块），表明模型需在长期观测下保持稳定，而非仅拟合单一批次异常。
+图~\ref{fig:failure-by-month} 展示了数据集月度故障盘数量变化。
+2018 年 1月 至 4 月期间两型号故障盘数均处于低位，推测与数据集于 2018 年初集中入池、盘群尚处早期服役阶段、失效风险尚未充分累积有关，亦不排除入池初期 SMART 采集与工单记录尚未完全覆盖全部在服盘群。
+MB1 于 2018 年 5 月出现极端尖峰，同期 MB2 亦有抬升但幅度远小，推测可能与特定批次盘群进入集中失效窗口，或当期运维批量换盘、下线处置等外部事件叠加有关，该月不宜单独代表两型号的常态故障水平。
+剔除上述入池初期低基数阶段与 MB1 5 月尖峰后，2018 年下半年至 2019 年两型号月度故障量整体较为平缓；时间跨度长、各月均有故障盘释放，构成相对连续的观测序列，适合作为本文主实验的训练与测试时间窗。
 
 \begin{figure}[htbp]
     \centering
@@ -535,23 +530,54 @@ $\rho_s$ 取值范围为 $[-1,1]$，$|\rho_s|$ 越大表示单调相关越强。
 \subsubsection{字段筛选}
 \label{sec:chap3-field-filter}
 
-日日志合并为实验表后，每条「盘--日」记录除磁盘标识、观测日期与型号外，尚含 102 列 SMART 读数（51 个属性 ID 各含 $r_i$、$n_i$ 一列）。字段筛选分三步进行：第一步于全数据集剔除严格全空列，将输入由 102 列减至 68 列；第二步分别在 MB1、MB2 子集上剔除零方差列；第三步在同行样本上配对计算各属性 ID 的 $\rho_s$，依据式~(\ref{equ:spearman-rn}) 判定 $r_i$ 与 $n_i$ 是否冗余。
+数据集中每条记录除磁盘标识、观测日期与型号外，含 102 列 SMART 读数（51 个属性 ID 各含 $r_i$、$n_i$ 一列）。
+然而，如表~\ref{tab:mb1-mb2-subset-stats} 所示，两型号列级空值率分别达 62.79\% 与 64.76\%；且部分属性在全体样本上恒为空、恒为常数，或 $r_i$ 与 $n_i$ 高度单调相关，有效信息密度较低。
+为此，本文在建模前对 SMART 字段进行列级筛选，剔除无效与冗余读数，以提升输入质量与可解释性。
+字段筛选分三步进行，各步判定条件与结果汇总如表~\ref{tab:field-filter-summary} 所示；各步剔除的具体读数列及原因见附录表~\ref{tab:app-field-filter-removed}。
 
-\begin{enumerate}
-    \item 全空字段剔除：若某列在全体「盘--日」样本上均为缺失，则予以删除。对原始 102 列 SMART 字段逐日核查（以阿里云公开日日志为准），下列 34 列恒为空，于合并阶段即剔除，对应属性 ID 为 2、3、4、6、7、8、10、11、13、189、191、193、200、204、205、207、240：$n_2$、$r_2$、$n_3$、$r_3$、$n_4$、$r_4$、$n_6$、$r_6$、$n_7$、$r_7$、$n_8$、$r_8$、$n_{10}$、$r_{10}$、$n_{11}$、$r_{11}$、$n_{13}$、$r_{13}$、$n_{189}$、$r_{189}$、$n_{191}$、$r_{191}$、$n_{193}$、$r_{193}$、$n_{200}$、$r_{200}$、$n_{204}$、$r_{204}$、$n_{205}$、$r_{205}$、$n_{207}$、$r_{207}$、$n_{240}$、$r_{240}$。该步在型号划分之前完成，MB1 与 MB2 共用同一结果。
+第一步于全数据集上剔除恒为空列。若某列在全体「盘--日」样本上均为缺失，说明该 SMART 属性在公开日志中从未上报，予以删除，两种型号均剔除 34 列。
 
-    \item 零方差字段剔除：若列中存在非空取值但全体仅取同一常数，则无法提供区分信息，予以删除。MB1 移除 $r_1$、$r_{170}$、$r_{171}$、$r_{172}$、$r_{173}$、$r_{174}$、$r_{175}$、$r_{188}$、$r_{192}$、$r_{196}$、$r_{197}$、$r_{198}$、$r_{206}$、$r_{211}$、$r_{232}$、$r_{233}$、$r_{244}$、$r_{245}$，以及 $n_1$、$n_{170}$、$n_{171}$、$n_{172}$、$n_{173}$、$n_{174}$、$n_{175}$、$n_{188}$、$n_{192}$、$n_{196}$、$n_{197}$、$n_{198}$、$n_{206}$、$n_{211}$、$n_{232}$、$n_{233}$、$n_{244}$、$n_{245}$；MB2 移除 $r_1$、$r_{170}$、$r_{171}$、$r_{172}$、$r_{173}$、$r_{174}$、$r_{175}$、$r_{184}$、$r_{188}$、$r_{192}$、$r_{194}$、$r_{196}$、$r_{197}$、$r_{198}$、$r_{206}$、$r_{211}$、$r_{232}$、$r_{233}$、$r_{245}$，以及 $n_1$、$n_{170}$、$n_{171}$、$n_{172}$、$n_{173}$、$n_{174}$、$n_{175}$、$n_{184}$、$n_{188}$、$n_{192}$、$n_{194}$、$n_{196}$、$n_{197}$、$n_{198}$、$n_{206}$、$n_{211}$、$n_{232}$、$n_{233}$、$n_{244}$、$n_{245}$。
+第二步分别在 MB1、MB2 子集上剔除零方差列。若列中存在非空取值但全体样本仅取同一常数，则无法提供区分信息，予以删除。两型号因常数列构成略有差异，MB1 剔除 36 列、MB2 剔除 39 列。
 
-    \item 原始读数与归一化读数冗余判定：在 MB1/MB2 各子集的全量日日志上计算各属性 ID 的 $\rho_s$（统计结果见附录表~\ref{tab:app-raw-norm-spearman}），取阈值 $|\rho_s|>0.8$：超过阈值时认为 $n_i$ 可由 $r_i$ 单调导出，剔除 $n_i$ 并保留 $r_i$；否则 $r_i$ 与 $n_i$ 均保留。按此规则，MB1 移除 $n_5$、$n_9$、$n_{177}$、$n_{181}$、$n_{182}$、$n_{183}$、$n_{184}$、$n_{187}$、$n_{190}$、$n_{194}$、$n_{195}$、$n_{199}$；MB2 移除 $n_5$、$n_9$、$n_{177}$、$n_{181}$、$n_{182}$、$n_{183}$、$n_{187}$、$n_{190}$、$n_{195}$、$n_{199}$。
-\end{enumerate}
+第三步于各行样本上配对计算各属性 ID 的 Spearman 系数 $\rho_s$，取阈值 $|\rho_s|>0.8$：超过阈值时认为 $n_i$ 可由 $r_i$ 单调导出，剔除 $n_i$ 并保留 $r_i$；否则 $r_i$ 与 $n_i$ 均保留。按此规则，MB1 剔除 12 列 $n_i$，MB2 剔除 10 列 $n_i$。各属性 $\rho_s$ 统计见附录表~\ref{tab:app-raw-norm-spearman}。
 
-经上述筛选，MB1 共保留 20 列读数：16 列原始读数（$r_5$、$r_9$、$r_{12}$、$r_{177}$、$r_{180}$、$r_{181}$、$r_{182}$、$r_{183}$、$r_{184}$、$r_{187}$、$r_{190}$、$r_{194}$、$r_{195}$、$r_{199}$、$r_{241}$、$r_{242}$）与 4 列归一化读数（$n_{12}$、$n_{180}$、$n_{241}$、$n_{242}$）。MB2 共保留 19 列：15 列原始读数（$r_5$、$r_9$、$r_{12}$、$r_{177}$、$r_{180}$、$r_{181}$、$r_{182}$、$r_{183}$、$r_{187}$、$r_{190}$、$r_{195}$、$r_{199}$、$r_{241}$、$r_{242}$、$r_{244}$；该型号上 $r_{184}$、$r_{194}$ 因零方差已在第二步剔除）与 4 列归一化读数（$n_{12}$、$n_{180}$、$n_{241}$、$n_{242}$）。由附录表~\ref{tab:app-raw-norm-spearman} 可见，多数错误计数与温度类属性的 $|\rho_s|$ 接近 1，保留物理含义更直接的原始读数即可；磨损相关属性 12、180、241、242 的 $|\rho_s|$ 较低，两类读数提供互补信息，故同时保留。分列建模时统一采用上述结果，兼顾跨盘可比与信息完整性。
+\begin{table}[htbp]
+    \centering
+    \caption{\label{tab:field-filter-summary} SMART 字段筛选结果}
+    \begin{tabularx}{0.92\linewidth}{l>{\centering\arraybackslash}X>{\centering\arraybackslash}X}
+        \toprule
+        统计项 & MB1 & MB2 \\
+        \midrule
+        原始 SMART 读数列数 & 102 & 102 \\
+        全空列剔除数 & 34 & 34 \\
+        零方差列剔除数 & 36 & 39 \\
+        $r$--$n$ 冗余列剔除数（仅 $n_i$） & 12 & 10 \\
+        筛选后保留读数列数 & 20 & 19 \\
+        筛选后保留属性 ID 数 & 16 & 15 \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+经上述筛选，MB1 保留 16 个属性 ID 共 20 列读数，MB2 保留 15 个属性 ID 共 19 列读数；各属性的中文名称、机制类型及 A/B 分组见表~\ref{tab:smart-features-ab}。
+磨损相关属性 12、180、241、242 的 $|\rho_s|$ 较低，$r_i$ 与 $n_i$ 提供互补信息，故两类读数均予保留；错误计数与温度类属性多数 $|\rho_s|\approx 1$，仅保留物理含义更直接的 $r_i$ 属性。
 
 \subsubsection{日历级时序质量分析}
 
-表~\ref{tab:mb1-mb2-subset-stats} 中的「空值率」指列级单元格缺失；除字段为空外，各盘在日历轴上还存在整日 SMART 日志缺失（时序中断）。
-本文将后者与列级缺失区分：对每块盘 $i$ 在补全前原始观测上，记首末观测日 $t_{\mathrm{first},i}$、$t_{\mathrm{last},i}$，日历跨度 $\mathrm{span}_i=t_{\mathrm{last},i}-t_{\mathrm{first},i}+1$，实际有日志天数 $n_{\mathrm{obs},i}$，覆盖率 $\mathrm{cov}_i=n_{\mathrm{obs},i}/\mathrm{span}_i$，最长连续缺失 $G_{\max,i}$（相邻两次观测间隔减 1 天的最大值），中断次数 $n_{\mathrm{gap},i}$（间隔 ${>}1$ 天的次数）。
-表~\ref{tab:temporal-quality-summary} 与图~\ref{fig:temporal-missing-distribution} 汇总 MB1/MB2 的盘级统计（2018--2019 全量，与字段筛选后原始日日志一致）。
+表~\ref{tab:mb1-mb2-subset-stats} 中的 空值率 指列级单元格缺失，除字段为空外，各盘在日历轴上还存在整日 SMART 日志缺失（时序中断），需在建模前评估时序质量并确定补全与剔除策略。
+
+为此，在补全前的原始观测上，对每块盘 $i$ 定义如下盘级指标：首末观测日 $t_{\mathrm{first},i}$、$t_{\mathrm{last},i}$；日历跨度 $\mathrm{span}_i=t_{\mathrm{last},i}-t_{\mathrm{first},i}+1$；实际有日志天数 $n_{\mathrm{obs},i}$；覆盖率 $\mathrm{cov}_i=n_{\mathrm{obs},i}/\mathrm{span}_i$；最长连续缺失天数 $G_{\max,i}$（相邻两次观测间隔减 1 天的最大值）；中断次数 $n_{\mathrm{gap},i}$（间隔 ${>}1$ 天的次数）。
+依据 $G_{\max,i}$ 与 $\mathrm{cov}_i$，将盘划分为轻度、中度与重度缺失三档，分别采取前向填充补全或整盘剔除，分流规则如图~\ref{fig:temporal-missing-schematic} 所示。
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\linewidth]{figure/temporal-missing-schematic.png}
+    \caption{日历级缺失概念及按 $G_{\max}$ 分档的补全/剔除示意}
+    \label{fig:temporal-missing-schematic}
+\end{figure}
+
+在数据集上统计上述指标，结果见表~\ref{tab:temporal-quality-summary} 与图~\ref{fig:temporal-missing-distribution}。
+两型号形态相近：约 99\% 的盘至少出现过一次日历中断，但 $G_{\max}\le 7$ 天的盘占 63.5\%--65.7\%，$\mathrm{cov}\ge 0.95$ 的盘占 68\%--70\%，说明多数盘属于图~\ref{fig:temporal-missing-schematic} 中的轻度缺失，可经前向填充继续使用。
+满足 $G_{\max}>30$ 或 $\mathrm{cov}<0.5$ 的重度缺失盘占 13.8\%--16.2\%，因其观测窗过碎、补全后时序与标签可靠性不足，拟整盘剔除；中度缺失盘（$8\le G_{\max}\le 30$）仍予保留。
 
 \begin{table}[htbp]
     \centering
@@ -572,39 +598,25 @@ $\rho_s$ 取值范围为 $[-1,1]$，$|\rho_s|$ 越大表示单调相关越强。
         $\mathrm{cov}<0.5$ 盘占比 & 0.8\% & 2.9\% \\
         \bottomrule
     \end{tabularx}
-
-    \vspace{2pt}
-    \begin{minipage}{\linewidth}
-        \footnotesize 注：$G_{\max}$ 为最长连续缺失天数；覆盖率 $\mathrm{cov}=n_{\mathrm{obs}}/\mathrm{span}$。约 99\% 的盘至少出现过一次日历中断，但约 2/3 的最长中断不超过 7 天，属于轻度缺失。
-    \end{minipage}
 \end{table}
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\linewidth]{figure/temporal-missing-distribution.png}
-    \caption{SMART 日日志日历缺失分布（补全前原始观测）}
+    \caption{SMART 日日志日历缺失分布}
     \label{fig:temporal-missing-distribution}
 \end{figure}
 
-由图~\ref{fig:temporal-missing-distribution}(a)--(b) 可见，两型号分布形态相近：$G_{\max}$ 集中于 1--7 天，$\mathrm{cov}\ge 0.95$ 的盘占约 68\%--70\%。
-图~\ref{fig:temporal-missing-distribution}(c) 按预处理分流示意：$G_{\max}\le 7$ 天为轻度缺失（前向填充补全），$8\le G_{\max}\le 30$ 天为中度缺失（仍可补全，但 label\_30 与 3 日突变特征对缺口更敏感），满足 $G_{\max}>30$ 或 $\mathrm{cov}<0.5$ 者为重度缺失、作为剔除候选（MB1 约 13.8\%、MB2 约 16.2\%），因其观测窗过碎、补全后时序与标签可靠性不足。
-需说明的是，高覆盖、短中断盘中的故障盘比例反而更高（例如 MB1 中 $\mathrm{cov}\ge 0.95$ 段盘级故障率约 4.8\%，而 $\mathrm{cov}<0.95$ 段约 2.5\%），反映失效前日志往往仍较连续，而非缺失导致假故障；因此剔除重度盘主要依据特征与标签可建模性，而非故障率高低，拟剔除组仅含 MB1 故障盘的 12.3\%、MB2 的 9.3\%。
+图~\ref{fig:temporal-missing-distribution}(a)--(b) 进一步印证 $G_{\max}$ 在 1--7 天区间最为集中；图~\ref{fig:temporal-missing-distribution}(c) 给出与表~\ref{tab:temporal-quality-summary} 一致的分档占比。
 
-进一步地，若按 $\mathrm{span}$ 分档折算年化故障率，短跨度档位的 AFR 往往偏高，易被误解为「观测不足盘」应整盘删除。为区分「日历可见窗口短」与「实际部署时长短」，对 $\mathrm{span}<180$ 天的故障盘补充核查：其 $t_{\mathrm{last}}$ 在 MB2 上集中于 2018 年二季度（约 68.8\%），MB1 以 2018 年二季度为主、2019 年三季度为次峰，对应 2018 年初入池后约 4--6 个月内停报或故障的 cohort，而非故障当月才新部署；结合 SMART 属性 9 的通电时间读数 $r_9$（按小时计，$r_9/24$ 近似通电天数），MB2 上述故障盘故障时中位通电约 599 天，83\% 在首次入池前已通电不少于 180 天；MB1 呈双峰——约 31\% 为真实短部署早期故障（故障时 $r_9/24<30$ 天），其余多数已通电不少于 180 天。可见短 $\mathrm{span}$ 主要反映日志可见窗口被 $t_{\mathrm{first}}$ 与 $t_{\mathrm{last}}$ 截断，并不等价于磁盘新上线或数据不可信；$\mathrm{span}$、$t_{\mathrm{last}}$、$r_9$ 及 span 分档 AFR 均\textbf{不}作为整盘剔除依据。
+需说明的是，高覆盖、短中断盘中的故障盘比例反而更高（MB1 中 $\mathrm{cov}\ge 0.95$ 段盘级故障率约 4.8\%，$\mathrm{cov}<0.95$ 段约 2.5\%），反映失效前日志往往仍较连续，剔除重度盘主要依据可建模性而非故障率高低；拟剔除组仅含 MB1 故障盘的 12.3\%、MB2 的 9.3\%。
 
-图~\ref{fig:temporal-missing-schematic} 给出日历级缺失与补全/剔除的直观示意。
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=\linewidth]{figure/temporal-missing-schematic.png}
-    \caption{日历级缺失示意}
-    \label{fig:temporal-missing-schematic}
-\end{figure}
+此外，短 $\mathrm{span}$ 盘若按跨度分档折算 AFR 往往偏高，易被误判为观测不足而应删除。对 $\mathrm{span}<180$ 天故障盘的核查表明：其 $t_{\mathrm{last}}$ 多集中于 2018 年二季度入池 cohort，结合通电时间 $r_9$（$r_9/24$ 近似天数），MB2 故障时中位通电约 599 天、83\% 已通电不少于 180 天；MB1 约 31\% 为真实短部署早期故障，其余多数已长期服役。故短 $\mathrm{span}$ 主要反映日志可见窗口被截断，$\mathrm{span}$、$t_{\mathrm{last}}$、$r_9$ 及 span 分档 AFR 均不作为整盘剔除依据。
 
 \subsubsection{建模样本筛选与缺失补全}
 \label{sec:chap3-imputation}
 
-综合字段筛选与时序质量分析，本文在建模阶段的样本剔除遵循「列级去无效、盘级去不可补全」原则，汇总如表~\ref{tab:preprocessing-removal} 所示。除实验对象限定为 MB1/MB2 外，\textbf{整盘剔除}仅发生于满足 $G_{\max}>30$ 或 $\mathrm{cov}<0.5$ 的重度缺失盘；轻度（$G_{\max}\le 7$）与中度（$8\le G_{\max}\le 30$）盘一律保留。其中 $\mathrm{span}<180$ 天的故障盘不因日历窗口短而删除——MB1 148 块此类故障盘中仅 8 块同时落入重度缺失组，MB2 112 块均保留。
+综合字段筛选与时序质量分析，汇总如表~\ref{tab:preprocessing-removal} 所示。除实验对象限定为 MB1/MB2 外，\textbf{整盘剔除}仅发生于满足 $G_{\max}>30$ 或 $\mathrm{cov}<0.5$ 的重度缺失盘；轻度（$G_{\max}\le 7$）与中度（$8\le G_{\max}\le 30$）盘一律保留。其中 $\mathrm{span}<180$ 天的故障盘不因日历窗口短而删除——MB1 148 块此类故障盘中仅 8 块同时落入重度缺失组，MB2 112 块均保留。
 
 \begin{table}[htbp]
     \centering
@@ -614,84 +626,166 @@ $\rho_s$ 取值范围为 $[-1,1]$，$|\rho_s|$ 越大表示单调相关越强。
         \toprule
         对象 & 规则 & MB1 & MB2 \\
         \midrule
-        SMART 列 & 全空 / 零方差 / $|\rho_s|>0.8$ 冗余 $n_i$ & \multicolumn{2}{c}{列级删除（见~\ref{sec:chap3-field-filter}）} \\
-        入池无效日样本 & 2018-01-01、2018-01-02 特征列全空，删除「盘--日」行 & \multicolumn{2}{c}{样本级删除} \\
-        重度缺失盘 & $G_{\max}>30$ 或 $\mathrm{cov}<0.5$，整盘剔除 & 6\,131 & 7\,789 \\
+        SMART 列 & 全空 / 零方差 / $|\rho_s|>0.8$ 冗余 $n_i$ & \multicolumn{2}{c}{列级删除} \\
+        数据集早期样本 & 2018 年 5 月及之前时间的样本 & \multicolumn{2}{c}{样本级删除}\\
+        故障后无效日志 & 故障盘删除 $d_s>t_{\mathrm{fail}}$ 的样本（保留故障日） & \multicolumn{2}{c}{样本级删除} \\
+        早期故障盘 & 观测时间不足 30 天 & \multicolumn{2}{c}{盘级删除} \\ 
+        重度缺失盘 & $G_{\max}>30$ 或 $\mathrm{cov}<0.5$ & \multicolumn{2}{c}{盘级删除} \\
         保留盘数 & 进入补全与建模 & 38\,270 & 41\,022 \\
         保留故障盘 & 2018--2019 可标注故障 & 1\,580 & 548 \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+原始日志存在上述整日缺失与列级空值，可能由采集中断、设备离线或字段未上报引起。
+此外，部分故障盘在标注故障日后仍持续上报 SMART 日志（盘位未及时更换或标识未回收），此类故障后观测与失效演化无关，故对标注故障盘删除 $d_s>t_{\mathrm{fail}}$ 的样本，保留 $d_s=t_{\mathrm{fail}}$ 当日日志。
+对表~\ref{tab:preprocessing-removal} 中保留盘，在 $[t_{\mathrm{first}},\min(t_{\mathrm{last}},t_{\mathrm{fail}})]$（健康盘取 $t_{\mathrm{last}}$）上按日历日补全时间轴，特征列采用前向填充 $X_t=X_{t-1}$（当 $X_{t-1}$ 存在时）；序列首行无前值时以该盘该列原始观测均值填充，再沿时间轴向前填充。
+该策略在保留时序连续性的同时避免对不可靠序列强行补全；补全行以缺失行标记字段记录，供后续分析参考。
+
+\subsubsection{SMART 属性机制归纳}
+
+经上述筛选后，共保留 16 个有效 SMART 属性 ID、20 列读数（每个 ID 均含原始读数；其中属性 12、180、241、242 另含归一化读数），其机制分组如表~\ref{tab:smart-features-ab} 所示。
+依据 SSD 故障机理，属性可概括为两类：A 组为随开机/使用单调累积的磨损与使用量指标（如通电时间、LBA 读写总量等），以及环境类温度读数；B 组为其余属性，含错误计数、重映射与备用块等异常/突变类信号，健康盘长期接近 0 或仅缓慢背景变化，失效前常出现突变\cite{xu2021general}。
+定义 A 组属性 ID 集合 $\mathcal{A}=\{9,\,12,\,177,\,190,\,194,\,241,\,242\}$，B 组 $\mathcal{B}=\{5,\,180,\,181,\,182,\,183,\,184,\,187,\,195,\,199\}$（归一化读数 $n_i$ 与其对应 $r_i$ 同组）。
+表~\ref{tab:smart-features-ab} 完整列出保留属性及其分组:
+
+\begin{table}[htbp]
+    \centering
+    \caption{\label{tab:smart-features-ab}预处理后保留的 SMART 属性及 A/B 分组}
+    \footnotesize
+    \setlength{\tabcolsep}{5pt}
+    \begin{tabularx}{\linewidth}{@{}>{\centering\arraybackslash}p{0.85cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{5.4cm} >{\centering\arraybackslash}p{1.5cm}@{}}
+        \toprule
+        ID & 中文名称 & 英文名称 & 特征类型 \\
+        \midrule
+        \multicolumn{4}{@{}l@{}}{\textbf{A 组}} \\
+        \addlinespace[2pt]
+        9 & 通电时间累计 & Power-On Time Count & 单调累积 \\
+        12 & 通电周期计数 & Power Cycle Count & 单调累积 \\
+        177 & 磨损范围对比值 & Wear Range Delta & 单调累积 \\
+        190 & 气流温度 & Airflow Temperature & 环境指标 \\
+        194 & 温度 & Temperature & 环境指标 \\
+        241 & LBA写入总数 & Total LBAs Written & 单调累积 \\
+        242 & LBA读取总数 & Total LBAs Read & 单调累积 \\
+        \addlinespace[2pt]
+        \multicolumn{4}{@{}l@{}}{\textbf{B 组}} \\
+        \addlinespace[2pt]
+        5 & 重映射扇区计数 & Reallocated Sectors Count & 异常/突变 \\
+        180 & 未用的备用块计数 & Unused Reserved Block Count Total & 异常/突变 \\
+        181 & 编程失败计数 & Program Fail Count & 异常/突变 \\
+        182 & 擦写失败计数 & Erase Fail Count & 异常/突变 \\
+        183 & 串口降速错误计数 & SATA Downshift Error Count & 异常/突变 \\
+        184 & 点到点错误检测计数 & End to End Error Detection Count & 异常/突变 \\
+        187 & 无法校正的错误 & Reported Uncorrectable Errors & 异常/突变 \\
+        195 & 编程错误块计数 & Program Failure block Count & 异常/突变 \\
+        199 & Ultra ATA 访问校验错误率 & Ultra ATA CRC Error Rate & 异常/突变 \\
         \bottomrule
     \end{tabularx}
 
     \vspace{2pt}
     \begin{minipage}{\linewidth}
-        \footnotesize 注：不依据 $\mathrm{span}$、$t_{\mathrm{last}}$、$r_9$ 或 span 分档 AFR 整盘剔除；补全行不参与 B 组 3 日突变特征构造。
+        \footnotesize 注：归一化读数 $n_i$ 与其对应 $r_i$ 同组（表中仅列属性 ID）。
     \end{minipage}
 \end{table}
 
-原始日志存在上述整日缺失与列级空值，可能由采集中断、设备离线或字段未上报引起。
-对筛选后保留列统计，列级空值约 92\%--94\% 集中于 2018 年 1 月，其中 1 月 2 日占该月空值 99\% 以上、特征列空值率接近 100\%，属入池首两日 SMART 尚未正常上报；自 1 月 3 日起单元格空值率降至 0.01\% 以下。故将 2018-01-01 与 2018-01-02 的「盘--日」样本自建模集合中删除，其余日期保留。
-对表~\ref{tab:preprocessing-removal} 中保留盘，在 $[t_{\mathrm{first}},t_{\mathrm{last}}]$ 上按日历日补全时间轴，特征列采用前向填充 $X_t=X_{t-1}$（当 $X_{t-1}$ 存在时）；序列首行无前值时以该盘该列原始观测均值填充，再沿时间轴向前填充。
-该策略在保留时序连续性的同时避免对不可靠序列强行补全；补全行以缺失行标记字段记录，供后续分析参考，B 组 3 日突变特征仅基于原始观测日构造，不使用补全行。
 
-\subsubsection{SMART 属性机制归纳（A/B 分组）}
+\subsection{故障前兆数据观察}
+\label{sec:chap3-b-mutation-eda}
 
-经上述筛选后，MB1 共保留 16 个有效 SMART 属性 ID、20 列读数（每个 ID 均含原始读数；其中属性 12、180、241、242 另含归一化读数），其机制分组如表~\ref{tab:smart-features-ab} 所示。
-依据 SSD 故障机理，属性可概括为两类：A 组刻画长期磨损、环境与部分背景错误计数；B 组为异常/突变类计数，健康盘长期接近 0，失效前常出现阶跃抬升\cite{xu2021general}。
-定义 B 组集合 $\mathcal{B}=\{5,\,181,\,182,\,187,\,195\}$；A 组为表中其余属性。
-表~\ref{tab:smart-features-ab} 完整列出保留属性及其分组；本文方法主路线（见~\ref{sec:chap3-mutation-features}）仅对 B 组构造 3 日突变时序特征（共 20 维），A 组列入表内是为完整呈现 SMART 机制并说明盘况分级依据突变信号而非老化量（与 aging-aware 集成策略相区分\cite{li2025mtms}）。
+字段筛选与样本预处理后，本节在保留盘上对 B 组属性的故障前时序开展探索性观察。
+概括而言，故障盘 B 组读数呈现三点规律：（1）失效前常出现跳变，且与健康盘区分明显；（2）跳变多集中于距故障日较近的短窗口；（3）部分故障盘在观测期内并无可分辨跳变，前兆具有稀疏性与盘间异质性。
+下文分别从个案示意、盘级命中率与日历日级短窗强度展开分析。
+
+图~\ref{fig:b-mutation-mb1}、图~\ref{fig:b-mutation-mb2} 各取一个故障月份中 6 块故障盘示意：计数类属性多长期维持零基线，失效前数日至数周内部分盘出现阶跃抬升或下降。
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.95\linewidth]{figure/b-group-mutation-eda-mb1.png}
+    \caption{MB1 故障盘 B 组属性故障前时序示意}
+    \label{fig:b-mutation-mb1}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.95\linewidth]{figure/b-group-mutation-eda-mb2.png}
+    \caption{MB2 故障盘 B 组属性故障前时序示意}
+    \label{fig:b-mutation-mb2}
+\end{figure}
+
+在全量保留盘上进一步统计跳变命中率：于锚点日前 $W$ 日窗口内，仅在相邻原始观测日间计算 $|\Delta|$，若 $|\Delta|>0$ 则计为跳变；故障盘锚点取 $t_{\mathrm{fail}}$，健康盘取 $t_{\mathrm{last}}$。
+表~\ref{tab:b-group-jump-summary} 显示，MB1 主力属性 5/180/183 在 $W=30$ 日命中率约 62.5\%，健康盘不足 0.1\%；MB2 同窗口仅约 14.0\%，信号整体更弱。
+即便在 MB1，仍有约 37.5\% 故障盘在 30 日内三类主力属性均无跳变，印证前兆并非普遍存在。
 
 \begin{table}[htbp]
-    \caption{\label{tab:smart-features-ab}预处理后保留的 SMART 属性及 A/B 分组（MB1）}
-    \begin{tabularx}{\linewidth}{cX<{\centering}X<{\centering}X<{\centering}X<{\centering}}
+    \centering
+    \caption{\label{tab:b-group-jump-summary}B 组跳变命中率（\%）：窗口内至少 1 次 $|\Delta|>0$ 的盘占比}
+    \footnotesize
+    \setlength{\tabcolsep}{5pt}
+    \begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{2.8cm} >{\centering\arraybackslash}p{1.2cm} >{\centering\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X@{}}
         \toprule
-        ID & 中文名称 & 英文名称 & 特征类型 & 分组 \\
+        B 组属性 & $W$/天 & MB1 故障盘 & MB1 健康盘 & MB2 故障盘 & MB2 健康盘 \\
         \midrule
-        5 & 重映射扇区计数 & \mbox{Reallocated Sectors Count} & 错误计数 & B \\
-        9 & 通电时间累计 & Power-On Time Count & 磨损相关 & A \\
-        12 & 通电周期计数 & Power Cycle Count & 磨损相关 & A \\
-        177 & 磨损范围对比值 & Wear Range Delta & 磨损相关 & A \\
-        180 & 未用的备用块计数 & Unused Reserved Block Count Total & 磨损相关 & A \\
-        181 & 编程失败计数 & Program Fail Count & 错误计数 & B \\
-        182 & 擦写失败计数 & Erase Fail Count & 错误计数 & B \\
-        183 & 串口降速错误计数 & \mbox{SATA Downshift Error Count} & 错误计数 & A \\
-        184 & 点到点错误检测计数 & End to End Error Detection Count & 错误计数 & A \\
-        187 & 无法校正的错误 & \mbox{Reported Uncorrectable Errors} & 错误计数 & B \\
-        190 & 气流温度 & Airflow Temperature & 环境指标 & A \\
-        194 & 温度 & Temperature & 环境指标 & A \\
-        195 & 编程错误块计数 & \mbox{Program Failure block Count} & 错误计数 & B \\
-        199 & Ultra ATA 访问校验错误率 & \mbox{Ultra ATA CRC Error Rate} & 错误计数 & A \\
-        241 & LBA写入总数 & Total LBAs Written & 磨损相关 & A \\
-        242 & LBA读取总数 & Total LBAs Read & 磨损相关 & A \\
+        \multirow{3}{*}{5、180、183} & 7  & 52.3 & 0.0 & 13.1 & 0.0 \\
+        & 30 & 62.5 & 0.1 & 14.0 & 0.1 \\
+        & 90 & 75.7 & 0.1 & 14.3 & 0.1 \\
+        \addlinespace[2pt]
+        \multirow{3}{*}{$n_{180}$} & 7  & 49.2 & 0.0 & 12.3 & 0.0 \\
+        & 30 & 56.0 & 0.1 & 12.9 & 0.0 \\
+        & 90 & 72.3 & 0.1 & 13.3 & 0.0 \\
+        \addlinespace[2pt]
+        \multirow{3}{*}{199} & 7  & 0.8 & 0.1 & 5.6 & 0.2 \\
+        & 30 & 0.8 & 0.1 & 6.4 & 0.4 \\
+        & 90 & 0.8 & 0.2 & 6.4 & 0.8 \\
+        \bottomrule
+    \end{tabularx}
+
+    \vspace{2pt}
+    \begin{minipage}{\linewidth}
+        \footnotesize 注：属性 5、180、183 在 MB1 上命中率相同，故合并列出。
+    \end{minipage}
+\end{table}
+
+为与后文 3 日特征口径对齐，在训练集（截至 2019-07-31）上按日历日统计：对每块故障盘 $t_{\mathrm{fail}}$ 前 30 日内各原始观测日 $(i,t)$，以 $t$ 为终点计算 3 日窗内 B 组突变强度 $R_2$（各属性最大 $|\Delta|$ 之和）。
+表~\ref{tab:prefail30-mutation} 与图~\ref{fig:prefail30-mutation} 表明，故障前 30 日观测期内约 95\% 的日历日满足 $R_2=0$，但 $R_2>0$ 主要集中在距故障日 0--3 日（MB1 约 23.3\%，MB2 约 11.0\%），4--30 日仅占约 2\%--3\%。
+该统计不依赖样本标签，仅说明近端短窗才承载主要突变信息。
+
+\begin{table}[htbp]
+    \centering
+    \caption{\label{tab:prefail30-mutation}故障前 30 日内各观测日与 3 日窗 $R_2$ 的对应关系（训练集）}
+    \footnotesize
+    \setlength{\tabcolsep}{5pt}
+    \begin{tabularx}{\linewidth}{@{}>{\centering\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X@{}}
+        \toprule
+        型号 & 故障前 30 日观测日数 & $R_2=0$ 观测日占比 & 涉及故障盘数 & 期内从未 $R_2>0$ 的故障盘占比 \\
+        \midrule
+        MB1 & 35\,531 & 94.9\% & 1\,244 & 43.1\% \\
+        MB2 & 12\,780 & 96.4\% & 473 & 81.8\% \\
         \bottomrule
     \end{tabularx}
 \end{table}
 
-下一节将对 B 组属性做探索性分析，验证零基线、近端跃迁等前兆假设。
-
-\subsection{故障前兆数据观察（B 组突变 EDA）}
-
-% TODO: B 组突变三条发现；图 3.3--3.5
-
-\subsection{样本标签构造（label\_30 等）}
-
-% TODO: label\_30 定义；图~\ref{fig:label-strategy}；与 3.1.1 任务对齐
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.92\linewidth]{figure/prefail30-mutation-mismatch.png}
+    \caption{故障前 30 日观测期与短窗突变错位示意（上：MB1 单盘时间轴；下：距故障日分档的 $R_2>0$ 占比）}
+    \label{fig:prefail30-mutation}
+\end{figure}
 
 \section{所提方法}
-
-% TODO: 分级 vs 特征功能分工（一段）
 
 \subsection{超短期突变时序特征}
 \label{sec:chap3-mutation-features}
 
-% TODO: 贡献①；$\mathcal{B}=\{5,181,182,187,195\}$；每属性 $x_t$、Lag-1/2、$\Delta^{(1)}$；共20维
+% TODO: 贡献1；$\mathcal{B}=\{5,180,181,182,183,184,187,195,199\}$；每属性 $x_t$、Lag-1/2、$\Delta^{(1)}$；共36维
 
 \subsection{突变感知的 SMART 四级盘况分级}
 
-% TODO: 贡献②；mutation-aware；S1--S4 规则；图~\ref{fig:chap3-grading-flow}
+% TODO: 贡献2；mutation-aware；S1--S4 规则；图~\ref{fig:chap3-grading-flow}
 
 \subsection{分级引导的异构集成预测}
+\label{sec:chap3-ensemble}
 
-% TODO: 贡献③；S1-S4 各一套 RF/XGB/LGB OOF + MLP · 分级路由；图~\ref{fig:chap3-ensemble}
+% TODO: 贡献3；S1-S4 各一套 RF/XGB/LGB OOF + MLP · 分级路由；图~\ref{fig:chap3-ensemble}
 
 \section{实验与分析}
 
