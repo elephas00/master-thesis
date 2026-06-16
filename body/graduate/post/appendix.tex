@@ -20,7 +20,7 @@
             \multicolumn{5}{@{}l@{}}{\textbf{第一步：恒为空列剔除}} \\
             \addlinespace[2pt]
             第一步 & $r_2$/$n_2$、$r_3$/$n_3$、$r_4$/$n_4$、$r_6$/$n_6$、$r_7$/$n_7$、$r_8$/$n_8$ &
-            全体「盘--日」样本均为缺失，属性在公开日志中从未上报 &
+            全体"盘--日"样本均为缺失，属性在公开日志中从未上报 &
             $\checkmark$ & $\checkmark$ \\
             第一步 & $r_{10}$/$n_{10}$、$r_{11}$/$n_{11}$、$r_{13}$/$n_{13}$、$r_{189}$/$n_{189}$、$r_{191}$/$n_{191}$、$r_{193}$/$n_{193}$ &
             同上 & $\checkmark$ & $\checkmark$ \\
@@ -54,14 +54,14 @@
 
         \vspace{4pt}
         \begin{minipage}{\linewidth}
-            \footnotesize 注：$\checkmark$ 表示该型号执行剔除；「---」表示不剔除。
+            \footnotesize 注：$\checkmark$ 表示该型号执行剔除；"---"表示不剔除。
             第三步 $\rho_s$ 取值见表~\ref{tab:app-raw-norm-spearman}；MB2 上 $r_{184}$、$r_{194}$ 已于第二步因零方差剔除，故第三步不再涉及 $n_{184}$、$n_{194}$。
         \end{minipage}
     \end{table}
 
     \section{SMART 属性原始读数与归一化读数的 Spearman 相关}
 
-    表~\ref{tab:app-raw-norm-spearman} 列出正文公式~(\ref{equ:spearman-rn}) 所依据的各属性 Spearman 系数：在剔除零方差原始读数列后的有效属性上，于 MB1/MB2 全量日日志按「盘--日」行级配对计算。
+    表~\ref{tab:app-raw-norm-spearman} 列出正文公式~(\ref{equ:spearman-rn}) 所依据的各属性 Spearman 系数：在剔除零方差原始读数列后的有效属性上，于 MB1/MB2 全量日日志按"盘--日"行级配对计算。
 
     \begin{table}[htbp]
         \centering
@@ -92,7 +92,7 @@
 
         \vspace{4pt}
         \begin{minipage}{\linewidth}
-            \footnotesize 注：$\rho_s$ 按正文公式~(\ref{equ:spearman-rn}) 在同行 $r_i$ 与 $n_i$ 上配对计算；「---」表示该型号上 $r_i$ 与 $n_i$ 至少一侧为零方差而未列入相关统计。正文以 $|\rho_s|>0.8$ 作为冗余判定阈值：超过阈值时仅保留 $r_i$，否则 $r_i$ 与 $n_i$ 均保留。
+            \footnotesize 注：$\rho_s$ 按正文公式~(\ref{equ:spearman-rn}) 在同行 $r_i$ 与 $n_i$ 上配对计算；"---"表示该型号上 $r_i$ 与 $n_i$ 至少一侧为零方差而未列入相关统计。正文以 $|\rho_s|>0.8$ 作为冗余判定阈值：超过阈值时仅保留 $r_i$，否则 $r_i$ 与 $n_i$ 均保留。
         \end{minipage}
     \end{table}
 

@@ -394,19 +394,17 @@ LightGBM 是基于梯度提升框架的高效决策树集成算法，由 Guolin 
 
 
 
-\chapter{基于突变时序特征与盘况分级集成的 SSD 故障预测方法}
+\chapter{基于突变时序特征集成的 SSD 故障预测方法}
 
 盘级 SSD 故障预测是数据中心主动容错的重要环节，其结果用于提前迁移或更换风险磁盘，对保障存储可靠性与在线服务稳定具有重要意义。
 前两章已介绍相关研究背景，以及 SMART 监控原理与随机森林、XGBoost、LightGBM 等集成学习方法，为后续建模与评估奠定了理论与方法基础。
 
 本章面向盘级 30 天预警任务，研究立足于正样本极度稀疏与近端突变信号弱且易被淹没并存的实际痛点。
 具体而言，既有方案多在较长观测窗口下对高维 SMART 属性进行 Lag、滑动统计等复杂特征工程\cite{xu2021general,wang2022ssd,zhang2023multi}，易稀释失效前极短时段内 B 组属性的阶跃突变，使近端前兆难以保留；
-为此，本章在异常类属性上采用 3 日观测窗，构造低维突变时序特征，以突出失效前的短窗口突变信息。
-同时，样本级二分类往往将风险样本视为同质，难以反映临近失效盘在突变严重度上的差异，也不利于挖掘异质故障前兆模式\cite{zhang2024msfrd}；
-对此，本章依据突变强度将样本划分为 S1--S4 四级盘况，以区分不同程度的故障前兆。
+为此，本章构造\textbf{短期时序突变特征}：A/B 组提供近期读数水平，B 组另以按日差分绝对值刻画突变强度，并采用可调回看窗口由实验确定长度。
 此外，盘级正负样本极度不平衡，单一分类器又易受模型偏置影响、判别稳定性不足\cite{li2025mtms}；
 为此，本章采用多种异构基学习器，将其输出的故障概率堆叠融合，并由元学习器进一步学习；训练时引入 Focal Loss，以缓解类别不平衡并提升判别能力。
-上述三部分依次衔接，构成本章 SSD 盘级故障预测方法，总体流程如图~\ref{fig:chap3-pipeline} 所示。
+上述两部分依次衔接，构成本章 SSD 盘级故障预测方法，总体流程如图~\ref{fig:chap3-pipeline} 所示。
 
 \begin{figure}[htbp]
     \centering
@@ -428,6 +426,7 @@ LightGBM 是基于梯度提升框架的高效决策树集成算法，由 Guolin 
 因此，本章在方法设计中兼顾样本级可分性与盘级最早命中规则。
 
 \subsection{评估指标与盘级判定规则}
+\label{sec:chap3-disk-eval}
 
 基于上述盘级评估框架，对测试集中每块 SSD 在评估时间窗口内逐盘判定。
 若存在至少一条样本被预测为故障，则取最早一次预测为正的日期 $t_{\mathrm{alarm}}$ 作为该盘的告警时刻，并据此区分真正例与假正例：当 $t_{\mathrm{alarm}}$ 后 30 天内该盘实际发生故障时，计为真正例（TP）；若该盘在数据集中未记录故障却被触发告警，或虽有故障记录但 $t_{\mathrm{alarm}}$ 后 30 天内未实际发生故障，则均计为假正例（FP）。
@@ -520,7 +519,7 @@ MB1 于 2018 年 5 月出现极端尖峰，同期 MB2 亦有抬升但幅度远�
 
 阿里云公开日日志中，同一 SMART 属性 ID 往往同时上报原始计数与厂商归一化读数（合并后列名分别以 \texttt{r\_}、\texttt{n\_} 为前缀，如 \texttt{r\_5} 与 \texttt{n\_5}，下文记为 $r_i$ 与 $n_i$）。受采集中断、字段未定义等因素影响，部分列在全体样本上恒为空、无变化，或两类读数之间高度单调相关。本文在数据级预处理阶段依次完成字段筛选、缺失补全与机制归纳；其中字段筛选旨在剔除无效与冗余列，得到稳定、可解释的 SMART 输入，与后续基于标签的建模特征选择无关。
 
-字段筛选的第三步需判断同一属性 ID 下 $r_i$ 与 $n_i$ 是否携带重复信息，本文采用 Spearman 秩相关系数衡量二者的单调关联强度：若 $r_i$ 增大时 $n_i$ 亦单调变化，则二者信息高度重叠，保留物理含义更直接的原始读数即可。Spearman 系数是一种非参数统计量，通过比较两变量取值的秩次刻画关联；设 $r_i$ 与 $n_i$ 在 $n$ 个有效「盘--日」样本上构成配对观测，第 $k$ 对样本的秩次差为 $d_k$，则
+字段筛选的第三步需判断同一属性 ID 下 $r_i$ 与 $n_i$ 是否携带重复信息，本文采用 Spearman 秩相关系数衡量二者的单调关联强度：若 $r_i$ 增大时 $n_i$ 亦单调变化，则二者信息高度重叠，保留物理含义更直接的原始读数即可。Spearman 系数是一种非参数统计量，通过比较两变量取值的秩次刻画关联；设 $r_i$ 与 $n_i$ 在 $n$ 个有效"盘--日"样本上构成配对观测，第 $k$ 对样本的秩次差为 $d_k$，则
 \begin{equation}
     \label{equ:spearman-rn}
     \rho_s = 1 - \frac{6\sum_{k=1}^{n} d_k^2}{n(n^2-1)}.
@@ -535,7 +534,7 @@ $\rho_s$ 取值范围为 $[-1,1]$，$|\rho_s|$ 越大表示单调相关越强。
 为此，本文在建模前对 SMART 字段进行列级筛选，剔除无效与冗余读数，以提升输入质量与可解释性。
 字段筛选分三步进行，各步判定条件与结果汇总如表~\ref{tab:field-filter-summary} 所示；各步剔除的具体读数列及原因见附录表~\ref{tab:app-field-filter-removed}。
 
-第一步于全数据集上剔除恒为空列。若某列在全体「盘--日」样本上均为缺失，说明该 SMART 属性在公开日志中从未上报，予以删除，两种型号均剔除 34 列。
+第一步于全数据集上剔除恒为空列。若某列在全体"盘--日"样本上均为缺失，说明该 SMART 属性在公开日志中从未上报，予以删除，两种型号均剔除 34 列。
 
 第二步分别在 MB1、MB2 子集上剔除零方差列。若列中存在非空取值但全体样本仅取同一常数，则无法提供区分信息，予以删除。两型号因常数列构成略有差异，MB1 剔除 36 列、MB2 剔除 39 列。
 
@@ -565,7 +564,7 @@ $\rho_s$ 取值范围为 $[-1,1]$，$|\rho_s|$ 越大表示单调相关越强。
 
 表~\ref{tab:mb1-mb2-subset-stats} 中的 空值率 指列级单元格缺失，除字段为空外，各盘在日历轴上还存在整日 SMART 日志缺失（时序中断），需在建模前评估时序质量并确定补全与剔除策略。
 
-为此，在补全前的原始观测上，对每块盘 $i$ 定义如下盘级指标：首末观测日 $t_{\mathrm{first},i}$、$t_{\mathrm{last},i}$；日历跨度 $\mathrm{span}_i=t_{\mathrm{last},i}-t_{\mathrm{first},i}+1$；实际有日志天数 $n_{\mathrm{obs},i}$；覆盖率 $\mathrm{cov}_i=n_{\mathrm{obs},i}/\mathrm{span}_i$；最长连续缺失天数 $G_{\max,i}$（相邻两次观测间隔减 1 天的最大值）；中断次数 $n_{\mathrm{gap},i}$（间隔 ${>}1$ 天的次数）。
+为此，在补全前的原始观测上，对每块盘 $i$ 定义如下盘级指标：首末观测日 $t_{\mathrm{first},i}$、$t_{\mathrm{last},i}$；日历跨度 $\mathrm{span}_i=t_{\mathrm{last},i}-t_{\mathrm{first},i}+1$；实际有日志天数 $n_{\mathrm{obs},i}$；覆盖率 $\mathrm{cov}_i=n_{\mathrm{obs},i}/\mathrm{span}_i$；最长连续缺失天数 $G_{\max,i}$（相邻两次观测间隔减 1 天的最大值）；中断次数 $n_{\mathrm{gap},i}$（间隔 ${>}1$ 天的次数）。其中 $n_{\mathrm{obs},i}$ 刻画盘在日志可见区间内的有效观测长度，下文将结合预测窗口对其设定最小观测日数阈值。
 依据 $G_{\max,i}$ 与 $\mathrm{cov}_i$，将盘划分为轻度、中度与重度缺失三档，分别采取前向填充补全或整盘剔除，分流规则如图~\ref{fig:temporal-missing-schematic} 所示。
 
 \begin{figure}[htbp]
@@ -609,15 +608,16 @@ $\rho_s$ 取值范围为 $[-1,1]$，$|\rho_s|$ 越大表示单调相关越强。
 
 图~\ref{fig:temporal-missing-distribution}(a)--(b) 进一步印证 $G_{\max}$ 在 1--7 天区间最为集中；图~\ref{fig:temporal-missing-distribution}(c) 给出与表~\ref{tab:temporal-quality-summary} 一致的分档占比。
 
-需说明的是，高覆盖、短中断盘中的故障盘比例反而更高（MB1 中 $\mathrm{cov}\ge 0.95$ 段盘级故障率约 4.8\%，$\mathrm{cov}<0.95$ 段约 2.5\%），反映失效前日志往往仍较连续，剔除重度盘主要依据可建模性而非故障率高低；拟剔除组仅含 MB1 故障盘的 12.3\%、MB2 的 9.3\%。
-
-此外，短 $\mathrm{span}$ 盘若按跨度分档折算 AFR 往往偏高，易被误判为观测不足而应删除。对 $\mathrm{span}<180$ 天故障盘的核查表明：其 $t_{\mathrm{last}}$ 多集中于 2018 年二季度入池 cohort，结合通电时间 $r_9$（$r_9/24$ 近似天数），MB2 故障时中位通电约 599 天、83\% 已通电不少于 180 天；MB1 约 31\% 为真实短部署早期故障，其余多数已长期服役。故短 $\mathrm{span}$ 主要反映日志可见窗口被截断，$\mathrm{span}$、$t_{\mathrm{last}}$、$r_9$ 及 span 分档 AFR 均不作为整盘剔除依据。
-
+需说明的是，高覆盖盘中的故障盘比例反而更高（MB1 中 $\mathrm{cov}\ge 0.95$ 段盘级故障率约 4.8\%，$\mathrm{cov}<0.95$ 段约 2.5\%），表明失效前日志往往仍较连续；因此，按 $G_{\max}$ 与 $\mathrm{cov}$ 剔除重度缺失盘主要依据是可建模性，而非故障率高低，拟剔除组仅占 MB1 故障盘的 12.3\%、MB2 的 9.3\%。有效观测日数下限等盘级规则见第~\ref{sec:chap3-imputation}~节。
 \subsubsection{建模样本筛选与缺失补全}
 \label{sec:chap3-imputation}
 
-综合字段筛选与时序质量分析，汇总如表~\ref{tab:preprocessing-removal} 所示。除实验对象限定为 MB1/MB2 外，\textbf{整盘剔除}仅发生于满足 $G_{\max}>30$ 或 $\mathrm{cov}<0.5$ 的重度缺失盘；轻度（$G_{\max}\le 7$）与中度（$8\le G_{\max}\le 30$）盘一律保留。其中 $\mathrm{span}<180$ 天的故障盘不因日历窗口短而删除——MB1 148 块此类故障盘中仅 8 块同时落入重度缺失组，MB2 112 块均保留。
-
+综合字段筛选与上述时序质量分析，样本级与盘级剔除规则汇总如表~\ref{tab:preprocessing-removal} 所示。
+盘级剔除依据两类互补条件：有效观测日数不足，或日历缺失过重。
+对盘 $i$，记其在建模有效区间 $[t_{\mathrm{first},i},\,\min(t_{\mathrm{last},i},\,t_{\mathrm{fail},i})]$（健康盘取 $t_{\mathrm{last},i}$）内的实际有日志天数为 $n_{\mathrm{obs},i}$。
+本文盘级预测窗口取 $H=30$ 天，若 $n_{\mathrm{obs},i}<30$，则难以形成与预警窗口相匹配的时序样本，且有效观测过少时补全行占比偏高，会削弱突变特征与标签构造的可靠性，故将此类盘整盘剔除。
+对满足 $G_{\max,i}>30$ 或 $\mathrm{cov}_i<0.5$ 的重度缺失盘，因其观测窗过碎、前向填充后时序与标签可靠性不足，亦整盘剔除。
+通过上述两项检验后，轻度（$G_{\max}\le 7$）与中度（$8\le G_{\max}\le 30$）盘一律保留并进入补全流程。
 \begin{table}[htbp]
     \centering
     \caption{\label{tab:preprocessing-removal}预处理剔除与保留汇总}
@@ -628,8 +628,8 @@ $\rho_s$ 取值范围为 $[-1,1]$，$|\rho_s|$ 越大表示单调相关越强。
         \midrule
         SMART 列 & 全空 / 零方差 / $|\rho_s|>0.8$ 冗余 $n_i$ & \multicolumn{2}{c}{列级删除} \\
         数据集早期样本 & 2018 年 5 月及之前时间的样本 & \multicolumn{2}{c}{样本级删除}\\
-        故障后无效日志 & 故障盘删除 $d_s>t_{\mathrm{fail}}$ 的样本（保留故障日） & \multicolumn{2}{c}{样本级删除} \\
-        早期故障盘 & 观测时间不足 30 天 & \multicolumn{2}{c}{盘级删除} \\ 
+        故障后无效样本 & 故障盘删除 $d_s>t_{\mathrm{fail}}$ 的样本（保留故障日） & \multicolumn{2}{c}{样本级删除} \\
+        有效观测日数不足盘 & $n_{\mathrm{obs},i}<30$（建模有效区间内） & \multicolumn{2}{c}{盘级删除} \\ 
         重度缺失盘 & $G_{\max}>30$ 或 $\mathrm{cov}<0.5$ & \multicolumn{2}{c}{盘级删除} \\
         保留盘数 & 进入补全与建模 & 38\,270 & 41\,022 \\
         保留故障盘 & 2018--2019 可标注故障 & 1\,580 & 548 \\
@@ -693,8 +693,8 @@ $\rho_s$ 取值范围为 $[-1,1]$，$|\rho_s|$ 越大表示单调相关越强。
 \label{sec:chap3-b-mutation-eda}
 
 字段筛选与样本预处理后，本节在保留盘上对 B 组属性的故障前时序开展探索性观察。
-概括而言，故障盘 B 组读数呈现三点规律：（1）失效前常出现跳变，且与健康盘区分明显；（2）跳变多集中于距故障日较近的短窗口；（3）部分故障盘在观测期内并无可分辨跳变，前兆具有稀疏性与盘间异质性。
-下文分别从个案示意、盘级命中率与日历日级短窗强度展开分析。
+概括而言，故障盘 B 组读数呈现三点规律：（1）失效前常出现跳变，且与健康盘区分明显；（2）首跳多集中于距故障日较近的短窗口；（3）相当比例故障盘在 30 日预警窗内并无可分辨跳变，前兆具有稀疏性与盘间异质性。
+下文分别从个案示意、盘级跳变命中率，以及盘级首跳时间与静默盘占比展开分析。
 
 图~\ref{fig:b-mutation-mb1}、图~\ref{fig:b-mutation-mb2} 各取一个故障月份中 6 块故障盘示意：计数类属性多长期维持零基线，失效前数日至数周内部分盘出现阶跃抬升或下降。
 
@@ -714,7 +714,7 @@ $\rho_s$ 取值范围为 $[-1,1]$，$|\rho_s|$ 越大表示单调相关越强。
 
 在全量保留盘上进一步统计跳变命中率：于锚点日前 $W$ 日窗口内，仅在相邻原始观测日间计算 $|\Delta|$，若 $|\Delta|>0$ 则计为跳变；故障盘锚点取 $t_{\mathrm{fail}}$，健康盘取 $t_{\mathrm{last}}$。
 表~\ref{tab:b-group-jump-summary} 显示，MB1 主力属性 5/180/183 在 $W=30$ 日命中率约 62.5\%，健康盘不足 0.1\%；MB2 同窗口仅约 14.0\%，信号整体更弱。
-即便在 MB1，仍有约 37.5\% 故障盘在 30 日内三类主力属性均无跳变，印证前兆并非普遍存在。
+该表按单属性统计命中率；当扩展至全部 B 组读数列时，约 64\%（MB1）/ 21\%（MB2）故障盘在窗口内至少出现一次跳变（见图~\ref{fig:first-jump-pmf}）。
 
 \begin{table}[htbp]
     \centering
@@ -745,47 +745,115 @@ $\rho_s$ 取值范围为 $[-1,1]$，$|\rho_s|$ 越大表示单调相关越强。
     \end{minipage}
 \end{table}
 
-为与后文 3 日特征口径对齐，在训练集（截至 2019-07-31）上按日历日统计：对每块故障盘 $t_{\mathrm{fail}}$ 前 30 日内各原始观测日 $(i,t)$，以 $t$ 为终点计算 3 日窗内 B 组突变强度 $R_2$（各属性最大 $|\Delta|$ 之和）。
-表~\ref{tab:prefail30-mutation} 与图~\ref{fig:prefail30-mutation} 表明，故障前 30 日观测期内约 95\% 的日历日满足 $R_2=0$，但 $R_2>0$ 主要集中在距故障日 0--3 日（MB1 约 23.3\%，MB2 约 11.0\%），4--30 日仅占约 2\%--3\%。
-该统计不依赖样本标签，仅说明近端短窗才承载主要突变信息。
-
-\begin{table}[htbp]
-    \centering
-    \caption{\label{tab:prefail30-mutation}故障前 30 日内各观测日与 3 日窗 $R_2$ 的对应关系（训练集）}
-    \footnotesize
-    \setlength{\tabcolsep}{5pt}
-    \begin{tabularx}{\linewidth}{@{}>{\centering\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X@{}}
-        \toprule
-        型号 & 故障前 30 日观测日数 & $R_2=0$ 观测日占比 & 涉及故障盘数 & 期内从未 $R_2>0$ 的故障盘占比 \\
-        \midrule
-        MB1 & 35\,531 & 94.9\% & 1\,244 & 43.1\% \\
-        MB2 & 12\,780 & 96.4\% & 473 & 81.8\% \\
-        \bottomrule
-    \end{tabularx}
-\end{table}
+表~\ref{tab:b-group-jump-summary} 从盘级刻画跳变是否存在，尚不足以说明突变在故障前时间轴上的分布。
+为此，在盘级统计 B 组首次跳变时间：对每块故障盘，于 $(t_{\mathrm{fail}}-30,\, t_{\mathrm{fail}}]$ 窗口内、全部 B 组属性上，在相邻原始观测日间检索 $|\Delta|>0$ 的最早一次跳变，记其观测日为 $t_{\mathrm{first\_jump}}$，并定义距故障日 $d=t_{\mathrm{fail}}-t_{\mathrm{first\_jump}}$（天）。
+若窗口内全部 B 组读数列均无跳变，则记为静默故障盘。
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.92\linewidth]{figure/prefail30-mutation-mismatch.png}
-    \caption{故障前 30 日观测期与短窗突变错位示意（上：MB1 单盘时间轴；下：距故障日分档的 $R_2>0$ 占比）}
-    \label{fig:prefail30-mutation}
+    \includegraphics[width=0.92\linewidth]{figure/first-jump-pmf.png}
+    \caption{\label{fig:first-jump-pmf}故障盘 B 组首次跳变距故障日分布（$W=30$ 日，分母为故障盘）}
+    \vspace{2pt}
+    \begin{minipage}{\linewidth}
+        \footnotesize 注：纵轴为占故障盘比例；"无跳变"表示 30 日内 B 组读数列均无 $|\Delta|>0$；$d$ 为 $t_{\mathrm{fail}}-t_{\mathrm{first\_jump}}$（天）。
+    \end{minipage}
 \end{figure}
+
+图~\ref{fig:first-jump-pmf} 以全部故障盘为分母，给出首跳距故障日 $d$ 的概率质量分布：左侧"无跳变"柱对应静默盘，其余柱对应首跳恰落在距故障日 $d$ 天的故障盘，各柱占比之和为 1。
+MB1 / MB2 中 36.0\% / 79.2\% 故障盘为静默盘；除"无跳变"柱外，$d=1$ 柱占比最高（占全部故障盘 45.9\% / 6.9\%），$d\le 3$ 累计占 51.1\% / 14.6\%，表明有跳变的故障盘其首跳亦多集中于近故障短窗，为后文以可调回看窗口构造突变特征（\S\ref{sec:chap3-mutation-features}）提供依据。
+
+为区分"预警窗内无信号"与"全寿命内无信号"，表~\ref{tab:first-jump-window-compare} 在故障盘上并列统计 $(t_{\mathrm{fail}}-30,\, t_{\mathrm{fail}}]$ 与 $(t_{\mathrm{first}},\, t_{\mathrm{fail}}]$ 两窗口（后者中位跨度约 349/377 天）。
+MB1 全观测期内约 80.8\% 故障盘至少出现一次 B 组跳变（30 日内为 64.0\%），其中 16.8\% 仅在 30 日窗之外出现首跳，说明部分静默盘属于早期跳变、后期长期零基线；
+MB2 两窗口结果接近（23.8\% / 20.8\% 有跳变），静默占比仍高达 76.2\%，表明该型号 B 组前兆整体微弱而非单纯由 30 日截断造成。
+
+\begin{table}[htbp]
+    \centering
+    \caption{\label{tab:first-jump-window-compare}B 组首跳统计：30 日预警窗 vs 全观测期（同一 eligible 盘池）}
+    \footnotesize
+    \setlength{\tabcolsep}{4pt}
+    \begin{tabularx}{\linewidth}{@{}>{\centering\arraybackslash}p{1.1cm} >{\centering\arraybackslash}p{0.9cm} >{\centering\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X@{}}
+        \toprule
+        型号 & $N$ & \multicolumn{2}{c}{$W=30$ 日} & \multicolumn{2}{c}{全观测期 $(t_{\mathrm{first}}, t_{\mathrm{fail}}]$} \\
+        \cmidrule(lr){3-4} \cmidrule(lr){5-6}
+        & & 有跳变 & 静默 & 有跳变 & 静默 \\
+        \midrule
+        MB1 & 1\,526 & 64.0\% & 36.0\% & 80.8\% & 19.2\% \\
+        MB2 & 534 & 20.8\% & 79.2\% & 23.8\% & 76.2\% \\
+        \bottomrule
+    \end{tabularx}
+
+    \vspace{2pt}
+    \begin{minipage}{\linewidth}
+        \footnotesize 注：跳变定义与表~\ref{tab:b-group-jump-summary} 一致；MB1 中 16.8\%（257 盘）仅在全观测期有跳变、30 日内静默；MB2 对应 3.0\%（16 盘）。
+    \end{minipage}
+\end{table}
+
+上述结果表明，相当比例故障盘在 30 日预警窗内缺乏可分辨突变特征；MB1 中部分盘在全观测期曾出现跳变但失效前长期维持零基线，与健康盘日常读数相近。前兆具有显著的稀疏性与盘间异质性，单一突变规则难以覆盖全部故障盘。
 
 \section{所提方法}
 
-\subsection{超短期突变时序特征}
+\subsection{短期时序突变特征}
 \label{sec:chap3-mutation-features}
 
-% TODO: 贡献1；$\mathcal{B}=\{5,180,181,182,183,184,187,195,199\}$；每属性 $x_t$、Lag-1/2、$\Delta^{(1)}$；共36维
+第~\ref{sec:chap3-b-mutation-eda}~节表明，B 组属性在失效前常出现按日跳变，且近期跳变与 impending failure 关联更强。
+本文据此构造\textbf{短期时序突变特征}：以 $W$ 阶 Lag 保留 A/B 组近期读数水平，并\textbf{仅对 B 组}追加按日差分绝对值作为突变特征——其核心即为 $|\Delta|$，与 EDA 中 $|\Delta|>0$ 的跳变口径一致。
+A 组（$\mathcal{A}$）刻画磨损与环境背景，B 组（$\mathcal{B}$，见表~\ref{tab:smart-features-ab}）承载异常计数信号；突变信息主要由 B 组的 $\delta$ 编码。
 
-\subsection{突变感知的 SMART 四级盘况分级}
+对原始观测日 $t$，记属性 $k$ 的读数为 $x_{i,t,k}$，回看窗口 $W\in\mathbb{N}^{+}$ 为待选超参数。
+对 $k\in\mathcal{A}\cup\mathcal{B}$ 构造 Lag 特征 $\ell^{(j)}_{i,t,k}=x_{i,t-j,k}$（$j=1,\ldots,W$）；
+对 $k\in\mathcal{B}$ 另构造突变特征
+\begin{equation}
+\label{equ:mutation-delta}
+\delta_{i,t,k}=\left|x_{i,t,k}-x_{i,t-1,k}\right|.
+\end{equation}
+每个 $(i,t)$ 样本共 $|\mathcal{A}|W+|\mathcal{B}|(W+1)=16W+9$ 维（如 $W=3$ 时为 57 维）。
+特征仅在原始观测日计算，且要求 $t-W,\ldots,t$ 均为真实观测；不引入当前值 $x_{i,t,k}$、长窗统计量或基于标签的特征筛选。
 
-% TODO: 贡献2；mutation-aware；S1--S4 规则；图~\ref{fig:chap3-grading-flow}
+$W$ 控制 Lag 回看的日历长度：过小则上下文不足，过大则远早读数与近端失效关联减弱。
+本文在 MB1 上对 $W\in\{1,3,5,7\}$ 开展敏感性分析（\S\ref{sec:chap3-mutation-ablation}），以盘级 $F_{0.5}$ 选取 $W^{\ast}$，MB2 同协议复现；所得特征向量输入 \S\ref{sec:chap3-ensemble} 异构集成模块。
 
-\subsection{分级引导的异构集成预测}
+\subsection{异构集成预测}
 \label{sec:chap3-ensemble}
 
-% TODO: 贡献3；S1-S4 各一套 RF/XGB/LGB OOF + MLP · 分级路由；图~\ref{fig:chap3-ensemble}
+盘级故障预测中正负样本极度不平衡，且树模型、提升树与 Bagging 族分类器对稀疏突变信号的拟合偏好存在差异，单一学习器易出现判别不稳定。
+为此，本文在 \S\ref{sec:chap3-mutation-features} 所构造的短期时序突变特征上采用两层 stacking：第一层训练多种异构基分类器并输出故障概率，第二层以各分类器概率为输入训练 MLP 元学习器，优化目标采用 Focal Loss 以强化对少数类故障样本的关注。
+
+\textbf{异构基分类器。}
+设样本 $(i,t)$ 的短期时序突变特征向量为 $\mathbf{z}_{i,t}\in\mathbb{R}^{16W+9}$（由式~(\ref{equ:mutation-delta}) 及对应 Lag 拼接而成），标签为 $y_{i,t}\in\{0,1\}$。
+在 $\mathbf{z}_{i,t}$ 上分别训练随机森林（RF）、XGBoost（XGB）与 LightGBM（LGB）三个异构基分类器，分别记为 $M_{\mathrm{rf}},M_{\mathrm{xgb}},M_{\mathrm{lgb}}$。
+RF 通过 Bagging 降低方差，XGB 与 LGB 以梯度提升逐轮修正残差，三者对同一突变特征的非线性划分方式不同，可形成互补的样本级判别边界。
+
+为避免同一磁盘样本在训练与验证间泄漏，按 \texttt{disk\_id} 分组进行 $K$ 折交叉验证：对每一折，在训练折上拟合各基分类器，于验证折输出故障概率
+\begin{equation}
+\label{equ:base-prob}
+p_{i,t}^{(m)}=M_m\bigl(\mathbf{z}_{i,t}\bigr),\quad m\in\{\mathrm{rf},\mathrm{xgb},\mathrm{lgb}\}.
+\end{equation}
+对全部训练样本收集折外（OOF）概率后，拼接为元特征向量 $\mathbf{p}_{i,t}=[p_{i,t}^{(\mathrm{rf})},\,p_{i,t}^{(\mathrm{xgb})},\,p_{i,t}^{(\mathrm{lgb})}]^{\mathsf{T}}\in\mathbb{R}^{3}$。
+元学习器不再直接接触原始 SMART 特征，而仅利用各基分类器已提炼的故障倾向信息。
+
+\textbf{MLP 融合与 Focal Loss。}
+元学习器 $f_{\mathrm{mlp}}(\cdot)$ 以 $\mathbf{p}_{i,t}$ 为输入，经全连接层与非线性激活映射为样本级故障概率 $\hat{y}_{i,t}=f_{\mathrm{mlp}}(\mathbf{p}_{i,t})$。
+训练时以 Focal Loss 替代标准交叉熵，对易分样本降权、对难分故障样本赋更高梯度：
+\begin{equation}
+\label{equ:focal-loss}
+\mathcal{L}_{\mathrm{FL}}=-\alpha_t(1-p_t)^{\gamma}\log p_t,\quad
+p_t=
+\left\{
+\begin{array}{ll}
+\hat{y}_{i,t}, & y_{i,t}=1 \\
+1-\hat{y}_{i,t}, & y_{i,t}=0
+\end{array}
+\right.
+\end{equation}
+其中 $\alpha_t$ 为类别平衡权重，$\gamma\ge0$ 为聚焦参数（本文取 $\gamma=2$）。
+在全体训练样本上最小化 $\sum_{(i,t)}\mathcal{L}_{\mathrm{FL}}$ 以更新 MLP 参数；OOF 概率保证元学习器输入与基分类器训练折相互独立，避免 stacking 过拟合。
+
+\textbf{训练与推理。}
+训练阶段依次完成：（1）按 \texttt{disk\_id} 分组 $K$ 折交叉验证，生成 OOF 概率 $\mathbf{p}_{i,t}$；（2）以 $\{(\mathbf{p}_{i,t},y_{i,t})\}$ 为样本，用 Focal Loss 训练 MLP。
+推理阶段，各基分类器在全部训练集上重训后，对测试样本输出 $\mathbf{p}_{i,t}$，再经已训 MLP 得到最终概率 $\hat{y}_{i,t}$；盘级告警按 \S\ref{sec:chap3-disk-eval} 最早命中规则聚合评估。
+
+集成结构借鉴多层 stacking 思路\cite{li2025mtms}：基分类器从短期突变特征中提取多样化判别边界，MLP 学习各模型概率的非线性组合；Focal Loss 进一步缓解故障盘占比极低带来的梯度淹没问题。
+主实验在 MB1 上完成训练与消融（\S\ref{sec:chap3-ensemble-ablation}），MB2 采用相同协议复现。
 
 \section{实验与分析}
 
@@ -793,26 +861,22 @@ $\rho_s$ 取值范围为 $[-1,1]$，$|\rho_s|$ 越大表示单调相关越强。
 
 % TODO: 软硬件环境；RF/XGB/LGB/MVTRF/PatchTST 等基线
 
-\subsection{整体性能（MB1 与 MB2）}
+\subsection{整体性能}
 
-% TODO: 表~\ref{tab:chap3-main-mb1}（主表）、表~\ref{tab:chap3-main-mb2}（复现）；图~\ref{fig:chap3-threshold-curve}
-% 消融见 3.4.3--3.4.5，均在 MB1 上完成
 
 \subsection{突变时序特征有效性分析}
+\label{sec:chap3-mutation-ablation}
 
-% TODO: 3日 vs 7日 B 组；B 组 vs 全16维（可选）
+为验证 \S\ref{sec:chap3-mutation-features} 中 $W$ 的选取，在 MB1 上固定集成结构与评估协议，对 $W\in\{1,3,5,7\}$ 比较盘级 $F_{0.5}$ 等指标（表~\ref{tab:chap3-window-ablation}，【待填】），确定 $W^{\ast}$ 后主实验与 MB2 复现均采用该取值。
 
-\subsection{盘况分级有效性分析}
+\subsection{异构集成有效性分析}
+\label{sec:chap3-ensemble-ablation}
 
-% TODO: 无分级 / 规则四级 / +相似度；图~\ref{fig:chap3-grade-ratio}
-
-\subsection{分级引导集成有效性分析}
-
-% TODO: 单模型 / 全局一套集成 / 分等级四套集成 / +Focal
+在 MB1 上对比：单一基学习器（RF/XGB/LGB）、无 Focal Loss 的 MLP 融合、以及完整 RF+XGB+LGB+MLP 流程（表~\ref{tab:chap3-ensemble-ablation}，【待填】），验证异构 stacking 与 Focal Loss 的增量收益。
 
 \subsection{标签策略与突变假设验证；基线对比}
 
-% TODO: label\_3 vs label\_30；TP 提前量；不写「因 TPR 最高选 label\_30」
+% TODO: label\_3 vs label\_30；TP 提前量；不写"因 TPR 最高选 label\_30"
 
 \subsection{局限性讨论}
 
