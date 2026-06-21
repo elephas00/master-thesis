@@ -394,17 +394,19 @@ LightGBM 是基于梯度提升框架的高效决策树集成算法，由 Guolin 
 
 
 
-\chapter{基于突变时序特征集成的 SSD 故障预测方法}
+\chapter{基于近端突变标注与突变时序特征集成的 SSD 故障预测方法}
 
 盘级 SSD 故障预测是数据中心主动容错的重要环节，其结果用于提前迁移数据、更换风险盘，对保障存储可靠性与在线服务稳定具有重要意义。
 前两章已介绍相关研究背景，以及 SMART 监控原理与随机森林、XGBoost、LightGBM 等集成学习方法，为后续建模与评估奠定了理论与方法基础。
 
 本章面向盘级 30 天预警任务，研究立足于正样本极度稀疏与近端突变信号弱且易被淹没并存的实际痛点。
 具体而言，既有方案多在较长观测窗口下对高维 SMART 属性进行 Lag、滑动统计等复杂特征工程\cite{xu2021general,wang2022ssd,zhang2023multi}，易稀释失效前极短时段内 B 组属性的阶跃突变，使近端前兆难以保留；
-为此，本章构造短期时序突变特征，以按日差分绝对值刻画突变强度，并采用可调回看窗口由实验确定长度。
-此外，盘级正负样本极度不平衡，单一分类器又易受模型偏置影响、判别稳定性不足\cite{li2025mtms}；
-为此，本章采用多种异构基学习器，将其输出的故障概率堆叠融合，并由元学习器进一步学习；训练时引入 Focal Loss，以缓解类别不平衡并提升判别能力。
-上述两部分依次衔接，构成本章 SSD 盘级故障预测方法，总体流程如图~\ref{fig:chap3-pipeline} 所示。
+且若将故障日前整段 30 日窗口均标为正样本，会把首次跳变前长期静默的日样本引入训练，形成标签噪声，
+为此，本章首先提出近端突变标注策略：在首次跳变观察时刻基础之上，将正样本进一步限制于故障前短期时间窗口，使监督信号与 $W=3$ 突变特征及盘级检出时效同尺度对齐。
+进而构造短期时序突变特征：以 $W$ 阶 Lag 保留 A/B 组近期读数水平，并对 B 组追加稀有加权后的按日差分绝对值以刻画突变强度。
+此外，盘级正负样本极度不平衡，单一分类器又易受模型偏置影响、判别稳定性不足\cite{li2025mtms}，
+为此，本章采用多种异构基学习器，将其输出的故障概率堆叠后由 Attention 模块做样本级自适应加权融合；训练时引入 Focal Loss，以缓解类别不平衡并提升判别能力。
+上述三部分依次衔接，构成本章 SSD 盘级故障预测方法，总体流程如图~\ref{fig:chap3-pipeline} 所示。
 
 \begin{figure}[htbp]
     \centering
@@ -429,7 +431,7 @@ LightGBM 是基于梯度提升框架的高效决策树集成算法，由 Guolin 
 \label{sec:chap3-disk-eval}
 
 基于上述盘级评估框架，对测试集中每块 SSD 在评估时间窗口内逐盘判定。
-若存在至少一条样本被预测为故障，则取最早一次预测为正的日期 $t_{\mathrm{alarm}}$ 作为该盘的告警时刻，并据此区分真正例与假正例：当 $t_{\mathrm{alarm}}$ 后 30 天内该盘实际发生故障时，计为真正例（TP）；若该盘在数据集中未记录故障却被触发告警，或虽有故障记录但 $t_{\mathrm{alarm}}$ 后 30 天内未实际发生故障，则均计为假正例（FP）。
+若存在至少一条样本被预测为故障，则取最早一次预测为正的日期 $t_{\mathrm{alarm}}$ 作为该盘的告警时刻，并据此区分真正例与假正例。当 $t_{\mathrm{alarm}}$ 后 30 天内该盘实际发生故障时，计为真正例（TP）；若该盘在数据集中未记录故障却被触发告警，或虽有故障记录但 $t_{\mathrm{alarm}}$ 后 30 天内未实际发生故障，则均计为假正例（FP）。
 若评估窗口内始终未触发告警，则进一步区分假负例与真负例：实际发生故障却因未触发任何告警而未能被检出的磁盘，计为假负例（FN）；数据集中未记录故障且始终未触发告警的健康盘，计为真负例（TN）。
 判定示意见图~\ref{fig:tp-fp-tn-fn}。
 
@@ -532,15 +534,18 @@ $\rho_s$ 取值范围为 $[-1,1]$，$|\rho_s|$ 越大表示单调相关越强。
 \label{sec:chap3-field-filter}
 
 数据集中每条记录除磁盘标识、观测日期与型号外，含 102 列 SMART 读数（51 个属性 ID 各含 $r_i$、$n_i$ 一列）。
-然而，如表~\ref{tab:mb1-mb2-subset-stats} 所示，两型号列级空值率分别达 62.79\% 与 64.76\%；且部分属性在全体样本上恒为空、恒为常数，或 $r_i$ 与 $n_i$ 高度单调相关，有效信息密度较低。
+然而，如表~\ref{tab:mb1-mb2-subset-stats} 所示，两型号列级空值率分别达 62.79\% 与 64.76\%，部分属性在全体样本上恒为空、恒为常数，或 $r_i$ 与 $n_i$ 高度单调相关，有效信息密度较低。
 为此，本文在建模前对 SMART 字段进行列级筛选，剔除无效与冗余读数，以提升输入质量与可解释性。
 字段筛选分三步进行，各步判定条件与结果汇总如表~\ref{tab:field-filter-summary} 所示；各步剔除的具体读数列及原因见附录表~\ref{tab:app-field-filter-removed}。
 
-第一步于全数据集上剔除恒为空列。若某列在全体"盘--日"样本上均为缺失，说明该 SMART 属性在公开日志中从未上报，予以删除，两种型号均剔除 34 列。
+第一步于全数据集上剔除恒为空列。若某列在全体样本上缺失，说明该 SMART 属性在公开日志中从未上报，予以删除，两种型号均剔除 34 列。
 
-第二步分别在 MB1、MB2 子集上剔除零方差列。若列中存在非空取值但全体样本仅取同一常数，则无法提供区分信息，予以删除。两型号因常数列构成略有差异，MB1 剔除 36 列、MB2 剔除 39 列。
+第二步分别在 MB1、MB2 子集上剔除零方差列。若列中存在非空取值但全体样本仅取同一常数，则认为该列无法提供区分信息，予以删除。
+两型号因常数列构成略有差异，MB1 剔除 36 列、MB2 剔除 39 列。
 
-第三步于各行样本上配对计算各属性 ID 的 Spearman 系数 $\rho_s$，取阈值 $|\rho_s|>0.8$：超过阈值时认为 $n_i$ 可由 $r_i$ 单调导出，剔除 $n_i$ 并保留 $r_i$；否则 $r_i$ 与 $n_i$ 均保留。按此规则，MB1 剔除 12 列 $n_i$，MB2 剔除 10 列 $n_i$。各属性 $\rho_s$ 统计见附录表~\ref{tab:app-raw-norm-spearman}。
+第三步于在 MB1、MB2 子集上计算各属性 ID 的 Spearman 系数 $\rho_s$，取阈值 $|\rho_s|>0.8$。
+超过阈值时认为 $n_i$ 可由 $r_i$ 单调导出，剔除 $n_i$ 并保留 $r_i$；否则 $r_i$ 与 $n_i$ 均保留。
+按此规则，MB1 剔除 12 列 $n_i$，MB2 剔除 10 列 $n_i$。各属性 $\rho_s$ 统计见附录表~\ref{tab:app-raw-norm-spearman}。
 
 \begin{table}[htbp]
     \centering
@@ -566,7 +571,12 @@ $\rho_s$ 取值范围为 $[-1,1]$，$|\rho_s|$ 越大表示单调相关越强。
 
 表~\ref{tab:mb1-mb2-subset-stats} 中的 空值率 指列级单元格缺失，除字段为空外，各盘在日历轴上还存在整日 SMART 日志缺失（时序中断），需在建模前评估时序质量并确定补全与剔除策略。
 
-为此，在补全前的原始观测上，对每块盘 $i$ 定义如下盘级指标：首末观测日 $t_{\mathrm{first},i}$、$t_{\mathrm{last},i}$；日历跨度 $\mathrm{span}_i=t_{\mathrm{last},i}-t_{\mathrm{first},i}+1$；实际有日志天数 $n_{\mathrm{obs},i}$；覆盖率 $\mathrm{cov}_i=n_{\mathrm{obs},i}/\mathrm{span}_i$；最长连续缺失天数 $G_{\max,i}$（相邻两次观测间隔减 1 天的最大值）；中断次数 $n_{\mathrm{gap},i}$（间隔 ${>}1$ 天的次数）。其中 $n_{\mathrm{obs},i}$ 刻画盘在日志可见区间内的有效观测长度，下文将结合预测窗口对其设定最小观测日数阈值。
+为此，在补全前的原始观测上，对每块盘 $i$ 定义如下盘级指标：
+首末观测日 $t_{\mathrm{first},i}$、$t_{\mathrm{last},i}$；
+日历跨度 $\mathrm{span}_i=t_{\mathrm{last},i}-t_{\mathrm{first},i}+1$；
+实际有日志天数 $n_{\mathrm{obs},i}$；覆盖率 $\mathrm{cov}_i=n_{\mathrm{obs},i}/\mathrm{span}_i$；
+最长连续缺失天数 $G_{\max,i}$（相邻两次观测间隔减 1 天的最大值）；中断次数 $n_{\mathrm{gap},i}$（间隔 ${>}1$ 天的次数）。
+其中 $n_{\mathrm{obs},i}$ 刻画盘在日志可见区间内的有效观测长度，下文将结合预测窗口对其设定最小观测日数阈值。
 依据 $G_{\max,i}$ 与 $\mathrm{cov}_i$，将盘划分为轻度、中度与重度缺失三档，分别采取前向填充补全或整盘剔除，分流规则如图~\ref{fig:temporal-missing-schematic} 所示。
 
 \begin{figure}[htbp]
@@ -590,6 +600,7 @@ $\rho_s$ 取值范围为 $[-1,1]$，$|\rho_s|$ 越大表示单调相关越强。
         \midrule
         盘数 & 44\,401 & 48\,811 \\
         存在日历中断的盘占比 & 99.4\% & 99.5\% \\
+        平均中断次数 $\overline{n_{\mathrm{gap}}}$ & 10.7 & 12.6 \\
         平均覆盖率 $\overline{\mathrm{cov}}$ & 0.929 & 0.914 \\
         覆盖率中位数 & 0.963 & 0.966 \\
         $G_{\max}\le 7$ 天盘占比 & 65.7\% & 63.5\% \\
@@ -615,11 +626,11 @@ $\rho_s$ 取值范围为 $[-1,1]$，$|\rho_s|$ 越大表示单调相关越强。
 \label{sec:chap3-imputation}
 
 综合字段筛选与上述时序质量分析，样本级与盘级剔除规则汇总如表~\ref{tab:preprocessing-removal} 所示。
-盘级剔除依据两类互补条件：有效观测日数不足，或日历缺失过重。
+盘级剔除依据两类互补条件，第一是有效观测总日数不足，第二是日历缺失比例过高。
 对盘 $i$，记其在建模有效区间 $[t_{\mathrm{first},i},\,\min(t_{\mathrm{last},i},\,t_{\mathrm{fail},i})]$（健康盘取 $t_{\mathrm{last},i}$）内的实际有日志天数为 $n_{\mathrm{obs},i}$。
 本文盘级预测窗口取 $H=30$ 天，若 $n_{\mathrm{obs},i}<30$，则难以形成与预警窗口相匹配的时序样本，且有效观测过少时补全行占比偏高，会削弱突变特征与标签构造的可靠性，故将此类盘整盘剔除。
 对满足 $G_{\max,i}>30$ 或 $\mathrm{cov}_i<0.5$ 的重度缺失盘，因其观测窗过碎、前向填充后时序与标签可靠性不足，亦整盘剔除。
-通过上述两项检验后，轻度（$G_{\max}\le 7$）与中度（$8\le G_{\max}\le 30$）盘一律保留并进入补全流程。
+通过上述两项检验后，保留轻度（$G_{\max}\le 7$）与中度（$8\le G_{\max}\le 30$）盘并进入补全流程。
 \begin{table}[htbp]
     \centering
     \caption{\label{tab:preprocessing-removal}预处理剔除与保留汇总}
@@ -762,7 +773,7 @@ $\rho_s$ 取值范围为 $[-1,1]$，$|\rho_s|$ 越大表示单调相关越强。
 \end{figure}
 
 图~\ref{fig:first-jump-pmf} 以全部故障盘为分母，给出首跳距故障日 $d$ 的概率质量分布：左侧"无跳变"柱对应静默盘，其余柱对应首跳恰落在距故障日 $d$ 天的故障盘，各柱占比之和为 1。
-MB1 / MB2 中 30.2\% / 80.7\% 故障盘为静默盘；除"无跳变"柱外，$d=1$ 柱占比最高（占全部故障盘 60.6\% / 7.4\%），$d\le 3$ 累计占 65.7\% / 14.1\%，表明有跳变的故障盘其首跳亦多集中于近故障短窗，为后文以可调回看窗口构造突变特征（\S\ref{sec:chap3-mutation-features}）提供依据。
+MB1 / MB2 中 30.2\% / 80.7\% 故障盘为静默盘；除"无跳变"柱外，$d=1$ 柱占比最高（占全部故障盘 60.6\% / 7.4\%），$d\le 3$ 累计占 65.7\% / 14.1\%，表明有跳变的故障盘其首跳亦多集中于近故障短窗，为后文近端突变标注策略（\S\ref{sec:chap3-jump-label}）及可调回看窗口突变特征（\S\ref{sec:chap3-mutation-features}）提供依据。
 
 为区分"预警窗内无信号"与"全寿命内无信号"，表~\ref{tab:first-jump-window-compare} 在故障盘上并列统计 $(t_{\mathrm{fail}}-30,\, t_{\mathrm{fail}}]$ 与 $(t_{\mathrm{first}},\, t_{\mathrm{fail}}]$ 两窗口（后者中位跨度约 340/283 天）。
 MB1 全观测期内约 76.1\% 故障盘至少出现一次 B 组跳变（30 日内为 69.8\%），其中 6.4\% 仅在 30 日窗之外出现首跳，说明部分静默盘属于早期跳变、后期长期零基线；
@@ -797,44 +808,141 @@ MB2 两窗口结果接近（22.0\% / 19.3\% 有跳变），静默占比仍高达
 \subsection{短期时序突变特征}
 \label{sec:chap3-mutation-features}
 
-第~\ref{sec:chap3-b-mutation-eda}~节表明，B 组属性在失效前常出现按日跳变，且近期跳变与 impending failure 关联更强。
-本文据此构造\textbf{短期时序突变特征}：以 $W$ 阶 Lag 保留 A/B 组近期读数水平，并\textbf{仅对 B 组}追加按日差分绝对值作为突变特征——其核心即为 $|\Delta|$，与 EDA 中 $|\Delta|>0$ 的跳变口径一致。
-A 组（$\mathcal{A}$）刻画磨损与环境背景，B 组（$\mathcal{B}$，见表~\ref{tab:smart-features-ab}）承载异常计数信号；突变信息主要由 B 组的 $\delta$ 编码。
+第~\ref{sec:chap3-b-mutation-eda}~节的故障前兆数据观察表明，B 组属性在失效前常出现按日跳变，且近期跳变与盘级故障关联更强。
+同时，不同 B 组属性在健康盘上的跳变命中率差异显著（表~\ref{tab:b-group-jump-summary}），故障相关属性（如 5、180、183）在健康盘上几乎不出现跳变，而少数属性（如 199）在健康盘上亦偶有波动。
+借鉴 MSFRD\cite{zhang2024msfrd} 对突变稀有性的刻画，本文在按日差分刻画突变强度的基础上，为各 B 组属性引入静态稀有权重，以抑制常见属性跳变带来的噪声、突出稀少属性上的突变前兆。
+本文据此构造短期时序突变特征：以 $W$ 阶 Lag 保留 A/B 组近期读数水平，并对 B 组追加稀有加权后的按日突变特征，其口径与 ~\ref{sec:chap3-b-mutation-eda}~ 中 $|\Delta|>0$ 的跳变定义一致。
+A 组（$\mathcal{A}$）刻画磨损与环境背景，B 组（$\mathcal{B}$）承载异常计数信号，突变信息主要由 B 组的加权突变 $\tilde{\delta}$ 编码。
 
 对原始观测日 $t$，记属性 $k$ 的读数为 $x_{i,t,k}$，回看窗口 $W\in\mathbb{N}^{+}$ 为待选超参数。
-对 $k\in\mathcal{A}\cup\mathcal{B}$ 构造 Lag 特征 $\ell^{(j)}_{i,t,k}=x_{i,t-j,k}$（$j=1,\ldots,W$）；
-对 $k\in\mathcal{B}$ 另构造突变特征
+对特征属性 $k\in\mathcal{A}\cup\mathcal{B}$ 构造 Lag 特征 $\ell^{(j)}_{i,t,k}=x_{i,t-j,k}$（$j=1,\ldots,W$）；
+对 $k\in\mathcal{B}$ 先计算按日差分绝对值
 \begin{equation}
 \label{equ:mutation-delta}
-\delta_{i,t,k}=\left|x_{i,t,k}-x_{i,t-1,k}\right|.
+\delta_{i,t,k}=\left|x_{i,t,k}-x_{i,t-1,k}\right|,
 \end{equation}
-每个 $(i,t)$ 样本共 $|\mathcal{A}|W+|\mathcal{B}|(W+1)=16W+9$ 维（如 $W=3$ 时为 57 维）。
-特征仅在原始观测日计算，且要求 $t-W,\ldots,t$ 均为真实观测；不引入当前值 $x_{i,t,k}$、长窗统计量或基于标签的特征筛选。
+再在每轮实验的训练集健康样本 $\mathcal{H}_{\mathrm{tr}}$ 上统计属性 $k$ 的跳变频率
+\begin{equation}
+\label{equ:mutation-freq}
+\hat{f}_k=\frac{1}{|\mathcal{H}_{\mathrm{tr}}|}\sum_{(i,t)\in\mathcal{H}_{\mathrm{tr}}}\mathbf{1}\!\left[\delta_{i,t,k}>0\right],
+\end{equation}
+并定义静态稀有权重
+\begin{equation}
+\label{equ:mutation-rarity}
+r_k=-\log\!\left(\hat{f}_k+\varepsilon\right),
+\end{equation}
+其中 $\mathbf{1}[\cdot]$ 为示性函数，$\varepsilon>0$ 为平滑常数（本文取 $\varepsilon=10^{-10}$）。
+$r_k$ 仅随属性 $k$ 变化，其数值越大，表示该属性在健康盘上的跳变越稀少，对 $k\in\mathcal{B}$ 构造稀有加权突变特征
+\begin{equation}
+\label{equ:mutation-weighted}
+\tilde{\delta}_{i,t,k}=r_k\cdot\delta_{i,t,k},
+\end{equation}
+$\tilde{\delta}_{i,t,k}$ 随样本而变，无跳变时 $\delta_{i,t,k}=0$ 故 $\tilde{\delta}_{i,t,k}=0$。
+当稀少属性出现跳变时，$\tilde{\delta}_{i,t,k}$ 被放大，从而在特征空间中更为突出。
+每轮实验在训练月份的健康样本上估计 $\{r_k\}$ 后固定用于该轮验证与测试，不使用故障样本或测试集信息，以避免标签泄漏。
+每个 $(i,t)$ 样本由 Lag 与 $\{\tilde{\delta}_{i,t,k}\}_{k\in\mathcal{B}}$ 拼接，共 $|\mathcal{A}|W+|\mathcal{B}|(W+1)$ 维（如 $W=3$ 时为 57 维）。
 
-$W$ 控制 Lag 回看的日历长度：过小则上下文不足，过大则远早读数与近端失效关联减弱。
-本文在 MB1 上对 $W\in\{1,3,5,7\}$ 开展敏感性分析（\S\ref{sec:chap3-mutation-ablation}），以盘级 $F_{0.5}$ 选取 $W^{\ast}$，MB2 同协议复现；所得特征向量输入 \S\ref{sec:chap3-ensemble} 异构集成模块。
+$W$ 控制 Lag 回看的日历长度，过小则上下文不足，过大则远早读数与近端失效关联减弱，通过实验确定最优 $W$。
+
+\subsection{训练标签策略}
+\label{sec:chap3-jump-label}
+
+在第~\ref{sec:chap3-b-mutation-eda}~节中的观察表明，部分故障盘存在静默故障问题：这些故障盘在预警时间窗口内的 B 组特征长期保持不变，直到临近故障才会产生跳变，甚至故障发生后也不会产生跳变。
+这类静默故障盘难以与正常运行的盘区分，将它们的样本标记为正样本可能会引入标签噪声，使模型倾向于将健康样本误判。
+为了保留失效前变化信息的同时减少噪声带来的风险，本文提出一种将固定窗口标签与首次跳变观测标签取交集的混合标记策略。
+图~\ref{fig:chap3-label-strategy} 给出了固定长窗、固定短窗、首跳窗口与本文提出标记策略的直观示意。
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\linewidth]{figure/chap3-label-strategy.png}
+    \caption{\label{fig:chap3-label-strategy}标记策略对比示意}
+\end{figure}
+
+固定窗口标记是一种常用的标记策略，
+这种方法认为仅将故障盘的故障发生当日样本标记的做法忽略了故障发生是一个变化的过程，回看故障发生前一段时间的并将这些样本标记为正样本能够捕捉这种变化。
+具体的来说，对故障盘 $i$，记故障日为 $t_{\mathrm{fail},i}$，回看窗口长度 $k$ ，定义：
+\begin{equation}
+\label{equ:fixed-window-label}
+y^{\mathrm{fix}}_{i,t}=
+\left\{
+\begin{array}{ll}
+1, & t_{\mathrm{fail},i}-k\le t\le t_{\mathrm{fail},i}, \\
+0, & \text{其余}.
+\end{array}
+\right.
+\end{equation}
+对健康盘，该策略恒为 0。
+
+该策略的优点是实现简单，图~\ref{fig:first-jump-pmf} 亦表明有跳变故障盘的首跳多集中于故障前短窗，但是固定窗口无法将首次跳变前的静默段从正类中剥离，亦无法排除静默故障盘。
+
+首次跳变观测标签以第~\ref{sec:chap3-b-mutation-eda}~节的首跳观测为界，仅在样本已出现 B 组可分辨跳变前兆之后标为正例，从而将预警窗内首跳前的零基线段标为负例。
+跳变口径与式~(\ref{equ:mutation-delta}) 一致，在相邻原始观测日间，若存在特征属性 $k\in\mathcal{B}$ 使 $\delta_{i,t,k}>0$，则 $t$ 为跳变日，对故障盘 $i$，于预警窗 $(t_{\mathrm{fail},i}-30,\, t_{\mathrm{fail},i}]$ 内取最早跳变日
+\begin{equation}
+\label{equ:first-jump}
+t_{\mathrm{jump},i}=\min\left\{t:\ \exists k\in\mathcal{B},\ \delta_{i,t,k}>0,\ t_{\mathrm{fail},i}-30<t\le t_{\mathrm{fail},i}\right\}.
+\end{equation}
+对存在最早跳变日 $t_{\mathrm{jump},i}$ 的故障盘 $i$，定义首次跳变观测标签为：
+\begin{equation}
+\label{equ:jump-label}
+y^{\mathrm{jump}}_{i,t}=
+\left\{
+\begin{array}{ll}
+1, & t_{\mathrm{jump},i}\le t\le t_{\mathrm{fail},i}, \\
+0, & t_{\mathrm{fail},i}-30\le t<t_{\mathrm{jump},i}.
+\end{array}
+\right.
+\end{equation}
+对不存在跳变日的故障盘 $i$与健康盘，该标签恒为 0。
+
+固定窗口与首次跳变观测混合标记对上述两种标注取逻辑与，也就是仅当样本同时处于故障前 $k$ 日短窗且已观测到 B 组首跳时标为正例，即
+\begin{equation}
+\label{equ:proximal-mutation-label}
+y_{i,t}=y^{\mathrm{fix}}_{i,t}\cdot y^{\mathrm{jump}}_{i,t},
+\end{equation}
+有首跳盘的有效正样本区间为 $[\max(t_{\mathrm{jump},i},\, t_{\mathrm{fail},i}-k),\, t_{\mathrm{fail},i}]$，其余首跳前的样本与健康盘的样本恒为 0。
+
+这种标记策略在捕捉图~\ref{fig:b-mutation-mb1} 与图~\ref{fig:b-mutation-mb2} 所示故障盘失效前变化的同时，减少无跳变样本对模型的干扰。
 
 \subsection{异构集成预测}
 \label{sec:chap3-ensemble}
 
-盘级故障预测中正负样本极度不平衡，且树模型、提升树与 Bagging 族分类器对稀疏突变信号的拟合偏好存在差异，单一学习器易出现判别不稳定。
-为此，本文在 \S\ref{sec:chap3-mutation-features} 所构造的短期时序突变特征上采用两层 stacking：第一层训练多种异构基分类器并输出故障概率，第二层以各分类器概率为输入训练 MLP 元学习器，优化目标采用 Focal Loss 以强化对少数类故障样本的关注。
+盘级故障预测中正负样本极度不平衡，不同的分类器对稀疏突变信号的拟合偏好存在差异，单一学习器易出现判别不稳定。
+为此，本文在 \S\ref{sec:chap3-mutation-features} 所构造的短期时序突变特征上采用两层 stacking，
+第一层训练多种异构基分类器并输出故障概率，第二层以注意力机制对基分类器概率做样本级自适应加权融合，优化目标采用 Focal Loss 以强化对少数类故障样本的关注。
+整体结构如图~\ref{fig:chap3-ensemble} 所示。
 
-\textbf{异构基分类器。}
-设样本 $(i,t)$ 的短期时序突变特征向量为 $\mathbf{z}_{i,t}\in\mathbb{R}^{16W+9}$（由式~(\ref{equ:mutation-delta}) 及对应 Lag 拼接而成），标签为 $y_{i,t}\in\{0,1\}$。
-在 $\mathbf{z}_{i,t}$ 上分别训练随机森林（RF）、XGBoost（XGB）与 LightGBM（LGB）三个异构基分类器，分别记为 $M_{\mathrm{rf}},M_{\mathrm{xgb}},M_{\mathrm{lgb}}$。
-RF 通过 Bagging 降低方差，XGB 与 LGB 以梯度提升逐轮修正残差，三者对同一突变特征的非线性划分方式不同，可形成互补的样本级判别边界。
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.92\linewidth]{figure/chap3-ensemble.pdf}
+    \caption{异构集成预测结构示意图}
+    \label{fig:chap3-ensemble}
+\end{figure}
 
-为避免同一磁盘样本在训练与验证间泄漏，按 \texttt{disk\_id} 分组进行 $K$ 折交叉验证：对每一折，在训练折上拟合各基分类器，于验证折输出故障概率
+对于异构基分类器训练，设样本 $(i,t)$ 的短期时序突变特征向量为 $\mathbf{z}_{i,t}\in\mathbb{R}^{16W+9}$（由 Lag 特征与式~(\ref{equ:mutation-weighted}) 拼接而成），标签为 $y_{i,t}\in\{0,1\}$。
+设异构基分类器集合 $\mathcal{M}=\{M_m\}_{m=1}^{N}$，其中 $N\ge 2$ 为基学习器数量，$M_m$ 可取 Bagging 族、梯度提升树等不同归纳偏置的学习器，在 $\mathbf{z}_{i,t}$ 上分别训练各 $M_m$。
+因划分准则、集成方式与优化目标各异，各基分类器对同一突变特征可形成不同的样本级判别边界。
+在验证月份上，各基分类器对样本 $(i,t)$ 输出故障概率
 \begin{equation}
 \label{equ:base-prob}
-p_{i,t}^{(m)}=M_m\bigl(\mathbf{z}_{i,t}\bigr),\quad m\in\{\mathrm{rf},\mathrm{xgb},\mathrm{lgb}\}.
+p_{i,t}^{(m)}=M_m\bigl(\mathbf{z}_{i,t}\bigr),\quad m=1,\ldots,N,
 \end{equation}
-对全部训练样本收集折外（OOF）概率后，拼接为元特征向量 $\mathbf{p}_{i,t}=[p_{i,t}^{(\mathrm{rf})},\,p_{i,t}^{(\mathrm{xgb})},\,p_{i,t}^{(\mathrm{lgb})}]^{\mathsf{T}}\in\mathbb{R}^{3}$。
-元学习器不再直接接触原始 SMART 特征，而仅利用各基分类器已提炼的故障倾向信息。
+拼接为基分类器概率向量 $\mathbf{p}_{i,t}=[p_{i,t}^{(1)},\,\ldots,\,p_{i,t}^{(N)}]^{\mathsf{T}}\in\mathbb{R}^{N}$。
+融合模块不再直接接触原始 SMART 特征，而仅利用各基分类器已提炼的故障倾向信息。
 
-\textbf{MLP 融合与 Focal Loss。}
-元学习器 $f_{\mathrm{mlp}}(\cdot)$ 以 $\mathbf{p}_{i,t}$ 为输入，经全连接层与非线性激活映射为样本级故障概率 $\hat{y}_{i,t}=f_{\mathrm{mlp}}(\mathbf{p}_{i,t})$。
+对于模型融合，
+将 $\mathcal{M}$ 中 $N$ 个基分类器视作 $N$ 个专家，以 $\mathbf{p}_{i,t}$ 为查询上下文，为各专家分配样本自适应权重：
+\begin{equation}
+\label{equ:attn-weight}
+\bigl(\alpha_{i,t}^{(1)},\ldots,\alpha_{i,t}^{(N)}\bigr)^{\mathsf{T}}
+=\mathrm{softmax}\!\left(W_{\alpha}\mathbf{p}_{i,t}+\mathbf{b}_{\alpha}\right),
+\end{equation}
+其中 $W_{\alpha}\in\mathbb{R}^{N\times N}$、$\mathbf{b}_{\alpha}\in\mathbb{R}^{N}$ 为待学习参数，$\mathrm{softmax}(\cdot)$ 按元素归一化使 $\sum_{m=1}^{N}\alpha_{i,t}^{(m)}=1$。
+样本级融合概率取专家概率的组合：
+\begin{equation}
+\label{equ:attn-fuse}
+\hat{y}_{i,t}=\sum_{m=1}^{N}\alpha_{i,t}^{(m)}\,p_{i,t}^{(m)}.
+\end{equation}
+式~(\ref{equ:attn-fuse}) 保证 $\hat{y}_{i,t}\in[0,1]$；权重 $\alpha_{i,t}^{(m)}$ 可直接解释各基分类器对当前样本的贡献占比，相较固定平均或 MLP 黑箱映射更具可解释性。
 训练时以 Focal Loss 替代标准交叉熵，对易分样本降权、对难分故障样本赋更高梯度：
 \begin{equation}
 \label{equ:focal-loss}
@@ -848,45 +956,315 @@ p_t=
 \right.
 \end{equation}
 其中 $\alpha_t$ 为类别平衡权重，$\gamma\ge0$ 为聚焦参数（本文取 $\gamma=2$）。
-在全体训练样本上最小化 $\sum_{(i,t)}\mathcal{L}_{\mathrm{FL}}$ 以更新 MLP 参数；OOF 概率保证元学习器输入与基分类器训练折相互独立，避免 stacking 过拟合。
-
-\textbf{训练与推理。}
-训练阶段依次完成：（1）按 \texttt{disk\_id} 分组 $K$ 折交叉验证，生成 OOF 概率 $\mathbf{p}_{i,t}$；（2）以 $\{(\mathbf{p}_{i,t},y_{i,t})\}$ 为样本，用 Focal Loss 训练 MLP。
-推理阶段，各基分类器在全部训练集上重训后，对测试样本输出 $\mathbf{p}_{i,t}$，再经已训 MLP 得到最终概率 $\hat{y}_{i,t}$；盘级告警按 \S\ref{sec:chap3-disk-eval} 最早命中规则聚合评估。
-
-集成结构借鉴多层 stacking 思路\cite{li2025mtms}：基分类器从短期突变特征中提取多样化判别边界，MLP 学习各模型概率的非线性组合；Focal Loss 进一步缓解故障盘占比极低带来的梯度淹没问题。
-主实验在 MB1 上完成训练与消融（\S\ref{sec:chap3-ensemble-ablation}），MB2 采用相同协议复现。
+在验证集样本上最小化 $\sum_{(i,t)}\mathcal{L}_{\mathrm{FL}}$ 以更新 Attention 融合参数。
 
 \section{实验与分析}
 
 \subsection{实验设置与对比方法}
+\label{sec:chap3-exp-split}
 
 % TODO: 软硬件环境；RF/XGB/LGB/MVTRF/PatchTST 等基线
 
+\subsubsection{数据集划分}
+
+实验在预处理后的 MB1、MB2 子集上进行。
+数据集按日历月做时间顺序划分，训练窗自 2018 年 6 月（剔除入池早期样本后的首个可用月）起算；月份以 2018 年 1 月为第 1 月编号。
+参照 MVTRF 在 MB1 上的滑动评估思路，采用三轮划分：每轮以连续训练月份拟合模型、以紧邻 1 个月为验证集、以下 1 个月为测试集，具体如表~\ref{tab:chap3-scheme-b-split} 所示。
+各轮测试集互不重叠；三轮测试集上的盘级指标取算术平均作为主结果。
+$W$ 的敏感性分析及异构集成消融仅在 MB1 完成；MB2 在确定 $W^{\ast}$ 与集成配置后按相同协议复现主实验。
+
+\begin{table}[htbp]
+    \centering
+    \caption{\label{tab:chap3-scheme-b-split}方案 B 时间划分（三轮滑动，测试集各 1 个月）}
+    \footnotesize
+    \begin{tabularx}{0.88\linewidth}{c>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X}
+        \toprule
+        轮次 & 训练月 & 验证月 & 测试月 \\
+        \midrule
+        1 & 6--19 & 20 & 21 \\
+        2 & 6--20 & 21 & 22 \\
+        3 & 6--21 & 22 & 23 \\
+        \bottomrule
+    \end{tabularx}
+
+    \vspace{2pt}
+    \begin{minipage}{\linewidth}
+        \footnotesize 注：例如第 1 轮对应日历约为训练 2018-06--2019-07、验证 2019-08、测试 2019-09。
+    \end{minipage}
+\end{table}
+
+\subsubsection{训练与评估流程}
+
+训练标签采用 \S\ref{sec:chap3-jump-label} 近端突变标注（式~\ref{equ:proximal-mutation-label}）；宽窗标注、临期短窗标注与跳变对齐标注的对比见 \S\ref{sec:chap3-label-ablation}。
+每轮实验流程如下：（1）在训练月份上拟合 RF、XGB、LGB 三个基分类器；（2）在验证月份上计算基分类器概率 $\mathbf{p}_{i,t}$，以此训练 Attention 融合模块，并在验证集上扫描样本级分类阈值（盘级按 \S\ref{sec:chap3-disk-eval} 聚合后优化 $F_{0.5}$）；（3）将训练集与验证集合并后重训各基分类器，对测试月份推理并经 Attention 融合得到最终输出。
+验证月份未参与基分类器训练，其概率用于 Attention 融合拟合与阈值选取；本文不采用 $K$ 折交叉验证。
+单基学习器对比实验省略 Attention 融合步骤，仅在验证集上调整阈值。
+主指标为盘级 TPR、FPR、Precision 与 $F_{0.5}$；对比方法包括单模型 RF/XGB/LGB 及文献中的 MVTRF 等（\cite{zhang2023multi,xu2021general}，【待填具体配置】）。
+需说明的是，\S\ref{sec:chap3-mutation-features} 所定义的突变特征含静态稀有权重 $r_k$；受限于当前特征流水线实现进度，表~\ref{tab:chap3-main-results}--\ref{tab:chap3-label-ablation} 中已完成的实验均暂以\textbf{未加权}的 Lag+$|\Delta|$ 变体（即用 $\delta_{i,t,k}$ 替代 $\tilde{\delta}_{i,t,k}$）报告，稀有加权完整结果见表~\ref{tab:chap3-rarity-ablation}（待补）。
+
 \subsection{整体性能}
 
+表~\ref{tab:chap3-main-results} 汇总 MB1 主实验与 MB2 复现结果：分别报告 RF、XGB、LGB 三个基学习器及 Attention 融合的盘级指标。
+特征为 $W=3$、57 维 Lag+$|\Delta|$（\textbf{未施加稀有权重}的过渡实现，下同）；盘级评估窗口 30 天，样本级阈值 0.5；三轮测试指标取算术平均。
+主实验训练标签为近端突变标注；表中同时给出宽窗标注下的结果供对照。
+按 \S\ref{sec:chap3-mutation-features} 完整定义（Lag+$r_k|\Delta|$）及近端突变标注下的 Attention 融合数值尚待补全（以“--”标示）。
+
+MB1 在近端突变标注下，XGB 与 RF 单基 $F_{0.5}$ 均为 0.885，LGB 为 0.817；宽窗标注下 LGB 因 FPR 偏高（$1.4{\times}10^{-3}$）而 $F_{0.5}$ 较低（0.494）。
+MB2 整体检出率明显低于 MB1（TPR 约 0.13--0.19），三基模型差异相对缩小；Attention 在宽窗标注下 Precision 为 1.000 但 TPR 仅 0.128。
+
+\begin{table}[htbp]
+    \centering
+    \caption{\label{tab:chap3-main-results}MB1/MB2 整体性能：基学习器与 Attention（$W=3$，盘级 test 平均，阈值 0.5）}
+    \scriptsize
+    \setlength{\tabcolsep}{3pt}
+    \begin{tabularx}{\linewidth}{l l l c c c c}
+        \toprule
+        型号 & 训练标签 & 模型 & $F_{0.5}$ & TPR & Precision & FPR \\
+        \midrule
+        \multirow{8}{*}{MB1} & \multirow{4}{*}{近端突变标注} & RF & 0.885 & 0.660 & 0.979 & $2.7{\times}10^{-5}$ \\
+        & & XGB & 0.885 & 0.649 & 0.986 & $2.7{\times}10^{-5}$ \\
+        & & LGB & 0.817 & 0.602 & 0.912 & $1.0{\times}10^{-4}$ \\
+        & & Attention & -- & -- & -- & -- \\
+        \cmidrule(lr){2-7}
+        & \multirow{4}{*}{宽窗标注} & RF & 0.881 & 0.661 & 0.972 & $3.6{\times}10^{-5}$ \\
+        & & XGB & 0.803 & 0.583 & 0.899 & $1.1{\times}10^{-4}$ \\
+        & & LGB & 0.494 & 0.647 & 0.466 & $1.4{\times}10^{-3}$ \\
+        & & Attention & 0.861 & 0.658 & 0.940 & $8.2{\times}10^{-5}$ \\
+        \midrule
+        \multirow{8}{*}{MB2} & \multirow{4}{*}{近端突变标注} & RF & -- & -- & -- & -- \\
+        & & XGB & -- & -- & -- & -- \\
+        & & LGB & -- & -- & -- & -- \\
+        & & Attention & -- & -- & -- & -- \\
+        \cmidrule(lr){2-7}
+        & \multirow{4}{*}{宽窗标注} & RF & 0.467 & 0.176 & 0.833 & $8.1{\times}10^{-6}$ \\
+        & & XGB & 0.470 & 0.187 & 0.778 & $1.6{\times}10^{-5}$ \\
+        & & LGB & 0.129 & 0.064 & 0.173 & $2.2{\times}10^{-4}$ \\
+        & & Attention & -- & -- & -- & -- \\
+        \cmidrule(lr){2-7}
+        & \multirow{4}{*}{宽窗标注} & RF & 0.467 & 0.176 & 0.833 & $8.1{\times}10^{-6}$ \\
+        & & XGB & 0.231 & 0.112 & 0.350 & $2.0{\times}10^{-4}$ \\
+        & & LGB & 0.032 & 0.115 & 0.027 & $2.2{\times}10^{-3}$ \\
+        & & Attention & 0.393 & 0.128 & 1.000 & 0 \\
+        \bottomrule
+    \end{tabularx}
+
+    \vspace{2pt}
+    \begin{minipage}{\linewidth}
+        \footnotesize 注：特征均为 $W=3$、Lag+$|\Delta|$（未加权过渡实现）；完整方法应含 $r_k$ 加权（表~\ref{tab:chap3-rarity-ablation}）。
+        近端突变标注即跳变对齐与临期短窗（$k=3$）的逻辑与；MB2 近端突变标注实验待补（“--”）。
+        Attention 行基模型与训练标签同左列；近端突变标注下 Attention 待补。
+    \end{minipage}
+\end{table}
 
 \subsection{突变时序特征有效性分析}
 \label{sec:chap3-mutation-ablation}
 
-为验证 \S\ref{sec:chap3-mutation-features} 中 $W$ 的选取，在 MB1 上固定集成结构与评估协议，对 $W\in\{1,3,5,7\}$ 比较盘级 $F_{0.5}$ 等指标（表~\ref{tab:chap3-window-ablation}，【待填】），确定 $W^{\ast}$ 后主实验与 MB2 复现均采用该取值。
+\subsubsection{回看窗口 $W$ 的敏感性}
+
+在 MB1 上固定宽窗标注与 RF 单基学习器，比较 $W\in\{1,3,5,7\}$ 下的盘级指标（表~\ref{tab:chap3-window-ablation}；特征为未加权 Lag+$|\Delta|$）。
+$W=3$ 时 RF 的 $F_{0.5}$ 最高（0.881），$W=7$ 时降至 0.799，表明过长 Lag 回看会削弱近端突变与失效的关联。
+据此取 $W^{\ast}=3$；MB2 主实验与后续消融均沿用该取值。
+表中 $W=1,5$ 的 RF 结果待补；右列给出同协议下 Attention 融合的 $F_{0.5}$ 供参考（基模型均为 \texttt{label\_30}）。
+
+\begin{table}[htbp]
+    \centering
+    \caption{\label{tab:chap3-window-ablation}MB1 回看窗口 $W$ 敏感性（盘级 test 平均，阈值 0.5）}
+    \footnotesize
+    \begin{tabularx}{0.92\linewidth}{c c c c c c}
+        \toprule
+        $W$ & $F_{0.5}$（RF） & TPR（RF） & Precision（RF） & $F_{0.5}$（Attention） & TPR（Attention） \\
+        \midrule
+        1  & --    & --    & --    & --    & -- \\
+        3  & 0.881 & 0.661 & 0.972 & 0.861 & 0.658 \\
+        5  & --    & --    & --    & 0.862 & 0.647 \\
+        7  & 0.799 & 0.601 & 0.908 & 0.814 & 0.603 \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+\subsubsection{稀有加权消融}
+
+表~\ref{tab:chap3-rarity-ablation} 对比 \S\ref{sec:chap3-mutation-features} 所定义的\textbf{稀有加权突变特征}（Lag+$r_k|\Delta|$，本文方法）与\textbf{未加权基线}（Lag+$|\Delta|$，消融对照）。
+前者在各轮训练月份的健康样本上估计 $r_k$ 后固定用于验证与测试；后者直接以 $\delta_{i,t,k}$ 入模。
+当前特征构建流水线已实现未加权变体，表中下行已填入 RF 单基结果；上行（完整方法）实验待补。
+
+\begin{table}[htbp]
+    \centering
+    \caption{\label{tab:chap3-rarity-ablation}MB1 稀有加权突变特征消融（$W=3$，RF 单基，首跳对齐，阈值 0.5）}
+    \footnotesize
+    \begin{tabularx}{0.88\linewidth}{l c c c c}
+        \toprule
+        突变特征 & $F_{0.5}$ & TPR & Precision & FPR \\
+        \midrule
+        Lag + $r_k|\Delta|$（本文方法） & -- & -- & -- & -- \\
+        Lag + $|\Delta|$（未加权基线） & 0.875 & 0.660 & 0.963 & $4.5{\times}10^{-5}$ \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
 
 \subsection{异构集成有效性分析}
 \label{sec:chap3-ensemble-ablation}
 
-在 MB1 上对比：单一基学习器（RF/XGB/LGB）、无 Focal Loss 的 MLP 融合、以及完整 RF+XGB+LGB+MLP 流程（表~\ref{tab:chap3-ensemble-ablation}，【待填】），验证异构 stacking 与 Focal Loss 的增量收益。
+在 MB1 上固定 $W=3$、\texttt{label\_30} 训练标签与评估协议，对比不同集成配置（表~\ref{tab:chap3-ensemble-ablation}；特征为未加权 Lag+$|\Delta|$）。
+三基学习器分项指标见表~\ref{tab:chap3-main-results}；本表侧重 Attention 融合及无 Focal Loss 对照。
+RF 单基取得最高 $F_{0.5}$（0.881）；Attention 融合为 0.861，略低于 RF 单基；无 Focal Loss 的 MLP 对照实验待补。
 
-\subsection{标签策略与突变假设验证；基线对比}
+\begin{table}[htbp]
+    \centering
+    \caption{\label{tab:chap3-ensemble-ablation}MB1 异构集成消融（$W=3$，\texttt{label\_30}，盘级 test 平均，阈值 0.5）}
+    \footnotesize
+    \begin{tabularx}{0.72\linewidth}{l c c c c}
+        \toprule
+        配置 & $F_{0.5}$ & TPR & Precision & FPR \\
+        \midrule
+        RF+XGB+LGB+Attention（Focal Loss） & 0.861 & 0.658 & 0.940 & $8.2{\times}10^{-5}$ \\
+        RF+XGB+LGB+MLP（无 Focal Loss） & -- & -- & -- & -- \\
+        \bottomrule
+    \end{tabularx}
 
-% TODO: label\_3 vs label\_30；TP 提前量；不写"因 TPR 最高选 label\_30"
+    \vspace{2pt}
+    \begin{minipage}{\linewidth}
+        \footnotesize 注：RF/XGB/LGB 单基结果见表~\ref{tab:chap3-main-results}。
+    \end{minipage}
+\end{table}
+
+\subsection{首跳对齐标签有效性分析}
+\label{sec:chap3-label-ablation}
+
+在 MB1/MB2 上固定 $W=3$ 突变特征（未加权 Lag+$|\Delta|$）与盘级评估协议（阈值 0.5），对四种训练标签分别重训 RF/XGB/LGB 三个基学习器，并按方案 B 三轮 test 月报告结果（表~\ref{tab:chap3-label-ablation}；划分见表~\ref{tab:chap3-scheme-b-split}）。
+表中单元格为 $F_{0.5}$/TPR。
+Attention 融合需以对应标签训好的基模型为前提，目前仅 \texttt{label\_30} 与 \texttt{label\_3} 在 MB1 上具备完整 stacking 结果（三轮平均 $F_{0.5}=0.861$），其余配置待补。
+
+由表~\ref{tab:chap3-label-ablation} 可见如下规律（MB1 为主分析，MB2 作同协议复现对照）。
+\textbf{（1）分轮趋势（MB1）：} R1/R2 各标签、各基学习器整体处于较高水平；R3（2019-11）普遍下滑，体现时间漂移对盘级预警的影响。
+\textbf{（2）宽窗 \texttt{label\_30} 对 LGB 的损害（MB1）：} 三轮平均下 LGB 的 $F_{0.5}$ 仅 0.494，R3 低至 0.367；MB2 上 LGB 亦整体偏低（三轮平均 0.032--0.129），宽窗标签在 R1 即出现极低 $F_{0.5}$（0.015）。
+\textbf{（3）短期标签对 LGB 的修复（MB1）：} \texttt{label\_3} 与 \texttt{jump\_inter3} 使 LGB 三轮平均 $F_{0.5}$ 升至 0.807--0.817；MB2 上 \texttt{label\_3} 将 LGB 从 0.129（首跳对齐）提升至 0.391，\texttt{jump\_inter3} 亦升至 0.291，但 RF $F_{0.5}$ 在 \texttt{label\_3} 下降至 0.318（\emph{vs.}\ 首跳对齐 0.467），在 \texttt{jump\_inter3} 下为 0.458，提示两型号对标签收紧的响应并不一致。
+\textbf{（4）首跳对齐 vs 逻辑与标签：} MB1 上 \texttt{jump\_inter3} 在三轮平均下使 RF/XGB/LGB 同步受益（RF/XGB 0.885、LGB 0.817）；MB2 上首跳对齐与 \texttt{label\_30} 的 RF/XGB 三轮平均一致（0.467/0.469 与 0.467/0.231），\texttt{jump\_inter3} 的 RF/XGB 与首跳对齐接近（0.458/0.454 \emph{vs.}\ 0.467/0.469），LGB 介于首跳对齐与 \texttt{label\_3} 之间（0.291 \emph{vs.}\ 0.129/0.391）。
+主实验仍采用首跳对齐标签，以强调标签—前兆对齐及静默盘处理；MB1 上若侧重集成栈中 LGB 稳定性，\texttt{jump\_inter3} 是更均衡的训练选择。
+
+\begin{table}[htbp]
+    \centering
+    \caption{\label{tab:chap3-label-ablation}MB1/MB2 训练标签消融：RF/XGB/LGB 分轮 test 结果（$W=3$，阈值 0.5；单元格为 $F_{0.5}$/TPR）}
+    \scriptsize
+    \setlength{\tabcolsep}{2.5pt}
+    \begin{tabularx}{\linewidth}{c l l c c c}
+        \toprule
+        型号 & test 月 & 训练标签 & RF & XGB & LGB \\
+        \midrule
+        \multirow{16}{*}{MB1}
+        & \multirow{4}{*}{R1（2019-09）}
+        & 首跳对齐（式~\ref{equ:jump-label}） & 0.928 / 0.783 & 0.941 / 0.761 & 0.674 / 0.766 \\
+        & & \texttt{label\_30} & 0.947 / 0.783 & 0.794 / 0.667 & 0.573 / 0.783 \\
+        & & \texttt{label\_3} & 0.947 / 0.783 & 0.927 / 0.717 & 0.773 / 0.652 \\
+        & & \texttt{jump\_inter3} & 0.947 / 0.783 & 0.941 / 0.761 & 0.816 / 0.674 \\
+        & \multirow{4}{*}{R2（2019-10）}
+        & 首跳对齐 & 0.898 / 0.719 & 0.898 / 0.719 & 0.686 / 0.703 \\
+        & & \texttt{label\_30} & 0.904 / 0.734 & 0.854 / 0.641 & 0.541 / 0.703 \\
+        & & \texttt{label\_3} & 0.898 / 0.719 & 0.887 / 0.688 & 0.859 / 0.688 \\
+        & & \texttt{jump\_inter3} & 0.898 / 0.719 & 0.898 / 0.719 & 0.846 / 0.688 \\
+        & \multirow{4}{*}{R3（2019-11）}
+        & 首跳对齐 & 0.797 / 0.478 & 0.802 / 0.467 & 0.717 / 0.467 \\
+        & & \texttt{label\_30} & 0.790 / 0.467 & 0.762 / 0.441 & 0.367 / 0.457 \\
+        & & \texttt{label\_3} & 0.809 / 0.478 & 0.814 / 0.467 & 0.788 / 0.446 \\
+        & & \texttt{jump\_inter3} & 0.809 / 0.478 & 0.814 / 0.467 & 0.788 / 0.446 \\
+        & \multirow{4}{*}{三轮平均}
+        & 首跳对齐 & 0.875 / 0.660 & 0.881 / 0.649 & 0.692 / 0.645 \\
+        & & \texttt{label\_30} & 0.881 / 0.661 & 0.803 / 0.583 & 0.494 / 0.647 \\
+        & & \texttt{label\_3} & 0.885 / 0.660 & 0.876 / 0.624 & 0.807 / 0.595 \\
+        & & \texttt{jump\_inter3} & 0.885 / 0.660 & 0.885 / 0.649 & 0.817 / 0.602 \\
+        \midrule
+        \multirow{16}{*}{MB2}
+        & \multirow{4}{*}{R1（2019-09）}
+        & 首跳对齐 & 0.652 / 0.273 & 0.686 / 0.304 & 0.278 / 0.136 \\
+        & & \texttt{label\_30} & 0.652 / 0.273 & 0.476 / 0.182 & 0.015 / 0.091 \\
+        & & \texttt{label\_3} & 0.205 / 0.273 & 0.638 / 0.261 & 0.526 / 0.182 \\
+        & & \texttt{jump\_inter3} & 0.652 / 0.273 & 0.638 / 0.261 & 0.429 / 0.130 \\
+        & \multirow{4}{*}{R2（2019-10）}
+        & 首跳对齐 & 0.556 / 0.200 & 0.556 / 0.200 & 0.000 / 0.000 \\
+        & & \texttt{label\_30} & 0.556 / 0.200 & 0.167 / 0.100 & 0.065 / 0.200 \\
+        & & \texttt{label\_3} & 0.556 / 0.200 & 0.556 / 0.200 & 0.455 / 0.200 \\
+        & & \texttt{jump\_inter3} & 0.556 / 0.200 & 0.556 / 0.200 & 0.278 / 0.100 \\
+        & \multirow{4}{*}{R3（2019-11）}
+        & 首跳对齐 & 0.192 / 0.056 & 0.167 / 0.056 & 0.109 / 0.056 \\
+        & & \texttt{label\_30} & 0.192 / 0.056 & 0.051 / 0.056 & 0.015 / 0.056 \\
+        & & \texttt{label\_3} & 0.192 / 0.056 & 0.227 / 0.056 & 0.192 / 0.056 \\
+        & & \texttt{jump\_inter3} & 0.167 / 0.056 & 0.167 / 0.056 & 0.167 / 0.056 \\
+        & \multirow{4}{*}{三轮平均}
+        & 首跳对齐 & 0.467 / 0.176 & 0.469 / 0.187 & 0.129 / 0.064 \\
+        & & \texttt{label\_30} & 0.467 / 0.176 & 0.231 / 0.112 & 0.032 / 0.115 \\
+        & & \texttt{label\_3} & 0.318 / 0.176 & 0.474 / 0.172 & 0.391 / 0.146 \\
+        & & \texttt{jump\_inter3} & 0.458 / 0.176 & 0.454 / 0.172 & 0.291 / 0.095 \\
+        \bottomrule
+    \end{tabularx}
+
+    \vspace{2pt}
+    \begin{minipage}{\linewidth}
+        \footnotesize 注：三轮平均为各轮 test 指标的算术平均。
+        MB1 三轮平均 Precision/FPR（RF）——首跳对齐：0.963 / $4.5{\times}10^{-5}$；\texttt{label\_30}：0.972 / $3.6{\times}10^{-5}$；\texttt{label\_3}、\texttt{jump\_inter3}：0.979 / $2.7{\times}10^{-5}$。
+        MB1 \texttt{label\_30} 下 LGB 三轮平均 FPR 为 $1.4{\times}10^{-3}$，首跳对齐为 $4.4{\times}10^{-4}$，\texttt{jump\_inter3} 为 $1.0{\times}10^{-4}$。
+    \end{minipage}
+\end{table}
+
+盘级检出率尚不足以说明有效前兆所处的时间尺度。
+为此，在 $W=3$、RF 单基、首跳对齐训练标签与阈值 0.5 设定下，按方案 B 三轮 test 月分别统计 TP 的提前预警天数 $d=t_{\mathrm{fail}}-t_{\mathrm{alarm}}$（$d\in[0,30]$ 计为 TP，见 \S\ref{sec:chap3-disk-eval}）。
+\textbf{分轮汇总见表~\ref{tab:chap3-tp-lead-by-round}，分布形态见图~\ref{fig:chap3-tp-lead-time}}；二者分工为：表便于横向对比各 test 月的检出规模与提前天数统计量，图展示 $d$ 在 0--30 日上的具体分布。
+
+由表~\ref{tab:chap3-tp-lead-by-round} 可见，\textbf{检出时效}与\textbf{检出规模}应分开解读。
+就时效而言，MB1 三轮 TP 的提前天数中位数均为 1 天，$d=1$ 占比稳定在 93\%--94\%，$d\le 1$ 占比为 97\%--100\%，表明在不同 test 月下，\emph{已被检出}的故障盘其告警时刻均贴近故障日；
+MB2 虽各轮仅 1--6 块 TP，但提前天数中位数均为 0 天且全部满足 $d\le 1$，与图~\ref{fig:first-jump-pmf} 及 $W^{\ast}=3$ 所对应的近端突变时间尺度一致。
+就规模而言，MB1 R3 的 FN 升至 48 盘、TPR 降至 47.8\%，MB2 亦呈 R1$\to$R3 递减（TPR 由 27.3\% 降至 5.6\%），说明时间漂移主要影响\textbf{能否检出}，而非已检出盘的\textbf{提前多久}——图~\ref{fig:chap3-tp-lead-time} 中 R3 柱形仍集中于 $d=1$，与 R1/R2 形态一致，即该结论。
+据此，\texttt{label\_3} 与 \texttt{jump\_inter3} 将正样本收紧至故障前 3 日（并与首跳对齐取交），在 RF 上取得略优的 $F_{0.5}$（表~\ref{tab:chap3-label-ablation}），具有与检出时效一致的标签语义。
+此外，三轮 test 中“过早告警”（首次告警距故障日 $>30$ 天）在 MB1/MB2 上均为 0，宽窗训练标签并未在部署口径下转化为距故障日过远的虚警。
+
+\begin{table}[htbp]
+    \centering
+    \caption{\label{tab:chap3-tp-lead-by-round}分轮 TP 提前预警统计（$W=3$，RF 单基，首跳对齐，阈值 0.5）}
+    \footnotesize
+    \setlength{\tabcolsep}{4pt}
+    \begin{tabularx}{\linewidth}{c l c c c c c c}
+        \toprule
+        型号 & test 月 & TP & FN & TPR & 提前天数中位数 $d$ & $d{=}1$ 占比 & $d{\le}1$ 占比 \\
+        \midrule
+        \multirow{3}{*}{MB1}
+        & R1（2019-09） & 36 & 10 & 78.3\% & 1 天 & 94.4\% & 97.2\% \\
+        & R2（2019-10） & 46 & 18 & 71.9\% & 1 天 & 93.5\% & 97.8\% \\
+        & R3（2019-11） & 44 & 48 & 47.8\% & 1 天 & 93.2\% & 100\% \\
+        \midrule
+        \multirow{3}{*}{MB2}
+        & R1（2019-09） & 6  & 16 & 27.3\% & 0 天 & 16.7\% & 100\% \\
+        & R2（2019-10） & 2  &  8 & 20.0\% & 0 天 &  0\%   & 100\% \\
+        & R3（2019-11） & 1  & 17 &  5.6\% & 0 天 &  0\%   & 100\% \\
+        \bottomrule
+    \end{tabularx}
+
+    \vspace{2pt}
+    \begin{minipage}{\linewidth}
+        \footnotesize 注：TPR$=\mathrm{TP}/(\mathrm{TP}+\mathrm{FN})$；提前天数统计量仅对 TP 盘计算；三轮 test 月划分见表~\ref{tab:chap3-scheme-b-split}。
+    \end{minipage}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.98\linewidth]{figure/tp_lead_time_test_rf_W3_by_round.png}
+    \caption{\label{fig:chap3-tp-lead-time}Test 集 TP 提前预警天数分布（按 Round 分色，$W=3$，RF 单基，首跳对齐，阈值 0.5）}
+    \vspace{2pt}
+    \begin{minipage}{\linewidth}
+        \footnotesize 注：与表~\ref{tab:chap3-tp-lead-by-round} 对应；左/右分别为 MB1/MB2；柱色为 R1--R3；横轴 $d=t_{\mathrm{fail}}-t_{\mathrm{alarm}}$（天）。
+    \end{minipage}
+\end{figure}
 
 \subsection{局限性讨论}
 
-% TODO: 型号范围、分级迁移、B组局限、部署成本等
+本章方法仍存在以下局限：（1）实验型号限于 MB1/MB2，MB2 上 TPR 整体偏低（约 0.13），泛化性有待更多型号验证；（2）第 3 轮测试月各配置普遍下滑，提示时间漂移对盘级预警的影响；（3）稀有加权突变特征（式~\ref{equ:mutation-weighted}）的完整实验流水线尚待接入，当前数值基于未加权 Lag+$|\Delta|$ 过渡实现；（4）主实验 stacking 与 Attention 融合尚未统一到首跳对齐或 \texttt{jump\_inter3} 标签，部分配置仍待补全后方可作最终结论；（5）B 组突变特征未覆盖 A 组磨损背景的全部信息，静默故障盘仍难以检出。
 
 \section{本章小结}
 
-% TODO: 三条贡献 + 主要实验结论（待填数）
+本章面向盘级 30 天 SSD 故障预警，提出首跳对齐训练标签、含静态稀有权重的短期时序突变特征（A/B 组 Lag + B 组 $r_k|\Delta|$）与 RF/XGB/LGB+Attention 异构集成三模块方法。
+在 MB1 上，基于未加权 Lag+$|\Delta|$ 过渡实现，$W^{\ast}=3$；首跳对齐下 XGB 单基 $F_{0.5}=0.881$、RF 为 0.875，Attention 融合（\texttt{label\_30} 基模型）为 0.861。
+MB2 同协议下 TPR 约 0.13--0.19，三基模型与 Attention 均明显低于 MB1（见表~\ref{tab:chap3-main-results}）。
+稀有加权完整特征及首跳对齐下的 Attention 结果尚待补实验。
+标签消融（表~\ref{tab:chap3-label-ablation}）表明，宽窗 \texttt{label\_30} 显著损害 LGB；MB1 上 \texttt{jump\_inter3} 在 RF/XGB/LGB 上均维持较高 $F_{0.5}$，MB2 上 RF/XGB 与首跳对齐接近而 LGB 介于首跳对齐与 \texttt{label\_3} 之间；分轮 TP 提前预警天数进一步显示，各 test 月已检出盘均集中于故障前 0--1 日。
+MVTRF 等对比基线亦待补实验后写入终稿。
 
 \chapter{基于集成学习的固态硬盘寿命提升技术}
 
