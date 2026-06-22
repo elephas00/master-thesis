@@ -287,7 +287,7 @@ NAND 闪存的数据操作可归纳为编程（Program）与擦除（Erase）两
 \begin{itemize}
     \item 条带化（Striping）：将数据块分割成多个条带，分布到不同的存储设备上，提升并行读写性能。
     
-    \item RAID 技术：通过将多个物理磁盘组合成逻辑卷，提供数据冗余和性能提升。常见的 RAID 级别包括 RAID 0（条带化，无冗余）、RAID 1（镜像）、RAID 5（分布式奇偶校验）、RAID 6（双重分布式奇偶校验）等。
+    \item RAID 技术：通过将多个物理盘组合成逻辑卷，提供数据冗余和性能提升。常见的 RAID 级别包括 RAID 0（条带化，无冗余）、RAID 1（镜像）、RAID 5（分布式奇偶校验）、RAID 6（双重分布式奇偶校验）等。
 \end{itemize}
 
 被动容错技术的共同特点是：只能在故障发生后进行数据恢复，属于"事后补救"机制。虽然能够在一定程度上保障数据可靠性，但故障恢复过程需要消耗一定的时间和计算资源，可能导致系统服务降级。
@@ -394,7 +394,7 @@ LightGBM 是基于梯度提升框架的高效决策树集成算法，由 Guolin 
 
 
 
-\chapter{基于近端突变标注与突变时序特征集成的 SSD 故障预测方法}
+\chapter{基于近端突变标注与突变时序特征集成的固态硬盘故障预测方法}
 
 盘级 SSD 故障预测是数据中心主动容错的重要环节，其结果用于提前迁移数据、更换风险盘，对保障存储可靠性与在线服务稳定具有重要意义。
 前两章已介绍相关研究背景，以及 SMART 监控原理与随机森林、XGBoost、LightGBM 等集成学习方法，为后续建模与评估奠定了理论与方法基础。
@@ -430,10 +430,7 @@ LightGBM 是基于梯度提升框架的高效决策树集成算法，由 Guolin 
 \subsection{评估指标与盘级判定规则}
 \label{sec:chap3-disk-eval}
 
-基于上述盘级评估框架，对测试集中每块 SSD 在评估时间窗口内逐盘判定。
-若存在至少一条样本被预测为故障，则取最早一次预测为正的日期 $t_{\mathrm{alarm}}$ 作为该盘的告警时刻，并据此区分真正例与假正例。当 $t_{\mathrm{alarm}}$ 后 30 天内该盘实际发生故障时，计为真正例（TP）；若该盘在数据集中未记录故障却被触发告警，或虽有故障记录但 $t_{\mathrm{alarm}}$ 后 30 天内未实际发生故障，则均计为假正例（FP）。
-若评估窗口内始终未触发告警，则进一步区分假负例与真负例：实际发生故障却因未触发任何告警而未能被检出的磁盘，计为假负例（FN）；数据集中未记录故障且始终未触发告警的健康盘，计为真负例（TN）。
-判定示意见图~\ref{fig:tp-fp-tn-fn}。
+基于上述盘级评估框架，对测试集中每块 SSD 在评估时间窗口内逐盘判定，判定示意如图~\ref{fig:tp-fp-tn-fn}：
 
 \begin{figure}[htbp]
     \centering
@@ -442,26 +439,33 @@ LightGBM 是基于梯度提升框架的高效决策树集成算法，由 Guolin 
     \label{fig:tp-fp-tn-fn}
 \end{figure}
 
+具体的来说，若存在至少一条样本被预测为故障，则取最早一次预测为正的日期 $t_{\mathrm{alarm}}$ 作为该盘的告警时刻，并据此区分真正例与假正例。
+若 $t_{\mathrm{alarm}}$ 后 30 天内该盘确实发生故障，计为真正例（TP）；
+若$t_{\mathrm{alarm}}$  距离故障超过30天，则计为假正例（FP）；
+若该盘在数据集中从未记录故障却被触发告警，也则计为假正例（FP）；
+若评估窗口内始终未触发告警，则进一步区分假负例与真负例：
+若发生故障未能被检出，计为假负例（FN）；
+若未记录故障且始终未触发告警，计为真负例（TN）。
+
 为对比各模型在盘级 SSD 故障预测任务上的表现，本研究选取了四个在故障预测领域被广泛使用的评价指标：真正例率（TPR）、假正例率（FPR）、精确率（Precision）和 $F_{0.5}$ 分数。
-由于本章以盘级最早告警为评估单位，需先依据上述规则将测试集中每块 SSD 划分为 TP、FP、FN 或 TN，再在整个测试集的全部磁盘上统计各指标。
+由于本章以盘级最早告警为评估单位，需先依据上述规则将测试集中每块 SSD 划分为 TP、FP、FN 或 TN，再在整个测试集的全部盘上统计各指标。
 其中，TPR 与 FPR 分别刻画对实际故障盘的检出能力与对健康盘的误报水平，Precision 与 $F_{0.5}$ 则进一步衡量预警结果的精确性与综合权衡。
 下面分别介绍各评估指标的定义。
 
-TPR 表示实际发生故障的 SSD 中被成功预警的比例，也称为召回率（Recall）。
-该指标反映模型对真实故障盘的覆盖能力，TPR 越高，说明漏检的故障盘越少。
-其计算公式如下：
+TPR 表示故障盘中被成功预警的比例，也称为召回率（Recall）。
+该指标反映模型对真实故障盘的覆盖能力，TPR 越高，说明漏检的故障盘越少，其计算公式如下：
 \begin{equation}
     \mathrm{TPR} = \frac{TP}{TP+FN},
 \end{equation}
-其中，$TP$ 表示测试集中被正确预警的故障盘数量，$FN$ 表示实际发生故障但未触发告警的磁盘数量。
+其中，$TP$ 表示被正确预警的故障盘数，$FN$ 表示发生故障但未触发告警的盘数。
 
-FPR 表示健康 SSD 中被误判为故障并触发告警的比例。
-该指标直接关系到健康盘是否会被提前更换，FPR 越低，由误报引起的运维成本越小。
+FPR 表示健康 SSD 中被误判为故障并触发告警的比例，
+该指标直接关系到健康盘是否会被提前更换，FPR 越低，由误报导致的运维成本越小。
 其计算公式如下：
 \begin{equation}
     \mathrm{FPR} = \frac{FP}{FP+TN},
 \end{equation}
-其中，$FP$ 表示被误报为故障的健康盘数量，$TN$ 表示未触发告警且实际未发生故障的磁盘数量。
+其中，$FP$ 表示被误报为故障的健康盘数，$TN$ 表示未触发告警且未发生故障的盘数。
 
 Precision 表示所有触发告警的 SSD 中实际发生故障的比例。
 该指标反映预警结果的可信程度，Precision 越高，说明每次告警对应真实故障的可能性越大，有助于减少对健康盘的提前更换。
@@ -469,7 +473,7 @@ Precision 表示所有触发告警的 SSD 中实际发生故障的比例。
 \begin{equation}
     \mathrm{Precision} = \frac{TP}{TP+FP},
 \end{equation}
-其中，$TP+FP$ 为测试集中触发告警的磁盘总数。
+其中，$TP+FP$ 为触发告警的盘数。
 
 $F_{0.5}$ 分数是 $F_{\beta}$ 分数在 $\beta=0.5$ 时的特例，对 Precision 赋予高于 TPR 的权重。
 Xu 等人\cite{xu2021general}指出，一旦 SSD 被预测为故障，运维人员通常会将其下线送检；因此，误将健康盘判为故障（低 Precision）的代价高于漏检故障盘（低 Recall）。
@@ -479,6 +483,8 @@ Xu 等人\cite{xu2021general}指出，一旦 SSD 被预测为故障，运维人�
     F_{0.5} = \frac{(1+0.5^2) \cdot \mathrm{Precision} \cdot \mathrm{TPR}}{0.5^2 \cdot \mathrm{Precision} + \mathrm{TPR}}.
 \end{equation}
 
+
+\clearpage
 \section{数据集与预处理}
 
 \subsection{数据集描述}
@@ -536,7 +542,7 @@ $\rho_s$ 取值范围为 $[-1,1]$，$|\rho_s|$ 越大表示单调相关越强。
 \subsubsection{字段筛选}
 \label{sec:chap3-field-filter}
 
-数据集中每条记录除磁盘标识、观测日期与型号外，含 102 列 SMART 读数（51 个属性 ID 各含 $r_i$、$n_i$ 一列）。
+数据集中每条记录除 SSD 盘标识、观测日期与型号外，含 102 列 SMART 读数（51 个属性 ID 各含 $r_i$、$n_i$ 一列）。
 然而，如表~\ref{tab:mb1-mb2-subset-stats} 所示，两型号列级空值率分别达 62.79\% 与 64.76\%，部分属性在全体样本上恒为空、恒为常数，或 $r_i$ 与 $n_i$ 高度单调相关，有效信息密度较低。
 为此，本文在建模前对 SMART 字段进行列级筛选，剔除无效与冗余读数，以提升输入质量与可解释性。
 字段筛选分三步进行，各步判定条件与结果汇总如表~\ref{tab:field-filter-summary} 所示；各步剔除的具体读数列及原因见附录表~\ref{tab:app-field-filter-removed}。
@@ -572,26 +578,23 @@ $\rho_s$ 取值范围为 $[-1,1]$，$|\rho_s|$ 越大表示单调相关越强。
 
 \subsubsection{日历级时序质量分析}
 
-表~\ref{tab:mb1-mb2-subset-stats} 中的空值率指数据集中字段的单元格为空的比例。除字段为空外，各盘在日历轴上还存在整日 SMART 日志缺失（时序中断），需要在建模前评估时序质量并确定补全与剔除策略。
-
-为此，在补全前的原始观测上，对每块盘 $i$ 定义如下盘级指标：
-首末观测日 $t_{\mathrm{first},i}$、$t_{\mathrm{last},i}$；
-日历跨度 $\mathrm{span}_i=t_{\mathrm{last},i}-t_{\mathrm{first},i}+1$；
-实际有日志天数 $n_{\mathrm{obs},i}$；覆盖率 $\mathrm{cov}_i=n_{\mathrm{obs},i}/\mathrm{span}_i$；
-最长连续缺失天数 $G_{\max,i}$（相邻两次观测间隔减 1 天的最大值）；中断次数 $n_{\mathrm{gap},i}$（间隔 ${>}1$ 天的次数）。
-其中 $n_{\mathrm{obs},i}$ 刻画盘在日志可见区间内的有效观测长度，下文将结合预测窗口对其设定最小观测日数阈值。
-依据 $G_{\max,i}$ 与 $\mathrm{cov}_i$，将盘划分为轻度、中度与重度缺失三档，分别采取前向填充补全或整盘剔除，分流规则如图~\ref{fig:temporal-missing-schematic} 所示。
+除字段的单元格存在空值外，各盘在日历轴上还存在整日 SMART 日志缺失（时序中断），需要在建模前评估时序质量并进行日历集补全与剔除，如图 ~\ref{fig:temporal-missing-schematic} 所示 ：
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\linewidth]{figure/temporal-missing-schematic.png}
-    \caption{日历级缺失概念及按 $G_{\max}$ 分档的补全/剔除示意}
+    \caption{日历级缺失概念及补全/剔除示意}
     \label{fig:temporal-missing-schematic}
 \end{figure}
 
-在数据集上统计上述指标，结果见表~\ref{tab:temporal-quality-summary} 与图~\ref{fig:temporal-missing-distribution}。
-两型号SSD数据缺失的形态相近：约 99\% 的盘至少出现过一次日历中断，但 $G_{\max}\le 7$ 天的盘占 63.5\%--65.7\%，$\mathrm{cov}\ge 0.95$ 的盘占 68\%--70\%，说明多数盘属于图~\ref{fig:temporal-missing-schematic} 中的轻度缺失，可经前向填充继续使用。
-满足 $G_{\max}>30$ 或 $\mathrm{cov}<0.5$ 的重度缺失盘占 13.8\%--16.2\%，因其观测窗过碎、补全后时序与标签可靠性不足，拟整盘剔除，中度缺失盘（$8\le G_{\max}\le 30$）仍予保留。
+对每块盘 $i$，定义以下盘级指标：
+首末观测日 $t_{\mathrm{first},i}$、$t_{\mathrm{last},i}$；
+日历跨度 $\mathrm{span}_i=t_{\mathrm{last},i}-t_{\mathrm{first},i}+1$；
+实际观测天数 $n_{\mathrm{obs},i}$ 及覆盖率 $\mathrm{cov}_i=n_{\mathrm{obs},i}/\mathrm{span}_i$；
+最长连续缺失天数 $G_{\max,i}$（相邻观测间隔减 1 的最大值）；中断次数 $n_{\mathrm{gap},i}$（间隔 ${>}1$ 天的次数）。
+其中 $n_{\mathrm{obs},i}$ 刻画有效观测长度，下文将据此设定最小观测日数阈值。
+依据 $G_{\max,i}$ 与 $\mathrm{cov}_i$，将盘划分为轻、中、重度缺失三档，分别采取前向填充或整盘剔除。
+数据集统计结果见表~\ref{tab:temporal-quality-summary} 与图~\ref{fig:temporal-missing-distribution}。
 
 \begin{table}[htbp]
     \centering
@@ -615,17 +618,20 @@ $\rho_s$ 取值范围为 $[-1,1]$，$|\rho_s|$ 越大表示单调相关越强。
     \end{tabularx}
 \end{table}
 
-\begin{figure}[htbp]
+
+两型号 SSD 缺失形态相近：
+约 99\% 的盘至少出现过一次中断，但 $G_{\max}\le 7$ 天的盘占 63.5\%--65.7\%，$\mathrm{cov}\ge 0.95$ 的盘占 68\%--70\%，多数属轻度缺失，可经前向填充继续使用。
+满足 $G_{\max}>30$ 或 $\mathrm{cov}<0.5$ 的重度缺失盘占 13.8\%--16.2\%，因其观测窗过碎、补全后可靠性不足，拟整盘剔除；
+中度缺失盘（$8\le G_{\max}\le 30$）仍予保留。
+
+\begin{figure}[!htbp]
     \centering
     \includegraphics[width=\linewidth]{figure/temporal-missing-distribution.png}
     \caption{SMART 日日志日历缺失分布}
     \label{fig:temporal-missing-distribution}
 \end{figure}
 
-图~\ref{fig:temporal-missing-distribution}(a)--(b) 表明 $G_{\max}$ 在 1--7 天区间最为集中，图~\ref{fig:temporal-missing-distribution}(c) 给出与表~\ref{tab:temporal-quality-summary} 一致的分档占比。
-
-需说明的是，高覆盖盘中的故障盘比例反而更高（MB1 中 $\mathrm{cov}\ge 0.95$ 段盘级故障率约 4.8\%，$\mathrm{cov}<0.95$ 段约 2.5\%），也就是说失效前日志往往仍较连续，
-按 $G_{\max}$ 与 $\mathrm{cov}$ 剔除重度缺失盘主要依据是可建模性，而非故障率高低，拟剔除组仅占 MB1 故障盘的 12.3\%、MB2 的 9.3\%。
+图~\ref{fig:temporal-missing-distribution}(a)--(b) 表明 $G_{\max}$ 集中在 1--7 天区间，(c) 的分档占比与表~\ref{tab:temporal-quality-summary} 一致。需说明的是，高覆盖盘的故障率反而更高（例如 MB1 中 $\mathrm{cov}\ge 0.95$ 段的故障率约 4.8\%，而 $<0.95$ 段仅约 2.5\%），这表明盘在失效前的日志往往仍较连续。因此，按 $G_{\max}$ 与 $\mathrm{cov}$ 剔除重度缺失盘，其核心依据是可建模性而非故障率；实际上，拟剔除的重度缺失盘仅占 MB1 故障盘的 12.3\%、MB2 的 9.3\%。
 
 \subsubsection{建模样本筛选与缺失补全}
 \label{sec:chap3-imputation}
@@ -659,7 +665,8 @@ $\rho_s$ 取值范围为 $[-1,1]$，$|\rho_s|$ 越大表示单调相关越强。
 原始日志存在上述整日缺失与列级空值，缺失可能由采集中断、设备离线或字段未上报引起。
 此外，部分故障盘在标注故障日后仍持续上报 SMART 日志（可能是因为盘位未及时更换或标识未回收），此类故障后观测无法在故障发生前为故障预测提供信息，所以对标注故障盘删除 $d_s>t_{\mathrm{fail}}$ 的样本，仅保留 $d_s<=t_{\mathrm{fail}}$ 的日志。
 对表~\ref{tab:preprocessing-removal} 中保留盘，在 $[t_{\mathrm{first}},\min(t_{\mathrm{last}},t_{\mathrm{fail}})]$（健康盘取 $t_{\mathrm{last}}$）上按日历日补全时间轴。
-具体的来说，如果当 $X_{t-1}$ 存在，那么特征列采用前向填充 $X_t=X_{t-1}$，如果当 $X_{t-1}$ 不存在，先在无前值的首行使用该列所有样本的均值填充，再沿时间轴向前填充。
+
+具体的来说，如果 $X_{t-1}$ 存在，那么特征列采用前向填充 $X_t=X_{t-1}$，如果 $X_{t-1}$ 不存在，先在无前值的首行使用该列所有样本的均值填充，再沿时间轴向前填充。
 本文认为该策略在保留时序连续性的同时能避免对不可靠序列强行补全。
 
 \subsubsection{SMART 属性机制归纳}
@@ -734,7 +741,7 @@ B 组为其余属性，含错误计数、重映射与备用块等异常/突变�
 \end{figure}
 
 在数据集上进一步统计故障发生前的跳变命中率。
-具体的来说，于锚点日前 $W$ 日窗口内，仅在相邻原始观测日间计算 $|\Delta|$，若 $|\Delta|>0$ 则计为跳变；故障盘锚点取故障日期 $t_{\mathrm{fail}}$，健康盘取数据集中的最后一天观测日期 $t_{\mathrm{last}}$。
+具体的来说，于锚点日前 $W$ 日窗口内，仅在相邻原始观测日间计算属性差值的绝对值 $|\Delta|$，若 $|\Delta|>0$ 则计为跳变；故障盘锚点取故障日期 $t_{\mathrm{fail}}$，健康盘取数据集中的最后一天观测日期 $t_{\mathrm{last}}$。
 
 表~\ref{tab:b-group-jump-summary} 显示，按单属性统计命中率，MB1 中属性 5/180/183 在 $W=30$ 日命中率约 68.0\%，健康盘不足 0.1\%；MB2 同窗口仅约 12.5\%，相对 MB1 来说信号整体更弱。
 当按照整个B组属性统计命中率时，约 70\%（MB1）/ 20\%（MB2）故障盘在 $W=30$ 日的时间窗口内至少出现一次跳变，如图 ~\ref{fig:first-jump-pmf} 所示。
@@ -783,7 +790,7 @@ B 组为其余属性，含错误计数、重映射与备用块等异常/突变�
     \end{minipage}
 \end{figure}
 
-图~\ref{fig:first-jump-pmf} 以全部故障盘为分母，给出首跳距故障日 $d$ 的概率质量分布：左侧"无跳变"柱对应静默盘，其余柱对应首跳恰落在距故障日 $d$ 天的故障盘，各柱占比之和为 1。
+图~\ref{fig:first-jump-pmf} 以全部故障盘为分母，计算首跳距故障日 $d$ 的概率质量分布：左侧"无跳变"柱对应静默盘，其余柱对应首跳恰落在距故障日 $d$ 天的故障盘，各柱占比之和为 1。
 MB1 / MB2 中 30.2\% / 80.7\% 故障盘为静默故障盘。
 除"无跳变"柱外，$d=1$ 柱占比最高，占全部故障盘 60.6\% / 7.4\%。
 $d\le 3$ 累计占 65.7\% / 14.1\%，表明有跳变的故障盘其首跳亦多集中于接近故障发生的短时间窗口内。
@@ -799,7 +806,7 @@ MB2 两时间窗口的结果接近，分别为22.0\% / 19.3\% 有跳变，静默
     \setlength{\tabcolsep}{4pt}
     \begin{tabularx}{\linewidth}{@{}>{\centering\arraybackslash}p{1.1cm} >{\centering\arraybackslash}p{0.9cm} >{\centering\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X@{}}
         \toprule
-        型号 & $N$ & \multicolumn{2}{c}{$W=30$ 日} & \multicolumn{2}{c}{全观测期 $(t_{\mathrm{first}}, t_{\mathrm{fail}}]$} \\
+        型号 & $N$ & \multicolumn{2}{c}{ 30日预警窗口 $(t_{\mathrm{fail}}-30,\, t_{\mathrm{fail}}]$ } & \multicolumn{2}{c}{全观测期 $(t_{\mathrm{first}}, t_{\mathrm{fail}}]$} \\
         \cmidrule(lr){3-4} \cmidrule(lr){5-6}
         & & 有跳变 & 静默 & 有跳变 & 静默 \\
         \midrule
@@ -818,6 +825,7 @@ MB2 两时间窗口的结果接近，分别为22.0\% / 19.3\% 有跳变，静默
 MB1 中部分盘在全观测期曾出现跳变但失效前长期维持不变，特征表现与健康盘日常读数相近。
 表明前兆具有显著的稀疏性与盘间异质性，单一突变规则难以覆盖全部故障盘。
 
+\clearpage
 \section{所提方法}
 
 \subsection{短期时序突变特征}
@@ -972,6 +980,7 @@ p_t=
 其中 $\alpha_t$ 为类别平衡权重，$\gamma\ge0$ 为聚焦参数（本文取 $\gamma=2$）。
 在验证集样本上最小化 $\sum_{(i,t)}\mathcal{L}_{\mathrm{FL}}$ 以更新 Attention 融合参数。
 
+\clearpage
 \section{实验与分析}
 
 \subsection{实验设置与对比方法}
@@ -1165,20 +1174,13 @@ MB1 与 MB2 上的实验结果分别如表~\ref{tab:chap3-main-results-mb1} 和�
 \subsection{标签策略有效性分析}
 \label{sec:chap3-label-ablation}
 
-在 MB1/MB2 上固定 $W=3$ 突变特征（未加权 Lag+$|\Delta|$）与盘级评估协议（阈值 0.5），对四种训练标签分别重训 RF/XGB/LGB 三个基学习器，并按方案 B 三轮 test 月报告结果（表~\ref{tab:chap3-label-ablation}；划分见表~\ref{tab:chap3-scheme-b-split}）。
-表中单元格为 $F_{0.5}$/TPR。
-Attention 融合需以对应标签训好的基模型为前提，目前仅 \texttt{label\_30} 与 \texttt{label\_3} 在 MB1 上具备完整 stacking 结果（三轮平均 $F_{0.5}=0.861$），其余配置待补。
-
-由表~\ref{tab:chap3-label-ablation} 可见如下规律（MB1 为主分析，MB2 作同协议复现对照）。
-\textbf{（1）分轮趋势（MB1）：} R1/R2 各标签、各基学习器整体处于较高水平；R3（2019-11）普遍下滑，体现时间漂移对盘级预警的影响。
-\textbf{（2）宽窗 \texttt{label\_30} 对 LGB 的损害（MB1）：} 三轮平均下 LGB 的 $F_{0.5}$ 仅 0.494，R3 低至 0.367；MB2 上 LGB 亦整体偏低（三轮平均 0.032--0.129），宽窗标签在 R1 即出现极低 $F_{0.5}$（0.015）。
-\textbf{（3）短期标签对 LGB 的修复（MB1）：} \texttt{label\_3} 与 \texttt{jump\_inter3} 使 LGB 三轮平均 $F_{0.5}$ 升至 0.807--0.817；MB2 上 \texttt{label\_3} 将 LGB 从 0.129（首跳对齐）提升至 0.391，\texttt{jump\_inter3} 亦升至 0.291，但 RF $F_{0.5}$ 在 \texttt{label\_3} 下降至 0.318（\emph{vs.}\ 首跳对齐 0.467），在 \texttt{jump\_inter3} 下为 0.458，提示两型号对标签收紧的响应并不一致。
-\textbf{（4）首跳对齐 vs 逻辑与标签：} MB1 上 \texttt{jump\_inter3} 在三轮平均下使 RF/XGB/LGB 同步受益（RF/XGB 0.885、LGB 0.817）；MB2 上首跳对齐与 \texttt{label\_30} 的 RF/XGB 三轮平均一致（0.467/0.469 与 0.467/0.231），\texttt{jump\_inter3} 的 RF/XGB 与首跳对齐接近（0.458/0.454 \emph{vs.}\ 0.467/0.469），LGB 介于首跳对齐与 \texttt{label\_3} 之间（0.291 \emph{vs.}\ 0.129/0.391）。
-主实验仍采用首跳对齐标签，以强调标签—前兆对齐及静默盘处理；MB1 上若侧重集成栈中 LGB 稳定性，\texttt{jump\_inter3} 是更均衡的训练选择。
+为了说明本文提出的混合了首跳标签与固定窗口标签的标签策略的有效性，本节对比了四种不同的训练标签策略，分别是：首跳标记、当日标记、3日固定短窗、30日固定长窗。
+特征选取为Lag + $r_k|\Delta|$，对于MB1型号，$W=1$，$k=3$；对于MB2型号，$W=2$，$k=2$。使用RF/XGB/LGB三个基学习器，在MB1/MB2上分别进行训练，并报告盘级test平均的$F_{0.5}$。
+结果见表~\ref{tab:chap3-label-ablation}：
 
 \begin{table}[htbp]
     \centering
-    \caption{\label{tab:chap3-label-ablation}MB1/MB2 训练标签消融（$W=3$，盘级 test 平均，阈值 0.5；指标为 $F_{0.5}$）}
+    \caption{\label{tab:chap3-label-ablation}MB1/MB2 训练标签消融（$W=3$，盘级 test 平均，阈值 0.5；指标为 $F_{0.5}$/TPR）}
     \footnotesize
     \setlength{\tabcolsep}{4pt}
     \begin{tabularx}{\linewidth}{c *{5}{>{\centering\arraybackslash}X}}
@@ -1245,7 +1247,7 @@ Attention 融合需以对应标签训好的基模型为前提，目前仅 \textt
 分轮看，R1 中集成与 XGB、LGB 并列最优（0.686/0.304）；R2 中 RF/XGB/集成 $F_{0.5}$ 均为 0.556，LGB 的 TPR 更高（0.300 \emph{vs.}\ 0.200）；R3 随 test 月推移各方法均下滑，集成 $F_{0.5}$ 为 0.227，仍高于三基（0.192），TPR 同为 0.056。
 这表明在弱信号型号上，于网格最优配置下异构集成主要在 $F_{0.5}$ 上带来小幅但稳定的抬升，对 R3 边缘检出场景略有改善。
 
-综上所述，但现有数据已表明所题方法能够在保持高准确率的同时，增强系统在极端分布下的稳定性。
+综上所述，现有数据已表明所提方法能够在保持高准确率的同时，增强系统在极端分布下的稳定性。
 
 \subsection{测试集提前预警时间分布分析}
 \label{sec:chap3-tp-lead-time-analysis}
@@ -1650,7 +1652,7 @@ MVTRF 等对比基线亦待补实验后写入终稿。
         \toprule
         编号 & 需求类别 & 需求描述 \\
         \midrule
-        FR-01 & 基础数据管理 & 支持磁盘信息、SMART 日志与故障记录的增删改查及按序列号、日期检索 \\
+        FR-01 & 基础数据管理 & 支持对 SSD 盘信息、SMART 日志与故障记录的增删改查及按序列号、日期检索 \\
         FR-02 & 预测分析 & 按周期对增量日志执行预处理、特征构造与模型推理，生成预警记录及关联日志快照 \\
         FR-03 & 交互与可视化 & 提供列表分页、详情查看、预警状态更新等运维高频操作界面 \\
         FR-04 & 可扩展性 & 支持预测模型、特征构造模块与规则引擎的替换与升级，接口与数据表保持向后兼容 \\
@@ -1698,11 +1700,11 @@ MVTRF 等对比基线亦待补实验后写入终稿。
         \toprule
         编号 & 用例名称 & 参与者 & 用例描述 \\
         \midrule
-        UC-01 & 维护磁盘资产 & 运维用户 & 对 SSD 资产主数据进行统一管理 \\
-        UC-01a & 查询磁盘列表 & 运维用户 & 按序列号、型号等条件检索磁盘列表 \\
-        UC-01b & 新增磁盘信息 & 运维用户 & 录入序列号、型号、容量、厂商等字段 \\
-        UC-01c & 编辑磁盘信息 & 运维用户 & 修改已有磁盘的基础属性 \\
-        UC-01d & 删除磁盘记录 & 运维用户 & 删除无效或下线的磁盘资产记录 \\
+        UC-01 & 维护 SSD 盘资产 & 运维用户 & 对 SSD 资产主数据进行统一管理 \\
+        UC-01a & 查询 SSD 盘列表 & 运维用户 & 按序列号、型号等条件检索磁盘列表 \\
+        UC-01b & 新增 SSD 盘信息 & 运维用户 & 录入序列号、型号、容量、厂商等字段 \\
+        UC-01c & 编辑 SSD 盘信息 & 运维用户 & 修改已有磁盘的基础属性 \\
+        UC-01d & 删除 SSD 盘记录 & 运维用户 & 删除无效或下线的磁盘资产记录 \\
         UC-02 & 管理 SMART 日志 & 运维用户 & 对磁盘运行日志进行维护与检索 \\
         UC-02a & 按条件检索日志 & 运维用户 & 按序列号与日期范围查询 SMART 日志 \\
         UC-02b & 导入/维护日志 & 运维用户 & 导入或编辑 SMART 原始属性记录 \\
