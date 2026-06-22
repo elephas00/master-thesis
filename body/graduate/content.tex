@@ -1068,77 +1068,68 @@ MB1与MB2上的实验结果分别如表 ~\ref{tab:chap3-main-results-mb1} 和 ~\
 
 通过比较本文提出模型与与基准模型在测试集上所得出的结果，可以得到以下结论。
 
-\subsection{突变时序特征有效性分析}
-\label{sec:chap3-mutation-ablation}
+\subsection{关键超参数 $W$ 与 $k$ 的影响分析}
+\label{sec:chap3-wk-sensitivity}
 
-\subsubsection{回看窗口 $W$ 的敏感性}
+前述方法含两个相互耦合的超参数：回看窗口 $W$ 决定 Lag 与 $\tilde{\delta}$ 突变特征所覆盖的近期观测长度（\S\ref{sec:chap3-mutation-features}），标注短窗 $k$ 则通过式~(\ref{equ:proximal-mutation-label}) 将正样本限制于故障前 $k$ 日与 B 组首跳对齐的交集区间。
+二者分别作用于特征编码与监督信号构造，其取值宜与盘级 30 日评估窗口及 B 组首跳时间尺度（图~\ref{fig:first-jump-pmf}，$d\le 3$ 累计占 65.7\%）同阶匹配。
 
-在 MB1 上固定宽窗标注与 RF 单基学习器，比较 $W\in\{1,3,5,7\}$ 下的盘级指标（表~\ref{tab:chap3-window-ablation}；特征为未加权 Lag+$|\Delta|$）。
-$W=3$ 时 RF 的 $F_{0.5}$ 最高（0.881），$W=7$ 时降至 0.799，表明过长 Lag 回看会削弱近端突变与失效的关联。
-据此取 $W^{\ast}=3$；MB2 主实验与后续消融均沿用该取值。
-表中 $W=1,5$ 的 RF 结果待补；右列给出同协议下 Attention 融合的 $F_{0.5}$ 供参考（基模型均为 \texttt{label\_30}）。
-
-\begin{table}[htbp]
-    \centering
-    \caption{\label{tab:chap3-window-ablation}MB1 回看窗口 $W$ 敏感性（盘级 test 平均，阈值 0.5）}
-    \footnotesize
-    \begin{tabularx}{0.92\linewidth}{c c c c c c}
-        \toprule
-        $W$ & $F_{0.5}$（RF） & TPR（RF） & Precision（RF） & $F_{0.5}$（Attention） & TPR（Attention） \\
-        \midrule
-        1  & --    & --    & --    & --    & -- \\
-        3  & 0.881 & 0.661 & 0.972 & 0.861 & 0.658 \\
-        5  & --    & --    & --    & 0.862 & 0.647 \\
-        7  & 0.799 & 0.601 & 0.908 & 0.814 & 0.603 \\
-        \bottomrule
-    \end{tabularx}
-\end{table}
-
-\subsubsection{突变特征消融}
-
-表~\ref{tab:chap3-rarity-ablation} 对比 \S\ref{sec:chap3-mutation-features} 所定义的完整短期时序突变特征（Lag+$r_k|\Delta|$，本文方法）与\textbf{单纯 Lag 基线}（仅保留 A/B 组 $W$ 阶 Lag 读数，不引入 B 组按日差分）。
-前者在各轮训练月份的健康样本上估计 $r_k$ 后固定用于验证与测试；后者仅编码近期 SMART 读数水平，不含突变强度信息。
-表中两行实验均待补。
+为考察联合影响，在 MB1/MB2 上于 $W\in\{0,1,2,3\}$、$k\in\{0,1,2,3\}$ 网格上，采用 \texttt{jump\_inter} 标注（式~\ref{equ:proximal-mutation-label}）与完整突变特征（Lag + $r_k|\Delta|$），固定方案 B 三轮划分与盘级评估协议（阈值 0.5）；各格先训练 RF/XGB/LGB 基学习器，再以 Attention 融合（Focal Loss）得到最终输出。
+表~\ref{tab:chap3-wk-grid} 给出 MB1/MB2 上 Attention 集成的 $F_{0.5}$ 网格；MB1 全网格已完成，MB2 已完成 $W\in\{0,1\}$ 共 8 格（$W=2$、$W=3$ 待补，表中“--”）。
 
 \begin{table}[htbp]
     \centering
-    \caption{\label{tab:chap3-rarity-ablation}MB1 突变特征消融：本文方法 vs 单纯 Lag（$W=3$，RF 单基，首跳对齐，阈值 0.5）}
+    \caption{\label{tab:chap3-wk-grid} $W\times k$ 参数网格敏感性}
     \footnotesize
-    \begin{tabularx}{0.88\linewidth}{l c c c c}
+    \setlength{\tabcolsep}{3pt}
+    \begin{tabularx}{\linewidth}{c *{8}{>{\centering\arraybackslash}X}}
         \toprule
-        特征配置 & $F_{0.5}$ & TPR & Precision & FPR \\
+        & \multicolumn{4}{c}{MB1} & \multicolumn{4}{c}{MB2} \\
+        \cmidrule(lr){2-5} \cmidrule(lr){6-9}
+        $W\backslash k$ & $k{=}0$ & $k{=}1$ & $k{=}2$ & $k{=}3$ & $k{=}0$ & $k{=}1$ & $k{=}2$ & $k{=}3$ \\
         \midrule
-        Lag特征 + $r_k|\Delta|$（本文方法） & -- & -- & -- & -- \\
-        单 Lag 特征 & -- & -- & -- & -- \\
-        \bottomrule
-    \end{tabularx}
-\end{table}
-
-\subsection{异构集成有效性分析}
-\label{sec:chap3-ensemble-ablation}
-
-在 MB1 上固定 $W=3$、\texttt{label\_30} 训练标签与评估协议，对比不同集成配置（表~\ref{tab:chap3-ensemble-ablation}；特征为未加权 Lag+$|\Delta|$）。
-三基学习器分项指标见表~\ref{tab:chap3-main-results-mb1}、表~\ref{tab:chap3-main-results-mb2}；本表侧重 Attention 融合及无 Focal Loss 对照。
-RF 单基取得最高 $F_{0.5}$（0.881）；Attention 融合为 0.861，略低于 RF 单基；无 Focal Loss 的 MLP 对照实验待补。
-
-\begin{table}[htbp]
-    \centering
-    \caption{\label{tab:chap3-ensemble-ablation}MB1 异构集成消融（$W=3$，\texttt{label\_30}，盘级 test 平均，阈值 0.5）}
-    \footnotesize
-    \begin{tabularx}{0.72\linewidth}{l c c c c}
-        \toprule
-        配置 & $F_{0.5}$ & TPR & Precision & FPR \\
-        \midrule
-        RF+XGB+LGB+Attention（Focal Loss） & 0.861 & 0.658 & 0.940 & $8.2{\times}10^{-5}$ \\
-        RF+XGB+LGB+MLP（无 Focal Loss） & -- & -- & -- & -- \\
+        0 & 0.000 & 0.000 & 0.059 & 0.000 & 0.000 & 0.119 & 0.119 & 0.119 \\
+        1 & 0.800 & 0.918 & 0.919 & 0.921 & 0.249 & 0.478 & 0.467 & 0.458 \\
+        2 & 0.865 & 0.902 & 0.901 & 0.900 & 0.296 & 0.478 & 0.490 & 0.478 \\
+        3 & 0.849 & 0.881 & 0.877 & 0.872 & -- & -- & -- & -- \\
         \bottomrule
     \end{tabularx}
 
     \vspace{2pt}
     \begin{minipage}{\linewidth}
-        \footnotesize 注：RF/XGB/LGB 单基结果见表~\ref{tab:chap3-main-results-mb1}、表~\ref{tab:chap3-main-results-mb2}。
+        \footnotesize 注：各格在 RF/XGB/LGB 基学习器之上以 Attention 融合；MB1 已完成 16/16 格，MB2 已完成 8/16 格（$W{=}0$、$W{=}1$ 全行）。同协议 RF 单基：MB1 最高 $F_{0.5}=0.922$（$W{=}1$，$k{=}3$）；MB2 当前最高 0.478（$W{=}1$，$k{=}1$）。
     \end{minipage}
 \end{table}
+
+对表~\ref{tab:chap3-wk-grid} 的分析如下。
+
+\subsection{突变时序特征有效性分析}
+\label{sec:chap3-mutation-ablation}
+
+回看窗口 $W$ 与标注短窗 $k$ 的联合敏感性见 \S\ref{sec:chap3-wk-sensitivity}；本节固定 $W^{\ast}=3$、\texttt{jump\_inter3}，侧重突变特征本身的消融。
+
+\subsubsection{突变特征消融}
+
+表~\ref{tab:chap3-rarity-ablation} 对比 \S\ref{sec:chap3-mutation-features} 所定义的完整短期时序突变特征（Lag+$r_k|\Delta|$，本文方法）与两类消融基线：\textbf{单纯 Lag}（仅保留 A/B 组 $W$ 阶 Lag 读数，不引入 B 组按日差分）与\textbf{单纯突变}（仅保留 B 组稀有加权差分 $r_k|\Delta|$，不引入 Lag 读数）。
+完整配置在各轮训练月份的健康样本上估计 $r_k$ 后固定用于验证与测试；单纯 Lag 仅编码近期 SMART 读数水平，单纯突变仅编码按日突变强度，二者均缺少另一路信息。
+表中三行实验均待补。
+
+\begin{table}[htbp]
+    \centering
+    \caption{\label{tab:chap3-rarity-ablation}MB1 突变特征消融（$W=3$，RF 单基，\texttt{jump\_inter3}，盘级 test 平均，阈值 0.5）}
+    \footnotesize
+    \begin{tabularx}{0.88\linewidth}{l c c c c}
+        \toprule
+        特征配置 & $F_{0.5}$ & TPR & Precision & FPR \\
+        \midrule
+        Lag + $r_k|\Delta|$（本文方法） & -- & -- & -- & -- \\
+        单 Lag 特征 & -- & -- & -- & -- \\
+        单 $r_k|\Delta|$ 突变特征 & -- & -- & -- & -- \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+对表~\ref{tab:chap3-rarity-ablation} 的分析如下。
 
 \subsection{首跳对齐标签有效性分析}
 \label{sec:chap3-label-ablation}
@@ -1217,16 +1208,42 @@ Attention 融合需以对应标签训好的基模型为前提，目前仅 \textt
     \end{minipage}
 \end{table}
 
+对表~\ref{tab:chap3-label-ablation} 的分析如下。
+
+\subsection{异构集成有效性分析}
+\label{sec:chap3-ensemble-ablation}
+
+在 MB1 上固定 $W=3$、\texttt{label\_30} 训练标签与评估协议，对比不同集成配置（表~\ref{tab:chap3-ensemble-ablation}；特征为未加权 Lag+$|\Delta|$）。
+三基学习器分项指标见表~\ref{tab:chap3-main-results-mb1}、表~\ref{tab:chap3-main-results-mb2}；本表侧重 Attention 融合及无 Focal Loss 对照。
+RF 单基取得最高 $F_{0.5}$（0.881）；Attention 融合为 0.861，略低于 RF 单基；无 Focal Loss 的 MLP 对照实验待补。
+
+\begin{table}[htbp]
+    \centering
+    \caption{\label{tab:chap3-ensemble-ablation}MB1 异构集成消融（$W=3$，\texttt{label\_30}，盘级 test 平均，阈值 0.5）}
+    \footnotesize
+    \begin{tabularx}{0.72\linewidth}{l c c c c}
+        \toprule
+        配置 & $F_{0.5}$ & TPR & Precision & FPR \\
+        \midrule
+        RF+XGB+LGB+Attention（Focal Loss） & 0.861 & 0.658 & 0.940 & $8.2{\times}10^{-5}$ \\
+        RF+XGB+LGB+MLP（无 Focal Loss） & -- & -- & -- & -- \\
+        \bottomrule
+    \end{tabularx}
+
+    \vspace{2pt}
+    \begin{minipage}{\linewidth}
+        \footnotesize 注：RF/XGB/LGB 单基结果见表~\ref{tab:chap3-main-results-mb1}、表~\ref{tab:chap3-main-results-mb2}。
+    \end{minipage}
+\end{table}
+
+对表~\ref{tab:chap3-tp-lead-by-round} 的分析如下。
+
+\subsection{测试集提前预警时间分布分析}
+\label{sec:chap3-tp-lead-time-analysis}
+
 盘级检出率尚不足以说明有效前兆所处的时间尺度。
 为此，在 $W=3$、RF 单基、首跳对齐训练标签与阈值 0.5 设定下，按方案 B 三轮 test 月分别统计 TP 的提前预警天数 $d=t_{\mathrm{fail}}-t_{\mathrm{alarm}}$（$d\in[0,30]$ 计为 TP，见 \S\ref{sec:chap3-disk-eval}）。
 \textbf{分轮汇总见表~\ref{tab:chap3-tp-lead-by-round}，分布形态见图~\ref{fig:chap3-tp-lead-time}}；二者分工为：表便于横向对比各 test 月的检出规模与提前天数统计量，图展示 $d$ 在 0--30 日上的具体分布。
-
-由表~\ref{tab:chap3-tp-lead-by-round} 可见，\textbf{检出时效}与\textbf{检出规模}应分开解读。
-就时效而言，MB1 三轮 TP 的提前天数中位数均为 1 天，$d=1$ 占比稳定在 93\%--94\%，$d\le 1$ 占比为 97\%--100\%，表明在不同 test 月下，\emph{已被检出}的故障盘其告警时刻均贴近故障日；
-MB2 虽各轮仅 1--6 块 TP，但提前天数中位数均为 0 天且全部满足 $d\le 1$，与图~\ref{fig:first-jump-pmf} 及 $W^{\ast}=3$ 所对应的近端突变时间尺度一致。
-就规模而言，MB1 R3 的 FN 升至 48 盘、TPR 降至 47.8\%，MB2 亦呈 R1$\to$R3 递减（TPR 由 27.3\% 降至 5.6\%），说明时间漂移主要影响\textbf{能否检出}，而非已检出盘的\textbf{提前多久}——图~\ref{fig:chap3-tp-lead-time} 中 R3 柱形仍集中于 $d=1$，与 R1/R2 形态一致，即该结论。
-据此，\texttt{label\_3} 与 \texttt{jump\_inter3} 将正样本收紧至故障前 3 日（并与首跳对齐取交），在 RF 上取得略优的 $F_{0.5}$（表~\ref{tab:chap3-label-ablation}），具有与检出时效一致的标签语义。
-此外，三轮 test 中“过早告警”（首次告警距故障日 $>30$ 天）在 MB1/MB2 上均为 0，宽窗训练标签并未在部署口径下转化为距故障日过远的虚警。
 
 \begin{table}[htbp]
     \centering
@@ -1264,6 +1281,14 @@ MB2 虽各轮仅 1--6 块 TP，但提前天数中位数均为 0 天且全部满�
         \footnotesize 注：图例中 \texttt{FAIL\_CNT} 为该轮次所在月的故障盘数量；$d>2$ 日处柱顶标注 \texttt{R$r$·d$d$·×$n$} 依次表示测试轮次、提前天数及该处 TP 盘数（如 \texttt{R2·d6·×1} 即第二轮在 $d=6$ 检出 1 盘）；横轴 $d=t_{\mathrm{fail}}-t_{\mathrm{alarm}}$（天）。
     \end{minipage}
 \end{figure}
+
+由表~\ref{tab:chap3-tp-lead-by-round} 可见，\textbf{检出时效}与\textbf{检出规模}应分开解读。
+就时效而言，MB1 三轮 TP 的提前天数中位数均为 1 天，$d=1$ 占比稳定在 93\%--94\%，$d\le 1$ 占比为 97\%--100\%，表明在不同 test 月下，\emph{已被检出}的故障盘其告警时刻均贴近故障日；
+MB2 虽各轮仅 1--6 块 TP，但提前天数中位数均为 0 天且全部满足 $d\le 1$，与图~\ref{fig:first-jump-pmf} 及 $W^{\ast}=3$ 所对应的近端突变时间尺度一致。
+就规模而言，MB1 R3 的 FN 升至 48 盘、TPR 降至 47.8\%，MB2 亦呈 R1$\to$R3 递减（TPR 由 27.3\% 降至 5.6\%），说明时间漂移主要影响\textbf{能否检出}，而非已检出盘的\textbf{提前多久}——图~\ref{fig:chap3-tp-lead-time} 中 R3 柱形仍集中于 $d=1$，与 R1/R2 形态一致，即该结论。
+据此，\texttt{label\_3} 与 \texttt{jump\_inter3} 将正样本收紧至故障前 3 日（并与首跳对齐取交），在 RF 上取得略优的 $F_{0.5}$（表~\ref{tab:chap3-label-ablation}），具有与检出时效一致的标签语义。
+此外，三轮 test 中“过早告警”（首次告警距故障日 $>30$ 天）在 MB1/MB2 上均为 0，宽窗训练标签并未在部署口径下转化为距故障日过远的虚警。
+
 
 \subsection{局限性讨论}
 
