@@ -850,17 +850,15 @@ $W$ 控制 Lag 回看的日历长度，过小则上下文不足，过大则远�
 在第~\ref{sec:chap3-b-mutation-eda}~节中的观察表明，部分故障盘存在静默故障问题：这些故障盘在预警时间窗口内的 B 组特征长期保持不变，直到临近故障才会产生跳变，甚至故障发生后也不会产生跳变。
 这类静默故障盘难以与正常运行的盘区分，将它们的样本标记为正样本可能会引入标签噪声，使模型倾向于将健康样本误判。
 为了保留失效前变化信息的同时减少噪声带来的风险，本文提出一种将固定窗口标签与首次跳变观测标签取交集的混合标记策略。
-图~\ref{fig:chap3-label-strategy} 给出了固定长窗、固定短窗、首跳窗口与本文提出标记策略的直观示意。
+图~\ref{fig:chap3-label-strategy} 给出了固定长窗、固定短窗、故障当日窗口、首跳窗口与本文混合标记策略的直观示意。
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\linewidth]{figure/chap3-label-strategy.png}
-    \caption{\label{fig:chap3-label-strategy}标记策略对比示意}
+    \caption{\label{fig:chap3-label-strategy}标记策略对比示意（固定窗口从左至右为全长窗、$k=3$ 短窗及 $k=0$ 故障当日；绿色为有效正例，斜线填充为无效正例）}
 \end{figure}
 
-固定窗口标记是一种常用的标记策略，
-这种方法认为仅将故障盘的故障发生当日样本标记的做法忽略了故障发生是一个变化的过程，回看故障发生前一段时间的并将这些样本标记为正样本能够捕捉这种变化。
-具体的来说，对故障盘 $i$，记故障日为 $t_{\mathrm{fail},i}$，回看窗口长度 $k$ ，定义：
+固定窗口标记是一种常用的标记策略，具体的来说，对故障盘 $i$，记故障日为 $t_{\mathrm{fail},i}$，回看窗口长度 $k$，定义：
 \begin{equation}
 \label{equ:fixed-window-label}
 y^{\mathrm{fix}}_{i,t}=
@@ -872,8 +870,9 @@ y^{\mathrm{fix}}_{i,t}=
 \right.
 \end{equation}
 对健康盘，该策略恒为 0。
-
-该策略的优点是实现简单，图~\ref{fig:first-jump-pmf} 亦表明有跳变故障盘的首跳多集中于故障前短窗，但是固定窗口无法将首次跳变前的静默段从正类中剥离，亦无法排除静默故障盘。
+当 $k=0$ 时，式~(\ref{equ:fixed-window-label}) 退化为故障当日窗口。
+该策略实现简单、几乎不引入静默段误标，但正例极为稀疏，且无法利用首跳至故障前数日的征兆信息，对静默故障盘虽可在故障日标正，却几乎不提供可学习的提前预警样本。
+将 $k$ 增大至故障前短窗，则可在保留近端失效变化的同时扩大正例规模，但无法将首跳前的静默段从正类中剥离，亦无法排除静默故障盘。
 
 首次跳变观测标签以第~\ref{sec:chap3-b-mutation-eda}~节的首跳观测为界，仅在样本已出现 B 组可分辨跳变前兆之后标为正例，从而将预警窗内首跳前的零基线段标为负例。
 跳变口径与式~(\ref{equ:mutation-delta}) 一致，在相邻原始观测日间，若存在特征属性 $k\in\mathcal{B}$ 使 $\delta_{i,t,k}>0$，则 $t$ 为跳变日，对故障盘 $i$，于预警窗 $(t_{\mathrm{fail},i}-30,\, t_{\mathrm{fail},i}]$ 内取最早跳变日
@@ -1074,30 +1073,31 @@ MB1与MB2上的实验结果分别如表 ~\ref{tab:chap3-main-results-mb1} 和 ~\
 前述方法含两个相互耦合的超参数：回看窗口 $W$ 决定 Lag 与 $\tilde{\delta}$ 突变特征所覆盖的近期观测长度（\S\ref{sec:chap3-mutation-features}），标注短窗 $k$ 则通过式~(\ref{equ:proximal-mutation-label}) 将正样本限制于故障前 $k$ 日与 B 组首跳对齐的交集区间。
 二者分别作用于特征编码与监督信号构造，其取值宜与盘级 30 日评估窗口及 B 组首跳时间尺度（图~\ref{fig:first-jump-pmf}，$d\le 3$ 累计占 65.7\%）同阶匹配。
 
-为考察联合影响，在 MB1/MB2 上于 $W\in\{0,1,2,3\}$、$k\in\{0,1,2,3\}$ 网格上，采用 \texttt{jump\_inter} 标注（式~\ref{equ:proximal-mutation-label}）与完整突变特征（Lag + $r_k|\Delta|$），固定方案 B 三轮划分与盘级评估协议（阈值 0.5）；各格先训练 RF/XGB/LGB 基学习器，再以 Attention 融合（Focal Loss）得到最终输出。
-表~\ref{tab:chap3-wk-grid} 给出 MB1/MB2 上 Attention 集成的 $F_{0.5}$ 网格；MB1 全网格已完成，MB2 已完成 $W\in\{0,1\}$ 共 8 格（$W=2$、$W=3$ 待补，表中“--”）。
+为考察联合影响，在 MB1/MB2 上对 $W$ 和 $k$ 参数进行搜索，采用 \texttt{jump\_inter} 标注（式~\ref{equ:proximal-mutation-label}）与完整突变特征（Lag + $r_k|\Delta|$），三轮划分与盘级评估协议。
+各格先训练 RF/XGB/LGB 基学习器，再以 Attention 融合（Focal Loss）得到最终输出。
+表~\ref{tab:chap3-wk-grid} 给出 MB1/MB2 上 Attention 集成的 $F_{0.5}$ 网格，其中 $W\in\{0,1,2,3\}$, MB1 型号 $k\in\{0,1,2,3,4\}$， MB2 型号 $k\in\{0,1,2,3\}$。
 
 \begin{table}[htbp]
     \centering
     \caption{\label{tab:chap3-wk-grid} $W\times k$ 参数网格敏感性}
     \footnotesize
     \setlength{\tabcolsep}{3pt}
-    \begin{tabularx}{\linewidth}{c *{8}{>{\centering\arraybackslash}X}}
+    \begin{tabularx}{\linewidth}{c *{10}{>{\centering\arraybackslash}X}}
         \toprule
-        & \multicolumn{4}{c}{MB1} & \multicolumn{4}{c}{MB2} \\
-        \cmidrule(lr){2-5} \cmidrule(lr){6-9}
-        $W\backslash k$ & $k{=}0$ & $k{=}1$ & $k{=}2$ & $k{=}3$ & $k{=}0$ & $k{=}1$ & $k{=}2$ & $k{=}3$ \\
+        & \multicolumn{5}{c}{MB1} & \multicolumn{5}{c}{MB2} \\
+        \cmidrule(lr){2-6} \cmidrule(lr){7-11}
+        $W\backslash k$ & $k{=}0$ & $k{=}1$ & $k{=}2$ & $k{=}3$ & $k{=}4$ & $k{=}0$ & $k{=}1$ & $k{=}2$ & $k{=}3$ & $k{=}4$ \\
         \midrule
-        0 & 0.000 & 0.000 & 0.059 & 0.000 & 0.000 & 0.119 & 0.119 & 0.119 \\
-        1 & 0.800 & 0.918 & 0.919 & 0.921 & 0.249 & 0.478 & 0.467 & 0.458 \\
-        2 & 0.865 & 0.902 & 0.901 & 0.900 & 0.296 & 0.478 & 0.490 & 0.478 \\
-        3 & 0.849 & 0.881 & 0.877 & 0.872 & -- & -- & -- & -- \\
+        0 & 0.000 & 0.000 & 0.059 & 0.000 & -- & 0.000 & 0.119 & 0.119 & 0.119 & -- \\
+        1 & 0.800 & 0.918 & 0.919 & 0.921 & 0.915 & 0.249 & 0.478 & 0.467 & 0.458 & -- \\
+        2 & 0.865 & 0.902 & 0.901 & 0.900 & -- & 0.296 & 0.478 & 0.490 & 0.478 & -- \\
+        3 & 0.849 & 0.881 & 0.877 & 0.872 & -- & -- & -- & -- & -- & -- \\
         \bottomrule
     \end{tabularx}
 
     \vspace{2pt}
     \begin{minipage}{\linewidth}
-        \footnotesize 注：各格在 RF/XGB/LGB 基学习器之上以 Attention 融合；MB1 已完成 16/16 格，MB2 已完成 8/16 格（$W{=}0$、$W{=}1$ 全行）。同协议 RF 单基：MB1 最高 $F_{0.5}=0.922$（$W{=}1$，$k{=}3$）；MB2 当前最高 0.478（$W{=}1$，$k{=}1$）。
+        \footnotesize 注：各格在 RF/XGB/LGB 基学习器之上以 Attention 融合；MB1 已完成 17/20 格（$k\in\{0,1,2,3\}$ 全网格，$k{=}4$ 仅 $W{=}1$），MB2 已完成 8/20 格（$W{=}0$、$W{=}1$ 在 $k\in\{0,1,2,3\}$ 全行）。同协议 RF 单基：MB1 最高 $F_{0.5}=0.922$（$W{=}1$，$k{=}3$），$k{=}4$ 为 0.921（$W{=}1$，RF）/ 0.915（Attention）；MB2 当前最高 0.478（$W{=}1$，$k{=}1$）。
     \end{minipage}
 \end{table}
 
