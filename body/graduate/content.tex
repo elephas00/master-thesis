@@ -1142,30 +1142,56 @@ MB1 与 MB2 上的实验结果分别如表~\ref{tab:chap3-main-results-mb1} 和�
 \subsection{突变时序特征有效性分析}
 \label{sec:chap3-mutation-ablation}
 
-回看窗口 $W$ 与标注短窗 $k$ 的联合敏感性见 \S\ref{sec:chap3-wk-sensitivity}；为隔离突变特征本身的贡献，本节固定 $W^{\ast}=3$、\texttt{jump\_inter3}（与主实验最优 $W$ 不同，属控制变量设计），侧重 Lag 与 $r_k|\Delta|$ 两路信息的消融。
-
+回看窗口 $W$ 与标注短窗 $k$ 的联合敏感性见 \S\ref{sec:chap3-wk-sensitivity}，本节对 MB1 和 MB2 分别选择最优 $W=1$，$k=3$和 $W=2$，$k=2$进行消融实验，分别训练RF/XGB/LGB三个基学习器并且集成学习，在MB1/MB2上分别进行训练，并按方案~B 三轮测试月分别报告盘级指标，同时给出三轮 test 平均。
 表~\ref{tab:chap3-rarity-ablation} 对比 \S\ref{sec:chap3-mutation-features} 所定义的完整短期时序突变特征（Lag+$r_k|\Delta|$，本文方法）与两类消融基线：\textbf{单纯 Lag}（仅保留 A/B 组 $W$ 阶 Lag 读数，不引入 B 组按日差分）与\textbf{单纯突变}（仅保留 B 组稀有加权差分 $r_k|\Delta|$，不引入 Lag 读数）。
 完整配置在各轮训练月份的健康样本上估计 $r_k$ 后固定用于验证与测试；单纯 Lag 仅编码近期 SMART 读数水平，单纯突变仅编码按日突变强度，二者均缺少另一路信息。
-表中六行实验均待补。
 
 \begin{table}[htbp]
     \centering
-    \caption{\label{tab:chap3-rarity-ablation}MB1/MB2 突变特征消融（$W=3$，RF 单基，\texttt{jump\_inter3}，盘级 test 平均，阈值 0.5）}
+    \caption{\label{tab:chap3-rarity-ablation}MB1/MB2 突变特征消融（Attention 集成）}
     \footnotesize
-    \begin{tabularx}{0.92\linewidth}{c l c c c c}
+    \setlength{\tabcolsep}{4pt}
+    \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}} c l c c c c c @{}}
         \toprule
-        型号 & 特征配置 & $F_{0.5}$ & TPR & Precision & FPR \\
+        型号 & 特征配置 & 轮次 & $F_{0.5}$ & TPR & Precision & FPR \\
         \midrule
-        \multirow{3}{*}{MB1}
-        & Lag + $r_k|\Delta|$（本文方法） & -- & -- & -- & -- \\
-        & 单 Lag 特征 & -- & -- & -- & -- \\
-        & 单 $r_k|\Delta|$ 突变特征 & -- & -- & -- & -- \\
-        \multirow{3}{*}{MB2}
-        & Lag + $r_k|\Delta|$（本文方法） & -- & -- & -- & -- \\
-        & 单 Lag 特征 & -- & -- & -- & -- \\
-        & 单 $r_k|\Delta|$ 突变特征 & -- & -- & -- & -- \\
+        \multirow{12}{*}{MB1}
+        & \multirow{4}{*}{Lag + $r_k|\Delta|$（本文方法）} & R1 & 0.947 & 0.783 & 1.00 & 0 \\
+        &  & R2 & 0.900 & 0.723 & 0.959 & $5.4\times10^{-5}$ \\
+        &  & R3 & 0.914 & 0.710 & 0.985 & $2.7\times10^{-5}$ \\
+        &  & 平均 & \textbf{0.921} & \textbf{0.738} & \textbf{0.981} & \textbf{$2.7\times10^{-5}$} \\
+        \addlinespace[2pt]
+        & \multirow{4}{*}{单 Lag 特征} & R1 & 0.827 & 0.489 & 1.00 & 0 \\
+        &  & R2 & 0.821 & 0.540 & 0.944 & $5.4\times10^{-5}$ \\
+        &  & R3 & 0.730 & 0.382 & 0.944 & $5.5\times10^{-5}$ \\
+        &  & 平均 & \underline{0.793} & \underline{0.470} & 0.963 & \underline{$3.6\times10^{-5}$} \\
+        \addlinespace[2pt]
+        & \multirow{4}{*}{单 $r_k|\Delta|$ 突变特征} & R1 & 0.102 & 0.022 & 1.00 & 0 \\
+        &  & R2 & 0.868 & 0.708 & 0.920 & $1.1\times10^{-4}$ \\
+        &  & R3 & 0.836 & 0.527 & 0.980 & $2.7\times10^{-5}$ \\
+        &  & 平均 & 0.602 & 0.419 & \underline{0.967} & $4.5\times10^{-5}$ \\
+        \midrule
+        \multirow{12}{*}{MB2}
+        & \multirow{4}{*}{Lag + $r_k|\Delta|$（本文方法）} & R1 & 0.686 & 0.304 & 1.00 & 0 \\
+        &  & R2 & 0.556 & 0.200 & 1.00 & 0 \\
+        &  & R3 & 0.227 & 0.056 & 1.00 & 0 \\
+        &  & 平均 & \textbf{0.490} & \textbf{0.187} & \textbf{1.00} & \textbf{0} \\
+        \addlinespace[2pt]
+        & \multirow{4}{*}{单 Lag 特征} & R1 & 0.192 & 0.045 & 1.00 & 0 \\
+        &  & R2 & 0.000 & 0.000 & 0.000 & 0 \\
+        &  & R3 & 0.000 & 0.000 & 0.000 & 0 \\
+        &  & 平均 & 0.064 & 0.015 & 0.333 & \textbf{0} \\
+        \addlinespace[2pt]
+        & \multirow{4}{*}{单 $r_k|\Delta|$ 突变特征} & R1 & 0.686 & 0.304 & 1.00 & 0 \\
+        &  & R2 & 0.556 & 0.200 & 1.00 & 0 \\
+        &  & R3 & 0.192 & 0.056 & 0.500 & $2.4\times10^{-5}$ \\
+        &  & 平均 & \underline{0.478} & \underline{0.187} & \underline{0.833} & $8.1\times10^{-6}$ \\
         \bottomrule
-    \end{tabularx}
+    \end{tabular*}
+    \vspace{2pt}
+    \parbox{\linewidth}{
+        \footnotesize 注：Attention 集成；MB1 取 $W{=}1$、$k{=}3$，MB2 取 $W{=}2$、$k{=}2$；\textbf{加粗}、\underline{下划线}仅在各行“平均”中按列标注最优与次优（并列时同档一并标注）。
+    }
 \end{table}
 
 对表~\ref{tab:chap3-rarity-ablation} 的分析如下。
@@ -1175,27 +1201,35 @@ MB1 与 MB2 上的实验结果分别如表~\ref{tab:chap3-main-results-mb1} 和�
 \label{sec:chap3-label-ablation}
 
 为了说明本文提出的混合了首跳标签与固定窗口标签的标签策略的有效性，本节对比了四种不同的训练标签策略，分别是：首跳标记、当日标记、3日固定短窗、30日固定长窗。
-特征选取为Lag + $r_k|\Delta|$，对于MB1型号，$W=1$，$k=3$；对于MB2型号，$W=2$，$k=2$。使用RF/XGB/LGB三个基学习器，在MB1/MB2上分别进行训练，并报告盘级test平均的$F_{0.5}$。
+特征选取为Lag + $r_k|\Delta|$，对于MB1型号，$W=1$；对于MB2型号，$W=2$。使用RF/XGB/LGB三个基学习器并且集成学习，在MB1/MB2上分别进行训练，并按方案~B 三轮测试月分别报告盘级指标，同时给出三轮 test 平均。
 结果见表~\ref{tab:chap3-label-ablation}：
 
 \begin{table}[htbp]
     \centering
-    \caption{\label{tab:chap3-label-ablation}MB1/MB2 训练标签消融（$W=3$，盘级 test 平均，阈值 0.5；指标为 $F_{0.5}$/TPR）}
+    \caption{\label{tab:chap3-label-ablation}MB1/MB2 训练标签消融（Attention 集成，阈值 0.5；单元格为 $F_{0.5}$/TPR）}
     \footnotesize
     \setlength{\tabcolsep}{4pt}
-    \begin{tabularx}{\linewidth}{c *{5}{>{\centering\arraybackslash}X}}
+    \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}} c c *{5}{c} @{}}
         \toprule
-        型号 & 本文方法 & 首跳标记 & 当日标记 & 3日固定短窗 & 30日固定长窗 \\
+        型号 & 轮次 & 本文方法 & 首跳标记 & 当日标记 & 3日固定短窗 & 30日固定长窗 \\
         \midrule
-        MB1 & -- & -- & -- & -- & -- \\
-        MB2 & -- & -- & -- & -- & -- \\
+        \multirow{4}{*}{MB1}
+        & R1 & \textbf{0.947}/\underline{0.783} & 0.898/\textbf{0.804} & 0.828/0.533 & 0.921/0.761 & \underline{0.928}/\underline{0.783} \\
+        & R2 & \textbf{0.900}/\textbf{0.723} & 0.887/\textbf{0.723} & 0.792/0.460 & \underline{0.895}/\underline{0.708} & 0.868/\underline{0.708} \\
+        & R3 & \underline{0.914}/\underline{0.710} & 0.904/\underline{0.710} & 0.812/0.506 & \textbf{0.918}/\textbf{0.720} & 0.894/\underline{0.710} \\
+        & 平均 & \textbf{0.921}/\underline{0.738} & 0.896/\textbf{0.746} & 0.811/0.500 & \underline{0.911}/0.730 & 0.897/0.733 \\
+        \midrule
+        \multirow{4}{*}{MB2}
+        & R1 & \textbf{0.686}/\textbf{0.304} & \underline{0.652}/\underline{0.273} & 0.192/0.045 & \textbf{0.686}/\textbf{0.304} & 0.595/0.227 \\
+        & R2 & \textbf{0.556}/\textbf{0.200} & \textbf{0.556}/\textbf{0.200} & \textbf{0.556}/\textbf{0.200} & \textbf{0.556}/\textbf{0.200} & 0.357/0.100 \\
+        & R3 & \textbf{0.227}/\textbf{0.056} & \underline{0.192}/\textbf{0.056} & 0.000/0.000 & \underline{0.192}/\textbf{0.056} & \underline{0.192}/\textbf{0.056} \\
+        & 平均 & \textbf{0.490}/\textbf{0.187} & 0.467/\underline{0.176} & 0.249/0.082 & \underline{0.478}/\textbf{0.187} & 0.382/0.128 \\
         \bottomrule
-    \end{tabularx}
-
+    \end{tabular*}
     \vspace{2pt}
-    \begin{minipage}{\linewidth}
-        \footnotesize 注：本文方法为 \texttt{jump\_inter3}（式~\ref{equ:proximal-mutation-label}，$k{=}3$）；首跳标记见式~\ref{equ:jump-label}；当日标记为 $k{=}0$ 固定窗口（式~\ref{equ:fixed-window-label}）；3日/30日固定短窗与长窗分别为 $k{=}3$、$k{=}30$ 的固定窗口标记。
-    \end{minipage}
+    \parbox{\linewidth}{
+        \footnotesize 注：MB1 取 $W{=}1$，MB2 取 $W{=}2$；各行轮次内按列比较，\textbf{加粗}、\underline{下划线}分别表示 $F_{0.5}$ 与 TPR 的最优与次优（并列时同档一并标注）。
+    }
 \end{table}
 
 对表~\ref{tab:chap3-label-ablation} 的分析如下。
