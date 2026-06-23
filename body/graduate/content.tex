@@ -402,6 +402,7 @@ LightGBM 是基于梯度提升框架的高效决策树集成算法，由 Guolin 
 本章面向盘级 30 天预警任务，研究立足于正样本极度稀疏与近端突变信号弱且易被淹没并存的实际痛点。
 具体而言，既有方案多在较长观测窗口下对高维 SMART 属性进行 Lag、滑动统计等复杂特征工程\cite{xu2021general,wang2022ssd,zhang2023multi}，易稀释失效前极短时段内 B 组属性的阶跃突变，使近端前兆难以保留；
 且若将故障日前整段 30 日窗口均标为正样本，会把首次跳变前长期静默的日样本引入训练，形成标签噪声，
+
 为此，本章首先提出近端突变标注策略：在首次跳变观察时刻基础之上，将正样本进一步限制于故障前短期时间窗口，使监督信号与 $W=3$ 突变特征及盘级检出时效同尺度对齐。
 进而构造短期时序突变特征：以 $W$ 阶 Lag 保留 A/B 组近期读数水平，并对 B 组追加稀有加权后的按日差分绝对值以刻画突变强度。
 此外，盘级正负样本极度不平衡，单一分类器又易受模型偏置影响、判别稳定性不足\cite{li2025mtms}，
@@ -410,7 +411,7 @@ LightGBM 是基于梯度提升框架的高效决策树集成算法，由 Guolin 
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.92\linewidth]{figure/chap3-pipeline.png}
+    \includegraphics[width=0.92\linewidth]{figure/chap3-pipeline.pdf}
     \caption{本章 SSD 故障预测方法总体流程}
     \label{fig:chap3-pipeline}
 \end{figure}
