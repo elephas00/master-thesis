@@ -5,7 +5,12 @@
 其一，故障预测问题，即在监控数据早期信息有限且噪声较多的条件下，如何在低误报约束下稳定识别潜在故障盘；
 其二，寿命提升问题，即在统一寿命阈值策略难以刻画块间耐久差异的情况下，如何有效识别块的使用寿命，并在近零误报约束下尽可能准确地预测出块寿命，进而将预测结果转化为可执行策略以提高整体可写入量。围绕上述问题，本文开展了如下工作：
 
-（1）围绕故障预测问题，基于阿里云公开 SMART 数据集开展 B 组近端突变前兆观察与 A/B 属性归纳，提出混合标注策略抑制静默段标签噪声，构造 $W$ 阶 Lag 与 $r_k|\Delta|$ 相结合的短期时序突变特征，并采用 RF、XGB、LGB 异构基学习器与 Attention 样本级融合构成集成模型；实验按日历月时间顺序划分，以盘级 $F_{0.5}$ 为主指标在验证集上优化阈值。在 MB1/MB2 上，异构集成三轮测试均值分别取得 $F_{0.5}{=}0.921$、TPR $0.738$ 与 $F_{0.5}{=}0.490$、TPR $0.187$，且 FPR 维持在较低水平，验证了所提方法在低误报约束下的有效性。
+（1）围绕故障预测问题，基于阿里云公开 SMART 数据集开展 B 组近端突变前兆观察，提出混合标注策略抑制静默段标签噪声，
+构造 $W$ 阶 滞后特征与加权突变特征相结合的短期时序突变特征，
+并采用 RF、XGB、LGB 异构基学习器与 Attention 样本级融合构成集成模型；
+实验按日历月时间顺序划分，以盘级 $F_{0.5}$ 为主指标在验证集上优化阈值。
+在 MB1/MB2 上，异构集成三轮测试均值分别取得 $F_{0.5}{=}0.921$、TPR $0.738$ 与 $F_{0.5}{=}0.490$、TPR $0.187$，
+且 FPR 维持在较低水平，验证了所提方法在低误报约束下的有效性。
 
 （2）围绕寿命提升问题，基于块级错误比特计数（Fault Bit Count, FBC）构建寿命标签，并将块寿命预测问题转化为强块/弱块分类问题：对弱块采用更保守写入上限、对强块在安全边界内适度放宽阈值，以提升整体可写入量。实验结果显示，相比统一 PE 阈值策略，该方法可带来约 17\% 的累计写入量提升，验证了预测驱动寿命优化策略的有效性。
 
@@ -21,11 +26,11 @@
 With the rapid development of cloud computing, big data, and artificial intelligence applications, storage and computing demands continue to grow, which drives the continuous expansion of data centers.
 As a key storage medium, the reliability and lifetime utilization efficiency of solid-state drives (SSDs) directly affect service continuity and operation costs. 
 In this context, this thesis focuses on two related but distinct problems:
- (1) failure prediction, i.e., how to stably identify potential faulty drives under low false-alarm constraints when early monitoring signals are weak and noisy; and 
- (2) lifetime enhancement, i.e., how to identify strong and weak blocks and accurately detect blocks eligible for threshold relaxation under near-zero false alarms, then translate prediction results into executable write policies.
+ (1) for failure prediction, stably identifying potential faulty drives under low false-alarm constraints when early monitoring signals are weak and noisy; and 
+ (2) for lifetime enhancement, identifying strong and weak blocks and accurately detecting blocks eligible for threshold relaxation under near-zero false alarms, and translating prediction results into executable write policies.
 The main contributions are as follows:
 
-(1) For failure prediction, this thesis analyzes proximal B-group mutation precursors on the Alibaba Cloud public SMART dataset, proposes a hybrid labeling strategy to suppress label noise in silent segments, constructs short-term mutation features combining $W$-order Lag terms with $r_k|\Delta|$, and builds an ensemble of RF, XGB, and LGB base learners fused by sample-level Attention. Experiments follow calendar-month temporal splits and optimize thresholds on the validation set with disk-level $F_{0.5}$ as the primary metric. On MB1/MB2, the heterogeneous ensemble achieves three-round mean $F_{0.5}$/TPR of 0.921/0.738 and 0.490/0.187, respectively, with FPR kept at a low level.
+(1) For failure prediction, this thesis analyzes proximal B-group mutation precursors on the Alibaba Cloud public SMART dataset, proposes a hybrid labeling strategy to suppress label noise in silent segments, constructs short-term temporal mutation features by combining $W$-order lag features with weighted mutation features, and builds an ensemble of RF, XGB, and LGB base learners fused by sample-level Attention. Experiments follow calendar-month temporal splits and optimize thresholds on the validation set with disk-level $F_{0.5}$ as the primary metric. On MB1/MB2, the heterogeneous ensemble achieves three-round mean $F_{0.5}$/TPR of 0.921/0.738 and 0.490/0.187, respectively, with FPR kept at a low level.
 
 (2) For lifetime enhancement, this thesis constructs lifespan labels from block-level Fault Bit Count (FBC) and converts block-level prediction results into a differentiated write strategy: conservative write limits are applied to weak blocks, while thresholds for strong blocks are moderately relaxed within safety boundaries. Experimental results show that, compared with a uniform PE-threshold policy, the proposed strategy increases cumulative writable amount by about 17\%.
 
