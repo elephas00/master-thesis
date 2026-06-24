@@ -1079,7 +1079,7 @@ p_t=
         \cmidrule(lr){2-6} \cmidrule(lr){7-10}
         $W\backslash k$ & $k{=}0$ & $k{=}1$ & $k{=}2$ & $k{=}3$ & $k{=}4$ & $k{=}0$ & $k{=}1$ & $k{=}2$ & $k{=}3$ \\
         \midrule
-        0 & 0.000 & 0.000 & 0.059 & 0.000 & 0.000 & 0.000 & 0.119 & 0.119 & 0.119 \\
+        0 & 0.000 & 0.362 & 0.077 & 0.602 & 0.865 & 0.359 & 0.478 & 0.478 & 0.478 \\
         1 & 0.800 & 0.918 & \underline{0.919} & \textbf{0.921} & 0.915 & 0.249 & \underline{0.478} & 0.467 & 0.458 \\
         2 & 0.865 & 0.902 & 0.901 & 0.900 & 0.904 & 0.296 & \underline{0.478} & \textbf{0.490} & \underline{0.478} \\
         3 & 0.849 & 0.881 & 0.877 & 0.872 & 0.881 & 0.249 & \underline{0.478} & 0.474 & \underline{0.478} \\
@@ -1095,7 +1095,7 @@ p_t=
 
 由表~\ref{tab:chap3-wk-grid} 可见，$W$ 与 $k$ 对盘级 $F_{0.5}$ 的影响既相互独立又彼此耦合。
 
-就 $W$ 而言，$W{=}0$ 时 Lag 特征退化为空，突变通道仅剩单日差分，MB1/MB2 上 $F_{0.5}$ 均接近 0，表明在混合标注导致的稀疏正样本设定下，必须保留短期 Lag 上下文方能支撑有效预警。MB1 在 $W{=}1$--$3$ 区间内 $F_{0.5}$ 均维持在 0.87 以上，说明主型号对回看长度具有一定鲁棒性，$W{=}1$ 时达到最优（0.921）；MB2 则对 $W$ 更为敏感，$W{=}2$ 时最优（0.490），过短或过长回看均略低于该配置。两型号最优 $W^{\ast}$ 分别为 1 日与 2 日，均落在 1--2 日量级，与图~\ref{fig:first-jump-pmf} 所示 B 组首跳集中于故障前 1--2 日（$d{=}1$ 占比最高）的观察相吻合，说明特征回看窗口宜与近端突变发生的时间尺度对齐。
+就 $W$ 而言，$W{=}0$ 时 Lag 特征退化为空，突变通道仅剩 B 组按日差分；MB1 在 $k{=}0$/$k{=}2$ 上 $F_{0.5}$ 仍偏低（0.077--0.362），$k{=}3$ 时为 0.602；$k{=}4$ 在基学习器均正常收敛时可升至 0.865，但仍明显低于 $W{=}1$ 最优格 0.921，表明缺少 Lag 水平上下文制约了近端预警上限；MB2 在 $W{=}0$、$k{\ge}1$ 时可达 0.478，与 $W{=}2$ 最优 0.490 接近，但 $k{=}0$ 仅 0.359。MB1 在 $W{=}1$--$3$ 区间内 $F_{0.5}$ 均维持在 0.87 以上，$W{=}1$ 时达到最优（0.921）；MB2 则对 $W$ 更为敏感，$W{=}2$ 时最优（0.490）。两型号最优 $W^{\ast}$ 分别为 1 日与 2 日，均落在 1--2 日量级，与图~\ref{fig:first-jump-pmf} 所示 B 组首跳集中于故障前 1--2 日（$d{=}1$ 占比最高）的观察相吻合。
 
 就 $k$ 而言，$k{=}0$（故障当日标注）在两型号上均明显落后，正例过稀导致模型难以学习提前预警；将 $k$ 扩大至 1--3 日后，$F_{0.5}$ 迅速抬升，与图~\ref{fig:first-jump-pmf} 所示首跳多集中于近故障短窗口的统计一致。MB1 在 $k{=}3$ 达峰，MB2 在 $k{=}2$ 略优，二者最优标注短窗同样处于 1--3 日量级，验证了混合标注将正样本限制于故障前短窗与 B 组首跳对齐的设定。
 
@@ -1106,54 +1106,39 @@ p_t=
 \label{sec:chap3-main-results}
 
 在 \S\ref{sec:chap3-wk-sensitivity} 确定各型号最优 $(W^{\ast}, k^{\ast})$ 后，本节将本文异构集成与文献复现基线进行对比，采用盘级 TPR、FPR、Precision 与 $F_{0.5}$ 四项指标评估。
-MB1 与 MB2 上的实验结果分别如表~\ref{tab:chap3-main-results-mb1} 和表~\ref{tab:chap3-main-results-mb2} 所示。
+MB1 与 MB2 上的实验结果如表~\ref{tab:chap3-main-results} 所示。
 其中数据均保留三位有效数字，加粗表示该列中的最大值，下划线表示该列中的次大值。
 
 \begin{table}[htbp]
     \centering
-    \caption{\label{tab:chap3-main-results-mb1}MB1 盘级性能对比}
-    \scriptsize
-    \setlength{\tabcolsep}{5pt}
-    \begin{tabularx}{0.88\linewidth}{>{\centering\arraybackslash}m{1.8cm} *{4}{>{\centering\arraybackslash}X}}
+    \caption{\label{tab:chap3-main-results}盘级性能对比}
+    \footnotesize
+    \setlength{\tabcolsep}{4pt}
+    \begin{tabularx}{\linewidth}{>{\centering\arraybackslash}m{1.0cm} >{\centering\arraybackslash}m{1.8cm} *{4}{>{\centering\arraybackslash}X}}
         \toprule
-        方法 & TPR & FPR & Precision & $F_{0.5}$ \\
+        型号 & 方法 & TPR & FPR & Precision & $F_{0.5}$ \\
         \midrule
-        本文方法 & 0.738 & $2.71\times10^{-5}$ & 0.981 & 0.921 \\
-        RF       & -- & -- & -- & -- \\
-        MVT-RF   & -- & -- & -- & -- \\
-        MSFRD    & -- & -- & -- & -- \\
-        AE       & -- & -- & -- & -- \\
-        TCAN     & -- & -- & -- & -- \\
+        \multirow{6}{*}{MB1}
+        & 本文方法 & 0.738 & $2.71\times10^{-5}$ & 0.981 & 0.921 \\
+        & RF       & -- & -- & -- & -- \\
+        & MVT-RF   & -- & -- & -- & -- \\
+        & MSFRD    & -- & -- & -- & -- \\
+        & AE       & -- & -- & -- & -- \\
+        & TCAN     & -- & -- & -- & -- \\
+        \midrule
+        \multirow{6}{*}{MB2}
+        & 本文方法 & 0.187 & 0 & 1.00 & 0.490 \\
+        & RF       & -- & -- & -- & -- \\
+        & MVT-RF   & -- & -- & -- & -- \\
+        & MSFRD    & -- & -- & -- & -- \\
+        & AE       & -- & -- & -- & -- \\
+        & TCAN     & -- & -- & -- & -- \\
         \bottomrule
     \end{tabularx}
 
     \vspace{2pt}
     \begin{minipage}{\linewidth}
-        \footnotesize 注：本文方法取 \S\ref{sec:chap3-wk-sensitivity} 最优格（$W{=}1$、$k{=}3$）异构集成三轮测试的均值
-    \end{minipage}
-\end{table}
-
-\begin{table}[htbp]
-    \centering
-    \caption{\label{tab:chap3-main-results-mb2}MB2 盘级性能对比}
-    \scriptsize
-    \setlength{\tabcolsep}{5pt}
-    \begin{tabularx}{0.88\linewidth}{>{\centering\arraybackslash}m{1.8cm} *{4}{>{\centering\arraybackslash}X}}
-        \toprule
-        方法 & TPR & FPR & Precision & $F_{0.5}$ \\
-        \midrule
-        本文方法 & 0.187 & 0 & 1.00 & 0.490 \\
-        RF       & -- & -- & -- & -- \\
-        MVT-RF   & -- & -- & -- & -- \\
-        MSFRD    & -- & -- & -- & -- \\
-        AE       & -- & -- & -- & -- \\
-        TCAN     & -- & -- & -- & -- \\
-        \bottomrule
-    \end{tabularx}
-
-    \vspace{2pt}
-    \begin{minipage}{\linewidth}
-        \footnotesize 注：本文方法取 \S\ref{sec:chap3-wk-sensitivity} 最优格（$W{=}2$、$k{=}2$）异构集成三轮，各方法均在相同数据集划分与盘级评估协议下报告三轮测试的均值。
+        \footnotesize 注：本文方法取 \S\ref{sec:chap3-wk-sensitivity} 最优格（MB1：$W{=}1$、$k{=}3$；MB2：$W{=}2$、$k{=}2$）异构集成三轮测试的均值；各方法均在相同数据集划分与盘级评估协议下报告三轮测试的均值。
     \end{minipage}
 \end{table}
 
