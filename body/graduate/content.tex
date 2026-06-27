@@ -602,7 +602,7 @@ $\rho_s$ 取值范围为 $[-1,1]$，$|\rho_s|$ 越大表示单调相关越强。
 \begin{table}[htbp]
     \centering
     \caption{\label{tab:temporal-quality-summary}日历时序质量汇总}
-    \footnotesize
+
     \begin{tabularx}{\linewidth}{l>{\centering\arraybackslash}X>{\centering\arraybackslash}X}
         \toprule
         统计项 & MB1 & MB2 \\
@@ -621,7 +621,7 @@ $\rho_s$ 取值范围为 $[-1,1]$，$|\rho_s|$ 越大表示单调相关越强。
     \end{tabularx}
 \end{table}
 
-上表~\ref{tab:temporal-quality-summary} 列出了数据集的日历级时序质量汇总，两型号 SSD 缺失形态相近：约 99\% 的盘至少出现过一次中断，但 $G_{\max}\le 7$ 天的盘占 63.5\%--65.7\%，$\mathrm{cov}\ge 0.95$ 的盘占 68\%--70\%，多数属轻度缺失，可经前向填充继续使用。
+表~\ref{tab:temporal-quality-summary} 列出了数据集的日历级时序质量汇总，两型号 SSD 缺失形态相近：约 99\% 的盘至少出现过一次中断，但 $G_{\max}\le 7$ 天的盘占 63.5\%--65.7\%，$\mathrm{cov}\ge 0.95$ 的盘占 68\%--70\%，多数属轻度缺失，可经前向填充继续使用。
 满足 $G_{\max}>30$ 或 $\mathrm{cov}<0.5$ 的重度缺失盘占 13.8\%--16.2\%，因其观测窗过碎、补全后可靠性不足，拟整盘剔除；
 中度缺失盘（$8\le G_{\max}\le 30$）仍予保留。
 
@@ -642,7 +642,7 @@ $\rho_s$ 取值范围为 $[-1,1]$，$|\rho_s|$ 越大表示单调相关越强。
 \begin{table}[htbp]
     \centering
     \caption{\label{tab:preprocessing-removal}预处理剔除与保留}
-    \footnotesize
+
     \begin{tabularx}{\linewidth}{lX>{\centering\arraybackslash}X>{\centering\arraybackslash}X}
         \toprule
         对象 & 规则 & MB1 & MB2 \\
@@ -673,14 +673,14 @@ $\rho_s$ 取值范围为 $[-1,1]$，$|\rho_s|$ 越大表示单调相关越强。
 
 \subsubsection{SMART 属性机制归纳}
 
-经上述筛选后，共保留 16 个有效 SMART 属性 ID、20 列读数（每个 ID 均含原始读数；其中属性 12、180、241、242 另含归一化读数），根据语义将其整理如表~\ref{tab:smart-features-ab} 所示：
+经上述筛选后，共保留 16 个有效 SMART 属性 ID、20 列读数（每个 ID 均含原始读数；其中属性 12、180、241、242 另含归一化读数），根据语义将其整理如表~\ref{tab:smart-features-ab} 所示。
 
 \begin{table}[htbp]
     \centering
     \caption{\label{tab:smart-features-ab}SMART 属性 A/B 分组}
-    \footnotesize
+
     \setlength{\tabcolsep}{5pt}
-    \begin{tabularx}{\linewidth}{@{}>{\centering\arraybackslash}p{0.85cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{5.4cm} >{\centering\arraybackslash}p{1.5cm}@{}}
+    \begin{tabularx}{\linewidth}{@{}>{\centering\arraybackslash}p{0.85cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{5.2cm} >{\centering\arraybackslash}p{2.2cm}@{}}
         \toprule
         ID & 中文名称 & 英文名称 & 特征类型 \\
         \midrule
@@ -710,7 +710,7 @@ $\rho_s$ 取值范围为 $[-1,1]$，$|\rho_s|$ 越大表示单调相关越强。
 
     \vspace{2pt}
     \begin{minipage}{\linewidth}
-        \footnotesize 注：归一化读数 $n_i$ 与其对应 $r_i$ 同组（表中仅列属性 ID）。
+     注：归一化读数 $n_i$ 与其对应 $r_i$ 同组（表中仅列属性 ID）。
     \end{minipage}
 \end{table}
 
@@ -756,7 +756,7 @@ MB2 样例则盘间差异更为突出：仅部分盘在近端出现弱阶跃，�
 \begin{table}[htbp]
     \centering
     \caption{\label{tab:b-group-jump-summary}B 组属性跳变命中率}
-    \footnotesize
+
     \setlength{\tabcolsep}{5pt}
     \begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{2.8cm} >{\centering\arraybackslash}p{1.2cm} >{\centering\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X@{}}
         \toprule
@@ -778,7 +778,7 @@ MB2 样例则盘间差异更为突出：仅部分盘在近端出现弱阶跃，�
 
     \vspace{2pt}
     \begin{minipage}{\linewidth}
-        \footnotesize 注：于锚点日前 $W$ 日窗口内，相邻原始观测日间 $|\Delta|>0$ 计为跳变；故障盘锚点为 $t_{\mathrm{fail}}$，健康盘为 $t_{\mathrm{last}}$。属性 5、180、183 在 MB1 上命中率相同，故合并列出。
+     注：于锚点日前 $W$ 日窗口内，相邻原始观测日间 $|\Delta|>0$ 计为跳变；故障盘锚点为 $t_{\mathrm{fail}}$，健康盘为 $t_{\mathrm{last}}$。属性 5、180、183 在 MB1 上命中率相同，故合并列出。
     \end{minipage}
 \end{table}
 
@@ -799,7 +799,7 @@ $W=30$ 日时，MB1 属性 5/180/183 命中率约 68.0\%（健康盘不足 0.1\%
     \caption{\label{fig:first-jump-pmf}B 组首跳距故障日分布}
     \vspace{2pt}
     \begin{minipage}{\linewidth}
-        \footnotesize 注：纵轴为占故障盘比例；"无跳变"表示 30 日内 B 组读数列均无 $|\Delta|>0$；$d$ 为 $t_{\mathrm{fail}}-t_{\mathrm{first\_jump}}$（天）。
+     注：纵轴为占故障盘比例；"无跳变"表示 30 日内 B 组读数列均无 $|\Delta|>0$。
     \end{minipage}
 \end{figure}
 
@@ -811,7 +811,7 @@ $W=30$ 日时，MB1 属性 5/180/183 命中率约 68.0\%（健康盘不足 0.1\%
 \begin{table}[htbp]
     \centering
     \caption{\label{tab:first-jump-window-compare}B 组首跳窗口对比}
-    \footnotesize
+
     \setlength{\tabcolsep}{4pt}
     \begin{tabularx}{\linewidth}{@{}>{\centering\arraybackslash}p{1.1cm} >{\centering\arraybackslash}p{0.9cm} >{\centering\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X@{}}
         \toprule
@@ -824,10 +824,6 @@ $W=30$ 日时，MB1 属性 5/180/183 命中率约 68.0\%（健康盘不足 0.1\%
         \bottomrule
     \end{tabularx}
 
-    \vspace{2pt}
-    \begin{minipage}{\linewidth}
-        \footnotesize 注：跳变定义与表~\ref{tab:b-group-jump-summary} 一致；MB1 中 6.4\%（72 盘）仅在全观测期有跳变、30 日内静默；MB2 对应 2.6\%（12 盘）。
-    \end{minipage}
 \end{table}
 
 表~\ref{tab:first-jump-window-compare} 表明，
@@ -890,7 +886,7 @@ $W$ 控制 Lag 回看的日历长度，过小则上下文不足，过大则远�
     \caption{\label{fig:chap3-label-strategy}训练标签策略对比}
     \vspace{2pt}
     \begin{minipage}{\linewidth}
-        \footnotesize 注：固定窗口从左至右为全长窗、$k{=}3$ 短窗及 $k{=}0$ 故障当日；绿色为有效正例，斜线填充为无效正例。
+     注：固定窗口从左至右为全长窗、$k{=}3$ 短窗及 $k{=}0$ 故障当日；绿色为有效正例，斜线填充为无效正例。
     \end{minipage}
 \end{figure}
 
@@ -1005,13 +1001,15 @@ p_t=
 
 实验在预处理后的 MB1、MB2 子集上进行。
 数据集按日历月做时间顺序划分，训练窗自 2018 年 6 月（剔除入池早期样本后的首个可用月）起算；月份以 2018 年 1 月为第 1 月编号。
-采用三轮划分，每轮以连续训练月份拟合模型、以紧邻 1 个月为验证集、以下 1 个月为测试集，具体如表~\ref{tab:chap3-scheme-b-split} 所示。
-各轮测试集互不重叠；三轮测试集上的盘级指标取算术平均作为主结果。
+采用三轮划分，每轮以连续训练月份拟合模型、以紧邻 1 个月为验证集、再之后 1 个月为测试集
+（例如第 1 轮对应日历约为训练 2018-06–2019-07、验证 2019-08、测试 2019-09），
+具体如表~\ref{tab:chap3-scheme-b-split} 所示。
+各轮测试集时间互不重叠，三轮测试集上的盘级指标取算术平均作为主结果。
 
 \begin{table}[htbp]
     \centering
     \caption{\label{tab:chap3-scheme-b-split}数据集时间划分}
-    \footnotesize
+
     \begin{tabularx}{0.88\linewidth}{c>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X}
         \toprule
         轮次 & 训练集（月） & 验证集（月） & 测试集（月） \\
@@ -1021,11 +1019,6 @@ p_t=
         3 & 6--21 & 22 & 23 \\
         \bottomrule
     \end{tabularx}
-
-    \vspace{2pt}
-    \begin{minipage}{\linewidth}
-        \footnotesize 注：例如第 1 轮对应日历约为训练 2018-06--2019-07、验证 2019-08、测试 2019-09。
-    \end{minipage}
 \end{table}
 
 \subsubsection{训练与评估流程}
@@ -1040,17 +1033,20 @@ p_t=
 验证月份不参与基分类器训练，其概率仅用于融合模块拟合与阈值选取。
 
 盘级评估指标采用 TPR、FPR、Precision 与 $F_{0.5}$。
-主实验统一采用混合标注与 Lag+$r_k|\Delta|$ 完整突变特征；标签策略与突变特征消融在固定其余设定下替换单一组件，样本级阈值取 0.5。
-异构集成消融中将集成输出与 RF、XGB、LGB 单基结果对比时，单基学习器省略 Attention 融合步骤，仅在验证集上调整阈值。
+测试月评估盘集合取该月数据集中出现过的盘。
+对各方法，若某日因历史窗不足等原因无法构造有效特征，则该日样本不参与分类推理、也不产生告警，
+若整盘在测试月均无有效特征，盘级视为未预警，等价于将该盘预测为健康盘。
 
-\clearpage
+主实验统一采用混合标注与 Lag+$r_k|\Delta|$ 完整突变特征；标签策略与突变特征消融在固定其余设定下替换单一组件，样本级阈值取 0.5。
+异构集成消融中将集成输出与 RF、XGB、LGB 单基结果对比时，单基学习器省略 Attention 融合步骤，仅在验证集上调整参数。
+
 \subsubsection{对比模型介绍}
 
-为全面评估所提方法的性能，本文将其与一系列基线方法进行了对比，这些基线模型涵盖了无监督学习模型、传统机器学习模型和深度学习模型。
+为全面评估所提方法的性能，本文将其与一系列基线方法进行了对比，这些基线模型涵盖了无监督学习模型、传统机器学习模型、深度学习模型和集成模型。
 
 \begin{itemize}[noitemsep, topsep=4pt, parsep=0pt]
     \item RF~\cite{xu2021general}：
-        采用 30 固定窗口标签，
+        采用 30 日固定窗口标签，
         对SMART数据构造 7天 / 3天 时间窗口内的统计特征，
         使用 XGBoost 进行特征筛选（MB1 保留28\%、MB2 保留26\%）去除冗余特征，
         使用随机森林模型作为分类器进行故障预测。
@@ -1063,13 +1059,20 @@ p_t=
         采用故障当日标签与 10 日 SMART 序列输入，190/194 为波动组、其余为单调组；
         对训练集 $1{:}100$ 降采样后 后 Min-Max 归一化，
         使用 TCAN（LSTM--Transformer 交叉注意力 + 特征分组，BCE，Adam，100 epoch）进行训练。
-    \item MVT-RF~\cite{zhang2023multi}：多视图多任务随机森林（MVTRF）在特征层除短期原始监控量外，引入直方图统计特征与序列相关特征，分别刻画 SMART/Telemetry 的长期分布形态与时序关联，并以分组决策树并行学习上述多视图输入；在任务层联合故障预测、故障类型分类与剩余寿命估计，以缓解单一短期窗口难以覆盖长期退化模式的问题。该方法在腾讯云 PM1733/PM9A3 私有数据集上取得了较高 $F_{0.5}$。
-    \item MSFRD~\cite{zhang2024msfrd}：基于突变相似度的故障评级与诊断（MSFRD）面向生产环境中 Telemetry 指标重要性漂移与未见故障模式并存的挑战，实时从监控序列中动态提取稀少突变特征，并通过与历史故障盘、健康盘突变模式的相似度度量进行故障判别与细粒度评级；对轻度故障盘可持续跟踪并给出渐进式处置建议。其在字节跳动 41-M/10-M 数据集上的故障预测精度与召回均优于多种既有方案。
+    \item MVT-RF~\cite{zhang2023multi}：
+        采用 30 日固定窗口标签，
+        对 SMART 原始读数构造序列相关与直方图多视图特征，并拼接为组合特征。
+        对原始特征、序列特征、直方图特征和组合特征分别进行特征筛选（原始特征不进行）并训练随机森林模型，
+        使用得到的四个随机森林投票得出故障预测结果。
+        
+    % \item MSFRD~\cite{zhang2024msfrd}：基于突变相似度的故障评级与诊断（MSFRD）面向生产环境中 Telemetry 指标重要性漂移与未见故障模式并存的挑战，实时从监控序列中动态提取稀少突变特征，并通过与历史故障盘、健康盘突变模式的相似度度量进行故障判别与细粒度评级；对轻度故障盘可持续跟踪并给出渐进式处置建议。其在字节跳动 41-M/10-M 数据集上的故障预测精度与召回均优于多种既有方案。
 \end{itemize}
 
 上述文献方法多在私有数据集上验证，且尚未见与本文实验设定完全一致的公开实现。
-为此，本文在统一的预处理、时间划分与盘级指标口径下，对 Xu 式 RF 对照及 MVTRF、MSFRD、AE 与 TCAN 等文献方法进行了复现或简化复现。
-盘级判定规则与 \S\ref{sec:chap3-disk-eval} 一致，其余对比方法在各自特征与训练范式下完成样本级预测后，亦按相同盘级规则聚合评估。
+为此，使用与本文一致的数据预处理得到的特征、时间划分与盘级指标口径下，
+% 对 Xu 式 RF 对照及 MVTRF、MSFRD、AE 与 TCAN 等文献方法进行了复现。
+对 Xu 式 RF 对照及 MVTRF、AE 与 TCAN 等文献方法进行了复现。
+所有实验在 Apple M2 芯片、16~GB 内存的 MacBook Air 设备上完成，代码使用 Python~3.9.6 版本。
 
 \clearpage
 \subsection{关键超参数 $W$ 与 $k$ 的选取}
@@ -1081,8 +1084,8 @@ p_t=
 
 \begin{table}[htbp]
     \centering
-    \caption{\label{tab:chap3-wk-grid}$W$--$k$ 参数敏感性}
-    \footnotesize
+    \caption{\label{tab:chap3-wk-grid}$W$--$k$ 网格搜索结果}
+
     \setlength{\tabcolsep}{3pt}
     \begin{tabularx}{\linewidth}{c *{9}{>{\centering\arraybackslash}X}}
         \toprule
@@ -1096,15 +1099,7 @@ p_t=
         3 & 0.849 & 0.881 & 0.877 & 0.872 & 0.881 & 0.249 & \underline{0.478} & 0.474 & \underline{0.478} \\
         \bottomrule
     \end{tabularx}
-
-    \vspace{2pt}
-    \begin{minipage}{\linewidth}
-        \footnotesize 注：在 MB1/MB2 上对 $W$ 与 $k$ 联合搜索，采用混合标注（式~\ref{equ:proximal-mutation-label}）与完整突变特征（Lag + $r_k|\Delta|$），按三轮划分与盘级评估协议；各格先训练 RF/XGB/LGB 基学习器，再经 Attention 融合得到异构集成输出；$W\in\{0,1,2,3\}$，MB1 取 $k\in\{0,1,2,3,4\}$、MB2 取 $k\in\{0,1,2,3\}$。表中数值为异构集成三轮测试的盘级 $F_{0.5}$ 均值。\textbf{加粗}、\underline{下划线}分别表示各型号网格内 $F_{0.5}$ 最优与次优；并列时同档一并标注（MB1 最优 $W{=}1$、$k{=}3$；MB2 最优 $W{=}2$、$k{=}2$）。
-    \end{minipage}
-
 \end{table}
-
-由表~\ref{tab:chap3-wk-grid} 可见，$W$ 与 $k$ 对盘级 $F_{0.5}$ 的影响既相互独立又彼此耦合。
 
 就 $W$ 而言，$W{=}0$ 时 Lag 特征退化为空，突变通道仅剩 B 组按日差分；MB1 在 $k{=}0$/$k{=}2$ 上 $F_{0.5}$ 仍偏低（0.077--0.362），$k{=}3$ 时为 0.602；$k{=}4$ 在基学习器均正常收敛时可升至 0.865，但仍明显低于 $W{=}1$ 最优格 0.921，表明缺少 Lag 水平上下文制约了近端预警上限；MB2 在 $W{=}0$、$k{\ge}1$ 时可达 0.478，与 $W{=}2$ 最优 0.490 接近，但 $k{=}0$ 仅 0.359。MB1 在 $W{=}1$--$3$ 区间内 $F_{0.5}$ 均维持在 0.87 以上，$W{=}1$ 时达到最优（0.921）；MB2 则对 $W$ 更为敏感，$W{=}2$ 时最优（0.490）。两型号最优 $W^{\ast}$ 分别为 1 日与 2 日，均落在 1--2 日量级，与图~\ref{fig:first-jump-pmf} 所示 B 组首跳集中于故障前 1--2 日（$d{=}1$ 占比最高）的观察相吻合。
 
@@ -1117,46 +1112,128 @@ p_t=
 \label{sec:chap3-main-results}
 
 在 \S\ref{sec:chap3-wk-sensitivity} 确定各型号最优 $(W^{\ast}, k^{\ast})$ 后，本节将本文异构集成与文献复现基线进行对比，采用盘级 TPR、FPR、Precision 与 $F_{0.5}$ 四项指标评估。
-MB1 与 MB2 上的实验结果如表~\ref{tab:chap3-main-results} 所示。
+MB1 与 MB2 上的实验结果分别如表~\ref{tab:chap3-main-results-mb1} 与表~\ref{tab:chap3-main-results-mb2} 所示。
 其中除 FPR 外均保留三位小数，FPR 以科学计数法表示；加粗表示该列中的最大值，下划线表示该列中的次大值。
-
 \begin{table}[htbp]
     \centering
-    \caption{\label{tab:chap3-main-results}盘级性能对比}
-    \footnotesize
-    \setlength{\tabcolsep}{4pt}
-    \begin{tabularx}{\linewidth}{>{\centering\arraybackslash}m{1.0cm} >{\centering\arraybackslash}m{1.8cm} *{4}{>{\centering\arraybackslash}X}}
+    \caption{\label{tab:chap3-main-results-mb1}MB1 盘级性能对比}
+    \setlength{\tabcolsep}{2.5pt}
+    % 让 multirow 内容垂直居中（需要 \usepackage{multirow}）
+    \renewcommand{\multirowsetup}{\centering} 
+    
+    \begin{tabularx}{\linewidth}{>{\centering\arraybackslash}m{1.4cm} >{\centering\arraybackslash}m{1.05cm} >{\centering\arraybackslash}m{0.55cm} >{\centering\arraybackslash}m{0.55cm} *{4}{>{\centering\arraybackslash}X}}
         \toprule
-        型号 & 方法 & TPR & FPR & Precision & $F_{0.5}$ \\
+        方法 & 轮次 & TP & FP & TPR & FPR & Precision & $F_{0.5}$ \\
         \midrule
-        \multirow{6}{*}{MB1}
-        & 本文方法 & 0.738 & $2.71\times10^{-5}$ & 0.981 & 0.921 \\
-        & RF       & 0.765 & $1.18\times10^{-4}$ & 0.935 & 0.895 \\
-        & AE       & 0.038 & $1.34\times10^{-3}$ & 0.043 & 0.042 \\
-        & TCAN     & 0.000 & 0 & 0.000 & 0.000 \\
-        & MVT-RF   & -- & -- & -- & -- \\
-        & MSFRD    & -- & -- & -- & -- \\
-        \midrule
-        \multirow{6}{*}{MB2}
-        & 本文方法 & 0.187 & 0 & 1.000 & 0.490 \\
-        & RF       & 0.079 & $8.14\times10^{-6}$ & 0.500 & 0.240 \\
-        & AE       & 0.112 & $1.90\times10^{-3}$ & 0.022 & 0.026 \\
-        & TCAN     & 0.000 & 0 & 0.000 & 0.000 \\
-        & MVT-RF   & -- & -- & -- & -- \\
-        & MSFRD    & -- & -- & -- & -- \\
+        
+        % --- 本文方法 ---
+        \multirow{4}{*}{本文方法}
+        & R1 & 36 & 0 & 0.783 & 0 & 1.000 & 0.947 \\
+        & R2 & 47 & 2 & 0.723 & $5.41\times10^{-5}$ & 0.959 & 0.900 \\
+        & R3 & 66 & 1 & 0.710 & $2.73\times10^{-5}$ & 0.985 & 0.914 \\
+        & 平均 & 149 & 3 & 0.738 & $2.71\times10^{-5}$ & 0.981 & 0.921 \\
+        \cmidrule{1-8} % 左侧留白，避免与第一列的 \multirow 冲突
+        
+        % --- RF ---
+        \multirow{4}{*}{RF}
+        & R1 & 37 & 1 & 0.804 & $2.71\times10^{-5}$ & 0.974 & 0.934 \\
+        & R2 & 47 & 3 & 0.723 & $8.12\times10^{-5}$ & 0.940 & 0.887 \\
+        & R3 & 73 & 9 & 0.768 & $2.46\times10^{-4}$ & 0.890 & 0.863 \\
+        & 平均 & 157 & 13 & 0.765 & $1.18\times10^{-4}$ & 0.935 & 0.895 \\
+        \cmidrule{1-8}
+        
+        % --- AE ---
+        \multirow{4}{*}{AE}
+        & R1 & 1 & 54 & 0.022 & $1.46\times10^{-3}$ & 0.018 & 0.019 \\
+        & R2 & 5 & 51 & 0.079 & $1.38\times10^{-3}$ & 0.089 & 0.087 \\
+        & R3 & 1 & 43 & 0.011 & $1.17\times10^{-3}$ & 0.023 & 0.019 \\
+        & 平均 & 7 & 148 & 0.038 & $1.34\times10^{-3}$ & 0.043 & 0.042 \\
+        \cmidrule{1-8}
+        
+        % --- TCAN ---
+        \multirow{4}{*}{TCAN}
+        & R1 & 0 & 0 & 0.000 & 0 & 0.000 & 0.000 \\
+        & R2 & 0 & 0 & 0.000 & 0 & 0.000 & 0.000 \\
+        & R3 & 0 & 0 & 0.000 & 0 & 0.000 & 0.000 \\
+        & 平均 & 0 & 0 & 0.000 & 0 & 0.000 & 0.000 \\
+        \cmidrule{1-8}
+        
+        % --- MVT-RF ---
+        \multirow{4}{*}{MVT-RF}
+        & R1 & 37 & 2 & 0.804 & $5.42\times10^{-5}$ & 0.949 & 0.916 \\
+        & R2 & 48 & 1 & 0.738 & $2.71\times10^{-5}$ & 0.980 & 0.920 \\
+        & R3 & 71 & 2 & 0.763 & $5.46\times10^{-5}$ & 0.973 & 0.922 \\
+        & 平均 & 156 & 5 & 0.769 & $4.53\times10^{-5}$ & 0.967 & 0.919 \\
+        
+        % --- MSFRD ---
+        % MSFRD & -- & -- & -- & -- & -- & -- & -- \\
+        
         \bottomrule
     \end{tabularx}
-
-    \vspace{2pt}
-    \begin{minipage}{\linewidth}
-        \footnotesize 注：本文方法取 \S\ref{sec:chap3-wk-sensitivity} 最优格（MB1：$W{=}1$、$k{=}3$；MB2：$W{=}2$、$k{=}2$）异构集成三轮测试的均值；各方法均在相同数据集划分与盘级评估协议下报告三轮测试的均值。
-    \end{minipage}
+\end{table}
+\begin{table}[htbp]
+    \centering
+    \caption{\label{tab:chap3-main-results-mb2}MB2 盘级性能对比}
+    \setlength{\tabcolsep}{2.5pt}
+    % 让 multirow 内容垂直居中
+    \renewcommand{\multirowsetup}{\centering} 
+    
+    \begin{tabularx}{\linewidth}{>{\centering\arraybackslash}m{1.4cm} >{\centering\arraybackslash}m{1.05cm} >{\centering\arraybackslash}m{0.55cm} >{\centering\arraybackslash}m{0.55cm} *{4}{>{\centering\arraybackslash}X}}
+        \toprule
+        方法 & 轮次 & TP & FP & TPR & FPR & Precision & $F_{0.5}$ \\
+        \midrule
+        
+        % --- 本文方法 ---
+        \multirow{4}{*}{本文方法}
+        & R1 & 7 & 0 & 0.304 & 0 & 1.000 & 0.686 \\
+        & R2 & 2 & 0 & 0.200 & 0 & 1.000 & 0.556 \\
+        & R3 & 1 & 0 & 0.056 & 0 & 1.000 & 0.227 \\
+        & 平均 & 10 & 0 & 0.187 & 0 & 1.000 & 0.490 \\
+        \cmidrule{1-8}
+        
+        % --- RF ---
+        \multirow{4}{*}{RF}
+        & R1 & 4 & 0 & 0.182 & 0 & 1.000 & 0.526 \\
+        & R2 & 0 & 0 & 0.000 & 0 & 0.000 & 0.000 \\
+        & R3 & 1 & 1 & 0.056 & $2.43\times10^{-5}$ & 0.500 & 0.192 \\
+        & 平均 & 5 & 1 & 0.079 & $8.14\times10^{-6}$ & 0.500 & 0.240 \\
+        \cmidrule{1-8}
+        
+        % --- AE ---
+        \multirow{4}{*}{AE}
+        & R1 & 4 & 111 & 0.182 & $2.69\times10^{-3}$ & 0.035 & 0.041 \\
+        & R2 & 1 & 68 & 0.100 & $1.65\times10^{-3}$ & 0.014 & 0.017 \\
+        & R3 & 1 & 56 & 0.056 & $1.36\times10^{-3}$ & 0.018 & 0.020 \\
+        & 平均 & 6 & 235 & 0.112 & $1.90\times10^{-3}$ & 0.022 & 0.026 \\
+        \cmidrule{1-8}
+        
+        % --- TCAN ---
+        \multirow{4}{*}{TCAN}
+        & R1 & 0 & 0 & 0.000 & 0 & 0.000 & 0.000 \\
+        & R2 & 0 & 0 & 0.000 & 0 & 0.000 & 0.000 \\
+        & R3 & 0 & 0 & 0.000 & 0 & 0.000 & 0.000 \\
+        & 平均 & 0 & 0 & 0.000 & 0 & 0.000 & 0.000 \\
+        \cmidrule{1-8}
+        
+        % --- MVT-RF ---
+        \multirow{4}{*}{MVT-RF}
+        & R1 & 6 & 0 & 0.273 & 0 & 1.000 & 0.652 \\
+        & R2 & 1 & 0 & 0.100 & 0 & 1.000 & 0.357 \\
+        & R3 & 1 & 0 & 0.056 & 0 & 1.000 & 0.227 \\
+        & 平均 & 8 & 0 & 0.143 & 0 & 1.000 & 0.412 \\
+        % \cmidrule{1-8}
+        
+        % --- MSFRD ---
+        % MSFRD & -- & -- & -- & -- & -- & -- & -- \\
+        
+        \bottomrule
+    \end{tabularx}
 \end{table}
 
 通过比较本文提出模型与基准模型在测试集上所得出的结果，可以得到以下结论。
 
 Xu 式 RF 对照在 3 日与 7 日自然日窗上为各 SMART 读数构造统计量，经 XGB 筛选后实际输入维数为 MB1 62 维、MB2 54 维，长于本文 $W{=}1$/2 的短期 Lag 与 $r_k|\Delta|$ 表征（25/41 维）。
-在 MB1 上其 TPR 略高于本文方法（0.765 \emph{vs.}\ 0.738），但 FPR 高约一个量级（$1.18\times10^{-4}$ \emph{vs.}\ $2.71\times10^{-5}$），导致盘级 $F_{0.5}$ 相对略低（0.895 \emph{vs.}\ 0.921），
+在 MB1 上其 TPR 略高于本文方法（0.765 \emph{vs.}\ 0.738），但 FPR 高了一个数量级（$1.18\times10^{-4}$ \emph{vs.}\ $2.71\times10^{-5}$），导致盘级 $F_{0.5}$ 相对略低（0.895 \emph{vs.}\ 0.921），
 表明更长窗口与更丰富的统计特征虽有助于多检出部分故障盘，亦将更多健康盘的背景波动误判为前兆，误报代价在大盘级评估下更为突出。
 
 AE 为无监督设定，训练阶段不使用故障标签，输入仅为单日 16 维原始读数，模型无法从标注中学习故障前窗口与 SMART 模式的对应关系，
@@ -1167,41 +1244,47 @@ TCAN 采用故障当日标签与 10 日 SMART 序列输入，训练时对健康�
 负类梯度主导下模型倾向于将全部样本判为低风险，样本级概率普遍低于判定阈值 0.5，故盘级评估中健康盘与故障盘均未触发告警，MB1/MB2 上 TPR 与 FPR 均为 0。
 此外，监督正例仅落在故障日当天，相对其他标签策略得到的正样本更为稀疏，模型难以有效学习故障前兆。
 
+MVT-RF 使用了时序、直方图、序列等多种特征，集成了 4 个随机森林模型投票，挖掘出了更多的故障信息，
+在 MB1 上其 TPR 略高于本文方法（0.769 \emph{vs.}\ 0.738），但 FPR 更高（$4.53\times10^{-5}$ \emph{vs.}\ $2.71\times10^{-5}$），Precision 也略低于本文方法（0.967 \emph{vs.}\ 0.981），
+盘级 $F_{0.5}$ 亦略低于本文方法（0.919 \emph{vs.}\ 0.921）；本文在检出率接近的同时误报更少，更符合低误报的工程需求。
+
 
 \clearpage
 \subsection{突变时序特征有效性分析}
 \label{sec:chap3-mutation-ablation}
 
-为了表明本文提出的突变时序特征的有效性，本节对比 \S\ref{sec:chap3-mutation-features} 所定义的完整短期时序突变特征（Lag+$r_k|\Delta|$，本文方法）与两类消融基线：单 Lag（仅保留 A/B 组 $W$ 阶 Lag 读数，不引入 B 组按日差分）与单 $r_k|\Delta|$（仅保留 B 组稀有加权差分，不引入 Lag 读数）。前者仅编码近期 SMART 读数水平，后者仅编码按日突变强度，二者均缺少另一路信息，结果见表~\ref{tab:chap3-rarity-ablation}。
+为了表明本文提出的突变时序特征的有效性，本节对比 \S\ref{sec:chap3-mutation-features} 所定义的完整短期时序突变特征
+（Lag+$r_k|\Delta|$，本文方法）与两类消融基线：
+单 Lag（仅保留 A/B 组 $W$ 阶 Lag 读数，不引入 B 组按日差分）与单 $r_k|\Delta|$（仅保留 B 组稀有加权差分，不引入 Lag 读数）。
+前者仅编码近期 SMART 读数水平，后者仅编码按日突变强度，二者均缺少另一路信息，
+结果见表~\ref{tab:chap3-rarity-ablation}，表中的报告的指标为 $F_{0.5}$ / TPR / Precision。
 
 \begin{table}[htbp]
     \centering
     \caption{\label{tab:chap3-rarity-ablation}突变特征消融实验}
-    \footnotesize
+
     \setlength{\tabcolsep}{3pt}
-    \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}} c c *{3}{>{\centering\arraybackslash}p{2.6cm}} @{}}
+    \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}} c c *{3}{>{\centering\arraybackslash}p{3.50cm}} @{}}
         \toprule
-        型号 & 轮次 & Lag+$r_k|\Delta|$（本文） & 单 Lag & 单 $r_k|\Delta|$ \\
+        型号 & 轮次 & 完整特征 & 单 Lag & 单突变特征 \\
         \midrule
         \multirow{4}{*}{MB1}
-        & R1 & \textbf{0.947}/\textbf{0.783}/0 & 0.827/0.489/0 & 0.102/0.022/0 \\
-        & R2 & \textbf{0.900}/\textbf{0.723}/$5.4{\times}10^{-5}$ & 0.821/0.540/$5.4{\times}10^{-5}$ & \underline{0.868}/\underline{0.708}/$1.1{\times}10^{-4}$ \\
-        & R3 & \textbf{0.914}/\textbf{0.710}/$2.7{\times}10^{-5}$ & 0.730/0.382/$5.5{\times}10^{-5}$ & \underline{0.836}/\underline{0.527}/$2.7{\times}10^{-5}$ \\
-        & 平均 & \textbf{0.921}/\textbf{0.738}/$2.7{\times}10^{-5}$ & \underline{0.793}/\underline{0.470}/$3.6{\times}10^{-5}$ & 0.602/0.419/$4.5{\times}10^{-5}$ \\
+        & R1 & \textbf{0.947}/\textbf{0.783}/1.000 & 0.827/0.489/1.000 & 0.102/0.022/1.000 \\
+        & R2 & \textbf{0.900}/\textbf{0.723}/0.959 & 0.821/0.540/0.944 & \underline{0.868}/\underline{0.708}/0.920 \\
+        & R3 & \textbf{0.914}/\textbf{0.710}/0.985 & 0.730/0.382/0.944 & \underline{0.836}/\underline{0.527}/0.980 \\
+        & 平均 & \textbf{0.921}/\textbf{0.738}/0.981 & \underline{0.793}/\underline{0.470}/0.963 & 0.602/0.419/0.967 \\
+        \cmidrule{1-5}
         \multirow{4}{*}{MB2}
-        & R1 & \textbf{0.686}/\textbf{0.304}/0 & 0.192/0.045/0 & \textbf{0.686}/\textbf{0.304}/0 \\
-        & R2 & \textbf{0.556}/\underline{0.200}/0 & 0.000/0.000/0 & \textbf{0.556}/\underline{0.200}/0 \\
-        & R3 & \textbf{0.227}/\textbf{0.056}/0 & 0.000/0.000/0 & \underline{0.192}/\textbf{0.056}/$2.4{\times}10^{-5}$ \\
-        & 平均 & \textbf{0.490}/\textbf{0.187}/0 & 0.064/0.015/0 & \underline{0.478}/\textbf{0.187}/$8.1{\times}10^{-6}$ \\
+        & R1 & \textbf{0.686}/\textbf{0.304}/1.000 & 0.192/0.045/1.000 & \textbf{0.686}/\textbf{0.304}/1.000 \\
+        & R2 & \textbf{0.556}/\underline{0.200}/1.000 & 0.000/0.000/0.000 & \textbf{0.556}/\underline{0.200}/1.000 \\
+        & R3 & \textbf{0.227}/\textbf{0.056}/1.000 & 0.000/0.000/0.000 & \underline{0.192}/\textbf{0.056}/0.500 \\
+        & 平均 & \textbf{0.490}/\textbf{0.187}/1.000 & 0.064/0.015/0.333 & \underline{0.478}/\textbf{0.187}/0.833 \\
         \bottomrule
     \end{tabular*}
-    \vspace{2pt}
-    \begin{minipage}{\linewidth}
-        \footnotesize 注：$W/k$ 各取 \S\ref{sec:chap3-wk-sensitivity} 最优格（MB1：$W{=}1$、$k{=}3$；MB2：$W{=}2$、$k{=}2$）；$r_k$ 在训练月健康样本上估计后固定用于验证与测试；RF/XGB/LGB 异构集成，按三轮测试月报告盘级指标及均值；单元格为 $F_{0.5}$/TPR/FPR；各行轮次内按列比较，\textbf{加粗}、\underline{下划线}分别表示 $F_{0.5}$ 与 TPR 的最优与次优（并列时同档一并标注）；FPR 较低者更优，零误报记为 0。
-    \end{minipage}
+    
 \end{table}
 
-表~\ref{tab:chap3-rarity-ablation} 表明，三类配置的 FPR 均接近 0 且彼此差异极小，因此 $F_{0.5}$ 的变化主要来自 TPR 的不同，增益源于对故障征兆的更有效识别。
+表~\ref{tab:chap3-rarity-ablation} 表明，三类配置的精确率均较高且彼此差异有限，因此 $F_{0.5}$ 的变化主要来自 TPR 的不同，增益源于对故障征兆的更有效识别。
 
 在 MB1 上，完整特征均值（0.921/0.738）优于单 Lag（0.793/0.470）与单 $r_k|\Delta|$（0.602/0.419）。单 Lag 仅编码 A/B 组近期读数水平，可反映磨损背景与 B 组计数基线，故为次优；单 $r_k|\Delta|$ 仅编码 B 组按日跳变强度并经 $r_k$ 突出稀少突变，缺少水平上下文时在 R1 几乎失效，R2--R3 虽能凭跳变本身检出部分样本，均值仍明显落后。二者分别捕获``静态水平''与``动态跳变''，完整拼接以``水平+变化''共同刻画近端前兆。
 
@@ -1213,12 +1296,14 @@ TCAN 采用故障当日标签与 10 日 SMART 序列输入，训练时对健康�
 \subsection{标签策略有效性分析}
 \label{sec:chap3-label-ablation}
 
-为了说明本文提出的混合了首跳标签与固定窗口标签的标签策略的有效性，本节对比了四种不同的训练标签策略，分别是：首跳标记、当日标记、3日固定短窗、30日固定长窗，结果见表~\ref{tab:chap3-label-ablation}。
+为了说明本文提出的混合了首跳标签与固定窗口标签的标签策略的有效性，
+本节对比了四种不同的训练标签策略，分别是：首跳标记、当日标记、3日固定短窗、30日固定长窗，
+结果见表~\ref{tab:chap3-label-ablation}， 表中的报告的指标为 $F_{0.5}$ / TPR 。
 
 \begin{table}[htbp]
     \centering
     \caption{\label{tab:chap3-label-ablation}训练标签消融实验}
-    \footnotesize
+
     \setlength{\tabcolsep}{4pt}
     \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}} c c *{5}{c} @{}}
         \toprule
@@ -1237,10 +1322,6 @@ TCAN 采用故障当日标签与 10 日 SMART 序列输入，训练时对健康�
         & 平均 & \textbf{0.490}/\textbf{0.187} & 0.467/\underline{0.176} & 0.249/0.082 & \underline{0.478}/\textbf{0.187} & 0.382/0.128 \\
         \bottomrule
     \end{tabular*}
-    \vspace{2pt}
-    \parbox{\linewidth}{
-        \footnotesize 注：特征为 Lag + $r_k|\Delta|$，MB1 取 $W{=}1$、MB2 取 $W{=}2$；RF/XGB/LGB 经异构集成，阈值 0.5，按三轮测试月报告盘级指标及均值；单元格为 $F_{0.5}$/TPR；各行轮次内按列比较，\textbf{加粗}、\underline{下划线}分别表示 $F_{0.5}$ 与 TPR 的最优与次优（并列时同档一并标注）。
-    }
 \end{table}
 
 表~\ref{tab:chap3-label-ablation} 表明，五种标签策略中混合标注在 MB1/MB2 上三轮均值 $F_{0.5}$ 均为最优。与表~\ref{tab:chap3-rarity-ablation} 类似，各策略 FPR 均接近 0，$F_{0.5}$ 差异主要来自 TPR 与精确率之间的权衡。
@@ -1259,35 +1340,30 @@ TCAN 采用故障当日标签与 10 日 SMART 序列输入，训练时对健康�
 
 为了说明 \S\ref{sec:chap3-ensemble} 异构集成预测的有效性，本节将 Attention + FocalLoss 异构集成后的集成输出与 RF、XGB、LGB 三个异构基学习器的单模型结果进行对比。
 三基学习器对稀疏突变信号的拟合偏好各异；若集成能在同一评估协议下取得优于或不低于任一单基的稳定表现，则可说明样本级加权融合的必要性。
-结果见表~\ref{tab:chap3-ensemble-ablation}：
+结果见表~\ref{tab:chap3-ensemble-ablation}，表中的报告的指标为 $F_{0.5}$ / TPR。
 
 \begin{table}[htbp]
     \centering
     \caption{\label{tab:chap3-ensemble-ablation}异构集成分轮对比}
-    \footnotesize
+
     \setlength{\tabcolsep}{2.5pt}
     \begin{tabularx}{\linewidth}{c c *{4}{>{\centering\arraybackslash}X}}
         \toprule
         型号 & 轮次 & 集成结果 & RF & XGB & LGB \\
         \midrule
         \multirow{4}{*}{MB1}
-        & R1 & \underline{0.947}/\underline{0.783}/0 & \textbf{0.954}/\textbf{0.804}/0 & 0.928/\underline{0.783}/$2.7{\times}10^{-5}$ & 0.851/0.717/$1.1{\times}10^{-4}$ \\
-        & R2 & \textbf{0.900}/\textbf{0.723}/$5.4{\times}10^{-5}$ & \textbf{0.900}/\textbf{0.723}/$5.4{\times}10^{-5}$ & \underline{0.887}/\textbf{0.723}/$8.1{\times}10^{-5}$ & 0.791/\underline{0.615}/$1.9{\times}10^{-4}$ \\
-        & R3 & \underline{0.914}/0.710/$2.7{\times}10^{-5}$ & 0.912/\underline{0.731}/$5.5{\times}10^{-5}$ & \textbf{0.925}/\textbf{0.742}/$2.7{\times}10^{-5}$ & 0.850/0.624/$1.1{\times}10^{-4}$ \\
-        & 平均 & \underline{0.921}/0.738/$2.7{\times}10^{-5}$ & \textbf{0.922}/\textbf{0.753}/$3.6{\times}10^{-5}$ & 0.913/\underline{0.749}/$4.5{\times}10^{-5}$ & 0.830/0.652/$1.4{\times}10^{-4}$ \\
+        & R1 & \underline{0.947}/\underline{0.783} & \textbf{0.954}/\textbf{0.804} & 0.928/\underline{0.783} & 0.851/0.717 \\
+        & R2 & \textbf{0.900}/\textbf{0.723} & \textbf{0.900}/\textbf{0.723} & \underline{0.887}/\textbf{0.723} & 0.791/\underline{0.615} \\
+        & R3 & \underline{0.914}/0.710 & 0.912/\underline{0.731} & \textbf{0.925}/\textbf{0.742} & 0.850/0.624 \\
+        & 平均 & \underline{0.921}/0.738 & \textbf{0.922}/\textbf{0.753} & 0.913/\underline{0.749} & 0.830/0.652 \\
         \midrule
         \multirow{4}{*}{MB2}
-        & R1 & \textbf{0.686}/\textbf{0.304}/0 & \underline{0.652}/\underline{0.273}/0 & \textbf{0.686}/\textbf{0.304}/0 & \textbf{0.686}/\textbf{0.304}/0 \\
-        & R2 & \textbf{0.556}/\underline{0.200}/0 & \textbf{0.556}/\underline{0.200}/0 & \textbf{0.556}/\underline{0.200}/0 & \underline{0.500}/\textbf{0.300}/$4.9{\times}10^{-5}$ \\
-        & R3 & \textbf{0.227}/\textbf{0.056}/0 & \underline{0.192}/\textbf{0.056}/$2.4{\times}10^{-5}$ & \underline{0.192}/\textbf{0.056}/$2.4{\times}10^{-5}$ & \underline{0.192}/\textbf{0.056}/$2.4{\times}10^{-5}$ \\
-        & 平均 & \textbf{0.490}/\underline{0.187}/0 & 0.467/0.176/$8.1{\times}10^{-6}$ & \underline{0.478}/\underline{0.187}/$8.1{\times}10^{-6}$ & 0.460/\textbf{0.220}/$2.4{\times}10^{-5}$ \\
+        & R1 & \textbf{0.686}/\textbf{0.304} & \underline{0.652}/\underline{0.273} & \textbf{0.686}/\textbf{0.304} & \textbf{0.686}/\textbf{0.304} \\
+        & R2 & \textbf{0.556}/\underline{0.200} & \textbf{0.556}/\underline{0.200} & \textbf{0.556}/\underline{0.200} & \underline{0.500}/\textbf{0.300} \\
+        & R3 & \textbf{0.227}/\textbf{0.056} & \underline{0.192}/\textbf{0.056} & \underline{0.192}/\textbf{0.056} & \underline{0.192}/\textbf{0.056} \\
+        & 平均 & \textbf{0.490}/\underline{0.187} & 0.467/0.176 & \underline{0.478}/\underline{0.187} & 0.460/\textbf{0.220} \\
         \bottomrule
     \end{tabularx}
-
-    \vspace{2pt}
-    \begin{minipage}{\linewidth}
-        \footnotesize 注：\S\ref{sec:chap3-wk-sensitivity} 参数网格搜索表明异构集成在 MB1/MB2 上最优配置不同，故各型号固定各自最优 $(W^{\ast}, k^{\ast})$（MB1：$W{=}1$、$k{=}3$；MB2：$W{=}2$、$k{=}2$），在混合标注与完整突变特征（Lag + $r_k|\Delta|$）设定下，将异构集成与 RF/XGB/LGB 三基学习器置于同一评估协议，按三轮测试月分别报告盘级指标；单元格为 $F_{0.5}$/TPR/FPR；各行轮次内按列比较，\textbf{加粗}、\underline{下划线}分别表示 $F_{0.5}$ 与 TPR 的最优与次优（并列时同档一并标注）；FPR 较低者更优，零误报记为 0。
-    \end{minipage}
 \end{table}
 
 对表~\ref{tab:chap3-ensemble-ablation} 的结果分析如下。
@@ -1311,27 +1387,22 @@ TCAN 采用故障当日标签与 10 日 SMART 序列输入，训练时对健康�
 \begin{table}[htbp]
     \centering
     \caption{\label{tab:chap3-tp-lead-by-round}分轮提前预警统计}
-    \footnotesize
+
     \setlength{\tabcolsep}{4pt}
     \begin{tabularx}{\linewidth}{@{}>{\centering\arraybackslash}p{0.9cm} >{\raggedright\arraybackslash}p{2.2cm} *{3}{>{\centering\arraybackslash}X} >{\centering\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X@{}}
         \toprule
         型号 & 测试月 & TP & FN & FP & 提前天数中位数 $d$ & $d{=}1$ 占比 & $d{\le}1$ 占比 \\
         \midrule
         \multirow{3}{*}{MB1}
-        & R1（2019-09） & 36 & 10 & 0 & 1 天 & 91.7\% & 97.2\% \\
-        & R2（2019-10） & 47 & 18 & 2 & 1 天 & 91.5\% & 97.9\% \\
-        & R3（2019-11） & 66 & 27 & 1 & 1 天 & 77.3\% & 100\% \\
+        & R1 & 36 & 10 & 0 & 1 天 & 91.7\% & 97.2\% \\
+        & R2 & 47 & 18 & 2 & 1 天 & 91.5\% & 97.9\% \\
+        & R3 & 66 & 27 & 1 & 1 天 & 77.3\% & 100\% \\
         \multirow{3}{*}{MB2}
-        & R1（2019-09） &  7 & 16 & 0 & 0 天 & 14.3\% & 85.7\% \\
-        & R2（2019-10） &  2 &  8 & 0 & 3 天 &  0\%   & 50.0\% \\
-        & R3（2019-11） &  1 & 17 & 0 & 0 天 &  0\%   & 100\% \\
+        & R1 &  7 & 16 & 0 & 0 天 & 14.3\% & 85.7\% \\
+        & R2 &  2 &  8 & 0 & 3 天 &  0\%   & 50.0\% \\
+        & R3 &  1 & 17 & 0 & 0 天 &  0\%   & 100\% \\
         \bottomrule
     \end{tabularx}
-
-    \vspace{2pt}
-    \begin{minipage}{\linewidth}
-        \footnotesize 注：MB1 取 $W{=}1$、$k{=}3$，MB2 取 $W{=}2$、$k{=}2$；提前天数统计量仅对 TP 盘计算。
-    \end{minipage}
 \end{table}
 
 \begin{figure}[htbp]
@@ -1340,7 +1411,7 @@ TCAN 采用故障当日标签与 10 日 SMART 序列输入，训练时对健康�
     \caption{\label{fig:chap3-tp-lead-time}提前预警时间分布}
     \vspace{2pt}
     \begin{minipage}{\linewidth}
-        \footnotesize 注：图例中 \texttt{FAIL} 为当月故障盘数（自故障单按测试月统计）；$d>2$ 日处柱顶标注 \texttt{R$r$·d$d$·×$n$} 依次表示测试轮次、提前天数及该处 TP 盘数（如 \texttt{R2·d6·×1} 即第二轮在 $d=6$ 检出 1 盘）。
+     注：图例中 \texttt{FAIL} 为当月故障盘数（自故障单按测试月统计）；$d>2$ 日处柱顶标注 \texttt{R$r$·d$d$·×$n$} 依次表示测试轮次、提前天数及该处 TP 盘数（如 \texttt{R2·d6·×1} 即第二轮在 $d=6$ 检出 1 盘）。
     \end{minipage}
 \end{figure}
 
@@ -1362,7 +1433,7 @@ MB2 则呈 R1$\to$R3 递减（TPR 由 30.4\% 降至 5.6\%），说明弱信号�
 
 本章方法仍存在以下局限：
 
-（1）实验型号限于 MB1/MB2，MB2 上 TPR 整体偏低（约 0.19），且特征工程与标签策略严重依赖当前数据分布，泛化性有待更多型号验证。
+（1）实验型号使用了两种MLC-SSD，MB2 上 TPR 整体偏低（约 0.19），且特征工程与标签策略依赖当前数据分布，泛化性有待更多型号验证。
 
 （2）第 3 轮测试月各配置普遍下滑，提示时间漂移对盘级预警的影响。
 
