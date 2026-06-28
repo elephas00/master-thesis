@@ -515,10 +515,6 @@ MB1 与 MB2 均为 MLC-SSD，SMART 属性集合相近，故障样本活跃，因
     \end{tabularx}
 \end{table}
 
-图~\ref{fig:failure-by-month} 展示了数据集月度故障盘数量变化。
-2018 年 1月 至 4 月期间两型号故障盘数均处于低位，推测与数据集于 2018 年初集中入池、盘群尚处早期服役阶段、失效风险尚未充分累积有关，亦不排除入池初期 SMART 采集与工单记录尚未完全覆盖全部在服盘群。
-MB1 于 2018 年 5 月出现极端尖峰，同期 MB2 亦有抬升但幅度远小，推测可能与特定批次盘群进入集中失效窗口，或当期运维批量换盘、下线处置等外部事件叠加有关，该月不宜单独代表两型号的常态故障水平。
-剔除上述入池初期低基数阶段与 MB1 5 月尖峰后，2018 年下半年至 2019 年两型号月度故障量整体较为平缓；时间跨度长、各月均有故障盘释放，构成相对连续的观测序列，适合作为本文主实验的训练与测试时间窗。
 
 \begin{figure}[htbp]
     \centering
@@ -526,6 +522,11 @@ MB1 于 2018 年 5 月出现极端尖峰，同期 MB2 亦有抬升但幅度远�
     \caption{月度故障盘分布}
     \label{fig:failure-by-month}
 \end{figure}
+
+图～\ref {fig:failure-by-month} 展示了数据集月度故障磁盘数量变化。2018 年 1—4 月两类硬盘故障数量均维持低位，推测因数据集年初批量上线，硬盘服役周期较短、故障风险尚未累积，也存在初期 SMART 采集与工单记录未全覆盖在线磁盘的可能。
+MB1 在 2018 年 5 月故障量出现峰值，同期 MB2 故障数小幅上涨但增幅有限，或受批次硬盘集中老化失效、运维批量换盘下线等外部因素叠加影响，该月数据无法代表两款硬盘常规故障水平。
+剔除上线初期低故障区间与 MB1 五月异常峰值后，2018 下半年至 2019 年两类硬盘月度故障数量走势平稳；该时段观测周期充足、每月均产生故障样本，形成完整连续数据序列，适用于本文主体实验的训练与测试区间。
+
 
 \subsection{数据预处理与 SMART 属性归纳}
 
@@ -593,11 +594,26 @@ $\rho_s$ 取值范围为 $[-1,1]$，$|\rho_s|$ 越大表示单调相关越强。
 
 对每块盘 $i$，定义以下盘级指标：
 首末观测日 $t_{\mathrm{first},i}$、$t_{\mathrm{last},i}$；
+最长连续缺失天数 $G_{\max,i}$（相邻观测间隔减 1 的最大值）；
 日历跨度 $\mathrm{span}_i=t_{\mathrm{last},i}-t_{\mathrm{first},i}+1$；
 实际观测天数 $n_{\mathrm{obs},i}$ 及覆盖率 $\mathrm{cov}_i=n_{\mathrm{obs},i}/\mathrm{span}_i$；
-最长连续缺失天数 $G_{\max,i}$（相邻观测间隔减 1 的最大值）；中断次数 $n_{\mathrm{gap},i}$（间隔 ${>}1$ 天的次数）。
+中断次数 $n_{\mathrm{gap},i}$（间隔 ${>}1$ 天的次数）。
 其中 $n_{\mathrm{obs},i}$ 刻画有效观测长度，下文将据此设定最小观测日数阈值。
 依据 $G_{\max,i}$ 与 $\mathrm{cov}_i$，将盘划分为轻、中、重度缺失三档，分别采取前向填充或整盘剔除。
+
+
+表~\ref{tab:temporal-quality-summary} 列出了数据集的日历级时序质量汇总，两型号 SSD 缺失形态相近：约 99\% 的盘至少出现过一次中断，但 $G_{\max}\le 7$ 天的盘占 63.5\%--65.7\%，$\mathrm{cov}\ge 0.95$ 的盘占 68\%--70\%，多数属轻度缺失，可经前向填充继续使用。
+满足 $G_{\max}>30$ 或 $\mathrm{cov}<0.5$ 的重度缺失盘占 13.8\%--16.2\%，因其观测窗过碎、补全后可靠性不足，拟整盘剔除；
+中度缺失盘（$8\le G_{\max}\le 30$）仍予保留。
+
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=\linewidth]{figure/temporal-missing-distribution.png}
+    \caption{日历缺失分布}
+    \label{fig:temporal-missing-distribution}
+\end{figure}
+
+图~\ref{fig:temporal-missing-distribution}(a)--(b) 表明 $G_{\max}$ 集中在 1--7 天区间，(c) 的分档占比与表~\ref{tab:temporal-quality-summary} 一致。需说明的是，高覆盖盘的故障率反而更高（例如 MB1 中 $\mathrm{cov}\ge 0.95$ 段的故障率约 4.8\%，而 $<0.95$ 段仅约 2.5\%），这表明盘在失效前的日志往往仍较连续。因此，按 $G_{\max}$ 与 $\mathrm{cov}$ 剔除重度缺失盘，其核心依据是可建模性而非故障率；实际上，拟剔除的重度缺失盘仅占 MB1 故障盘的 12.3\%、MB2 的 9.3\%。
 
 \begin{table}[htbp]
     \centering
@@ -621,23 +637,23 @@ $\rho_s$ 取值范围为 $[-1,1]$，$|\rho_s|$ 越大表示单调相关越强。
     \end{tabularx}
 \end{table}
 
-表~\ref{tab:temporal-quality-summary} 列出了数据集的日历级时序质量汇总，两型号 SSD 缺失形态相近：约 99\% 的盘至少出现过一次中断，但 $G_{\max}\le 7$ 天的盘占 63.5\%--65.7\%，$\mathrm{cov}\ge 0.95$ 的盘占 68\%--70\%，多数属轻度缺失，可经前向填充继续使用。
-满足 $G_{\max}>30$ 或 $\mathrm{cov}<0.5$ 的重度缺失盘占 13.8\%--16.2\%，因其观测窗过碎、补全后可靠性不足，拟整盘剔除；
-中度缺失盘（$8\le G_{\max}\le 30$）仍予保留。
-
-\begin{figure}[!htbp]
-    \centering
-    \includegraphics[width=\linewidth]{figure/temporal-missing-distribution.png}
-    \caption{日历缺失分布}
-    \label{fig:temporal-missing-distribution}
-\end{figure}
-
-图~\ref{fig:temporal-missing-distribution}(a)--(b) 表明 $G_{\max}$ 集中在 1--7 天区间，(c) 的分档占比与表~\ref{tab:temporal-quality-summary} 一致。需说明的是，高覆盖盘的故障率反而更高（例如 MB1 中 $\mathrm{cov}\ge 0.95$ 段的故障率约 4.8\%，而 $<0.95$ 段仅约 2.5\%），这表明盘在失效前的日志往往仍较连续。因此，按 $G_{\max}$ 与 $\mathrm{cov}$ 剔除重度缺失盘，其核心依据是可建模性而非故障率；实际上，拟剔除的重度缺失盘仅占 MB1 故障盘的 12.3\%、MB2 的 9.3\%。
-
 \subsubsection{建模样本筛选与缺失补全}
 \label{sec:chap3-imputation}
 
 综合字段筛选与上述时序质量分析，样本级与盘级剔除规则汇总如表~\ref{tab:preprocessing-removal} 所示。
+
+盘级剔除依据两类互补条件，第一是有效观测总日数不足，第二是日历缺失比例过高。
+对盘 $i$，记其在建模有效区间 $[t_{\mathrm{first},i},\,\min(t_{\mathrm{last},i},\,t_{\mathrm{fail},i})]$（健康盘取 $t_{\mathrm{last},i}$）内的实际有日志天数为 $n_{\mathrm{obs},i}$。
+本文盘级预测窗口取 $H=30$ 天，若 $n_{\mathrm{obs},i}<30$，则难以形成与预警窗口相匹配的时序样本，故将此类盘整盘剔除。
+对满足 $G_{\max,i}>30$ 或 $\mathrm{cov}_i<0.5$ 的重度缺失盘，因其观测窗过碎、前向填充后时序与标签可靠性不足，亦整盘剔除。
+通过上述两项检验后，保留轻度（$G_{\max}\le 7$）与中度（$8\le G_{\max}\le 30$）盘并进入补全流程。
+
+原始日志存在上述整日缺失与列级空值，缺失可能由采集中断、设备离线或字段未上报引起。
+此外，部分故障盘在标注故障日后仍持续上报 SMART 日志（可能是因为盘位未及时更换或标识未回收），此类故障后的观测数据对于预测故障发生并无价值，所以对标注故障盘删除 $d_s>t_{\mathrm{fail}}$ 的样本，仅保留 $d_s<=t_{\mathrm{fail}}$ 的日志。
+对表~\ref{tab:preprocessing-removal} 中保留盘，在 $[t_{\mathrm{first}},\min(t_{\mathrm{last}},t_{\mathrm{fail}})]$（健康盘取 $t_{\mathrm{last}}$）上按日历日补全时间轴。
+
+具体的来说，如果 $X_{t-1}$ 存在，那么特征列采用前向填充 $X_t=X_{t-1}$，如果 $X_{t-1}$ 不存在，先在无前值的首行使用该列所有样本的均值填充，再沿时间轴向前填充。
+
 
 \begin{table}[htbp]
     \centering
@@ -657,18 +673,6 @@ $\rho_s$ 取值范围为 $[-1,1]$，$|\rho_s|$ 越大表示单调相关越强。
         \bottomrule
     \end{tabular}
 \end{table}
-
-盘级剔除依据两类互补条件，第一是有效观测总日数不足，第二是日历缺失比例过高。
-对盘 $i$，记其在建模有效区间 $[t_{\mathrm{first},i},\,\min(t_{\mathrm{last},i},\,t_{\mathrm{fail},i})]$（健康盘取 $t_{\mathrm{last},i}$）内的实际有日志天数为 $n_{\mathrm{obs},i}$。
-本文盘级预测窗口取 $H=30$ 天，若 $n_{\mathrm{obs},i}<30$，则难以形成与预警窗口相匹配的时序样本，故将此类盘整盘剔除。
-对满足 $G_{\max,i}>30$ 或 $\mathrm{cov}_i<0.5$ 的重度缺失盘，因其观测窗过碎、前向填充后时序与标签可靠性不足，亦整盘剔除。
-通过上述两项检验后，保留轻度（$G_{\max}\le 7$）与中度（$8\le G_{\max}\le 30$）盘并进入补全流程。
-
-原始日志存在上述整日缺失与列级空值，缺失可能由采集中断、设备离线或字段未上报引起。
-此外，部分故障盘在标注故障日后仍持续上报 SMART 日志（可能是因为盘位未及时更换或标识未回收），此类故障后的观测数据对于预测故障发生并无价值，所以对标注故障盘删除 $d_s>t_{\mathrm{fail}}$ 的样本，仅保留 $d_s<=t_{\mathrm{fail}}$ 的日志。
-对表~\ref{tab:preprocessing-removal} 中保留盘，在 $[t_{\mathrm{first}},\min(t_{\mathrm{last}},t_{\mathrm{fail}})]$（健康盘取 $t_{\mathrm{last}}$）上按日历日补全时间轴。
-
-具体的来说，如果 $X_{t-1}$ 存在，那么特征列采用前向填充 $X_t=X_{t-1}$，如果 $X_{t-1}$ 不存在，先在无前值的首行使用该列所有样本的均值填充，再沿时间轴向前填充。
 
 
 \subsubsection{SMART 属性机制归纳}
@@ -747,7 +751,7 @@ $\rho_s$ 取值范围为 $[-1,1]$，$|\rho_s|$ 越大表示单调相关越强。
     \label{fig:b-mutation-mb2}
 \end{figure}
 
-由图可见，两类型号均呈现"长期平稳、近端突变"的共性，B 组读数在故障前大多长期维持不变，一旦出现跳变，则多集中于距故障日数日至数周内的短窗口，与前述第（2）点一致。
+由图可知，两类型号均呈现“长期平稳、近端突变”的共性。B 组读数在故障前多保持稳定，其跳变多发生于距故障日数日至数周的短窗口内，与前述第（2）点相符。
 
 MB1 样例中，多数盘在失效前可观察到属性 5、180、183 等信号的阶跃跳变，幅度较健康盘形成明显对照，直观对应第（1）点所描述的显著跳变及较高盘级命中率。
 
@@ -1120,28 +1124,27 @@ MB1 与 MB2 上的实验结果分别如表~\ref{tab:chap3-main-results-mb1} 与�
     \centering
     \caption{\label{tab:chap3-main-results-mb1}MB1 盘级性能对比}
     \setlength{\tabcolsep}{2.5pt}
-    % 让 multirow 内容垂直居中（需要 \usepackage{multirow}）
     \renewcommand{\multirowsetup}{\centering} 
     
-    \begin{tabularx}{\linewidth}{>{\centering\arraybackslash}m{1.4cm} >{\centering\arraybackslash}m{1.05cm} >{\centering\arraybackslash}m{0.55cm} >{\centering\arraybackslash}m{0.55cm} *{4}{>{\centering\arraybackslash}X}}
+    \begin{tabularx}{\linewidth}{>{\centering\arraybackslash}m{1.4cm} >{\centering\arraybackslash}m{1.05cm} >{\centering\arraybackslash}m{0.7cm} @{\hspace{4pt}} >{\centering\arraybackslash}m{0.7cm} *{4}{>{\centering\arraybackslash}X}}
         \toprule
         方法 & 轮次 & TP & FP & TPR & FPR & Precision & $F_{0.5}$ \\
         \midrule
         
         % --- 本文方法 ---
         \multirow{4}{*}{本文方法}
-        & R1 & 36 & 0 & 0.783 & 0 & 1.000 & 0.947 \\
-        & R2 & 47 & 2 & 0.723 & $5.41\times10^{-5}$ & 0.959 & 0.900 \\
-        & R3 & 66 & 1 & 0.710 & $2.73\times10^{-5}$ & 0.985 & 0.914 \\
-        & 平均 & 149 & 3 & 0.738 & $2.71\times10^{-5}$ & 0.981 & 0.921 \\
+        & R1 & \underline{36} & \textbf{0} & \underline{0.783} & \textbf{0} & \textbf{1.000} & \textbf{0.947} \\
+        & R2 & \underline{47} & 2 & \underline{0.723} & $5.41\times10^{-5}$ & \underline{0.959} & \underline{0.900} \\
+        & R3 & 66 & \underline{1} & 0.710 & \underline{$2.73\times10^{-5}$} & \textbf{0.985} & \underline{0.914} \\
+        & 平均 & 149 & \underline{3} & 0.738 & \underline{$2.71\times10^{-5}$} & \textbf{0.981} & \textbf{0.921} \\
         \cmidrule{1-8} % 左侧留白，避免与第一列的 \multirow 冲突
         
         % --- RF ---
         \multirow{4}{*}{RF}
-        & R1 & 37 & 1 & 0.804 & $2.71\times10^{-5}$ & 0.974 & 0.934 \\
-        & R2 & 47 & 3 & 0.723 & $8.12\times10^{-5}$ & 0.940 & 0.887 \\
-        & R3 & 73 & 9 & 0.768 & $2.46\times10^{-4}$ & 0.890 & 0.863 \\
-        & 平均 & 157 & 13 & 0.765 & $1.18\times10^{-4}$ & 0.935 & 0.895 \\
+        & R1 & \textbf{37} & 1 & \textbf{0.804} & \underline{$2.71\times10^{-5}$} & \underline{0.974} & \underline{0.934} \\
+        & R2 & \underline{47} & 3 & \underline{0.723} & $8.12\times10^{-5}$ & 0.940 & 0.887 \\
+        & R3 & \textbf{73} & 9 & \textbf{0.768} & $2.46\times10^{-4}$ & 0.890 & 0.863 \\
+        & 平均 & \textbf{157} & 13 & \underline{0.765} & $1.18\times10^{-4}$ & 0.935 & 0.895 \\
         \cmidrule{1-8}
         
         % --- AE ---
@@ -1151,27 +1154,30 @@ MB1 与 MB2 上的实验结果分别如表~\ref{tab:chap3-main-results-mb1} 与�
         & R3 & 1 & 43 & 0.011 & $1.17\times10^{-3}$ & 0.023 & 0.019 \\
         & 平均 & 7 & 148 & 0.038 & $1.34\times10^{-3}$ & 0.043 & 0.042 \\
         \cmidrule{1-8}
-        
-        % --- TCAN ---
+        % TCAN
         \multirow{4}{*}{TCAN}
-        & R1 & 0 & 0 & 0.000 & 0 & 0.000 & 0.000 \\
-        & R2 & 0 & 0 & 0.000 & 0 & 0.000 & 0.000 \\
-        & R3 & 0 & 0 & 0.000 & 0 & 0.000 & 0.000 \\
-        & 平均 & 0 & 0 & 0.000 & 0 & 0.000 & 0.000 \\
+        & R1 & 0 & \textbf{0} & 0.000 & \textbf{0} & 0.000 & 0.000 \\
+        & R2 & 0 & \textbf{0} & 0.000 & \textbf{0} & 0.000 & 0.000 \\
+        & R3 & 0 & \textbf{0} & 0.000 & \textbf{0} & 0.000 & 0.000 \\
+        & 平均 & 0 & \textbf{0} & 0.000 & \textbf{0} & 0.000 & 0.000 \\
         \cmidrule{1-8}
-        
-        % --- MVT-RF ---
+        % MVT-RF
         \multirow{4}{*}{MVT-RF}
-        & R1 & 37 & 2 & 0.804 & $5.42\times10^{-5}$ & 0.949 & 0.916 \\
-        & R2 & 48 & 1 & 0.738 & $2.71\times10^{-5}$ & 0.980 & 0.920 \\
-        & R3 & 71 & 2 & 0.763 & $5.46\times10^{-5}$ & 0.973 & 0.922 \\
-        & 平均 & 156 & 5 & 0.769 & $4.53\times10^{-5}$ & 0.967 & 0.919 \\
+        & R1 & \textbf{37} & 2 & \textbf{0.804} & $5.42\times10^{-5}$ & 0.949 & 0.916 \\
+        & R2 & \textbf{48} & \underline{1} & \textbf{0.738} & \underline{$2.71\times10^{-5}$} & \textbf{0.980} & \textbf{0.920} \\
+        & R3 & \underline{71} & 2 & \underline{0.763} & $5.46\times10^{-5}$ & \underline{0.973} & \textbf{0.922} \\
+        & 平均 & \underline{156} & 5 & \textbf{0.769} & $4.53\times10^{-5}$ & \underline{0.967} & \underline{0.919} \\
         
         % --- MSFRD ---
         % MSFRD & -- & -- & -- & -- & -- & -- & -- \\
         
         \bottomrule
     \end{tabularx}
+
+    \vspace{2pt}
+    \begin{minipage}{\linewidth}
+     注：平均行中 TP、FP 为三轮实验样本数量总和。
+    \end{minipage}
 \end{table}
 \begin{table}[htbp]
     \centering
@@ -1180,49 +1186,48 @@ MB1 与 MB2 上的实验结果分别如表~\ref{tab:chap3-main-results-mb1} 与�
     % 让 multirow 内容垂直居中
     \renewcommand{\multirowsetup}{\centering} 
     
-    \begin{tabularx}{\linewidth}{>{\centering\arraybackslash}m{1.4cm} >{\centering\arraybackslash}m{1.05cm} >{\centering\arraybackslash}m{0.55cm} >{\centering\arraybackslash}m{0.55cm} *{4}{>{\centering\arraybackslash}X}}
+    \begin{tabularx}{\linewidth}{>{\centering\arraybackslash}m{1.4cm} >{\centering\arraybackslash}m{1.05cm} >{\centering\arraybackslash}m{0.7cm} @{\hspace{4pt}} >{\centering\arraybackslash}m{0.7cm} *{4}{>{\centering\arraybackslash}X}}
         \toprule
         方法 & 轮次 & TP & FP & TPR & FPR & Precision & $F_{0.5}$ \\
         \midrule
-        
-        % --- 本文方法 ---
+        % 本文方法
         \multirow{4}{*}{本文方法}
-        & R1 & 7 & 0 & 0.304 & 0 & 1.000 & 0.686 \\
-        & R2 & 2 & 0 & 0.200 & 0 & 1.000 & 0.556 \\
-        & R3 & 1 & 0 & 0.056 & 0 & 1.000 & 0.227 \\
-        & 平均 & 10 & 0 & 0.187 & 0 & 1.000 & 0.490 \\
+        & R1 & \textbf{7} & \textbf{0} & \textbf{0.304} & \textbf{0} & \textbf{1.000} & \textbf{0.686} \\
+        & R2 & \textbf{2} & \textbf{0} & \textbf{0.200} & \textbf{0} & \textbf{1.000} & \textbf{0.556} \\
+        & R3 & \textbf{1} & \textbf{0} & \textbf{0.056} & \textbf{0} & \textbf{1.000} & \textbf{0.227} \\
+        & 平均 & \textbf{10} & \textbf{0} & \textbf{0.187} & \textbf{0} & \textbf{1.000} & \textbf{0.490} \\
         \cmidrule{1-8}
         
         % --- RF ---
         \multirow{4}{*}{RF}
-        & R1 & 4 & 0 & 0.182 & 0 & 1.000 & 0.526 \\
-        & R2 & 0 & 0 & 0.000 & 0 & 0.000 & 0.000 \\
-        & R3 & 1 & 1 & 0.056 & $2.43\times10^{-5}$ & 0.500 & 0.192 \\
-        & 平均 & 5 & 1 & 0.079 & $8.14\times10^{-6}$ & 0.500 & 0.240 \\
+        & R1 & 4 & \textbf{0} & 0.182 & \textbf{0} & \textbf{1.000} & 0.526 \\
+        & R2 & 0 & \textbf{0} & 0.000 & \textbf{0} & 0.000 & 0.000 \\
+        & R3 & \textbf{1} & \underline{1} & \textbf{0.056} & \underline{$2.43\times10^{-5}$} & \underline{0.500} & \underline{0.192} \\
+        & 平均 & 5 & \underline{1} & 0.079 & \underline{$8.14\times10^{-6}$} & \underline{0.500} & 0.240 \\
         \cmidrule{1-8}
         
         % --- AE ---
         \multirow{4}{*}{AE}
         & R1 & 4 & 111 & 0.182 & $2.69\times10^{-3}$ & 0.035 & 0.041 \\
-        & R2 & 1 & 68 & 0.100 & $1.65\times10^{-3}$ & 0.014 & 0.017 \\
-        & R3 & 1 & 56 & 0.056 & $1.36\times10^{-3}$ & 0.018 & 0.020 \\
+        & R2 & \underline{1} & 68 & \underline{0.100} & $1.65\times10^{-3}$ & 0.014 & 0.017 \\
+        & R3 & \textbf{1} & 56 & \textbf{0.056} & $1.36\times10^{-3}$ & 0.018 & 0.020 \\
         & 平均 & 6 & 235 & 0.112 & $1.90\times10^{-3}$ & 0.022 & 0.026 \\
         \cmidrule{1-8}
         
         % --- TCAN ---
         \multirow{4}{*}{TCAN}
-        & R1 & 0 & 0 & 0.000 & 0 & 0.000 & 0.000 \\
-        & R2 & 0 & 0 & 0.000 & 0 & 0.000 & 0.000 \\
-        & R3 & 0 & 0 & 0.000 & 0 & 0.000 & 0.000 \\
-        & 平均 & 0 & 0 & 0.000 & 0 & 0.000 & 0.000 \\
+        & R1 & 0 & \textbf{0} & 0.000 & \textbf{0} & 0.000 & 0.000 \\
+        & R2 & 0 & \textbf{0} & 0.000 & \textbf{0} & 0.000 & 0.000 \\
+        & R3 & 0 & \textbf{0} & 0.000 & \textbf{0} & 0.000 & 0.000 \\
+        & 平均 & 0 & \textbf{0} & 0.000 & \textbf{0} & 0.000 & 0.000 \\
         \cmidrule{1-8}
         
         % --- MVT-RF ---
         \multirow{4}{*}{MVT-RF}
-        & R1 & 6 & 0 & 0.273 & 0 & 1.000 & 0.652 \\
-        & R2 & 1 & 0 & 0.100 & 0 & 1.000 & 0.357 \\
-        & R3 & 1 & 0 & 0.056 & 0 & 1.000 & 0.227 \\
-        & 平均 & 8 & 0 & 0.143 & 0 & 1.000 & 0.412 \\
+        & R1 & \underline{6} & \textbf{0} & \underline{0.273} & \textbf{0} & \textbf{1.000} & \underline{0.652} \\
+        & R2 & \underline{1} & \textbf{0} & \underline{0.100} & \textbf{0} & \textbf{1.000} & \underline{0.357} \\
+        & R3 & \textbf{1} & \textbf{0} & \textbf{0.056} & \textbf{0} & \textbf{1.000} & \textbf{0.227} \\
+        & 平均 & \underline{8} & \textbf{0} & \underline{0.143} & \textbf{0} & \textbf{1.000} & \underline{0.412} \\
         % \cmidrule{1-8}
         
         % --- MSFRD ---
@@ -1230,6 +1235,11 @@ MB1 与 MB2 上的实验结果分别如表~\ref{tab:chap3-main-results-mb1} 与�
         
         \bottomrule
     \end{tabularx}
+
+    \vspace{2pt}
+    \begin{minipage}{\linewidth}
+        注：平均行中 TP、FP 为三轮实验样本数量总和。
+    \end{minipage}
 \end{table}
 
 通过比较本文提出模型与基准模型在测试集上所得出的结果，可以得到以下结论。
@@ -1499,7 +1509,7 @@ MB1 已检出故障盘的提前预警天数中位数为 1 天，表明方法能�
     \item 成本效率低：对于追求高写入耐久性的应用场景，如日志存储、数据库重做日志等，统一阈值策略无法充分利用硬件潜力，增加了单位写入成本。
 \end{enumerate}
 
-基于实验室高温磨损模拟得到的块级 FBC 数据，本文构建了基于集成学习的块寿命预测模型，并在此基础上设计差异化写入策略：对强块挖掘额外可写入空间，对弱块采用更保守的使用策略，在不突破纠错安全边界的前提下提升 SSD 整体可写入量。实验结果表明，与固定读写次数阈值策略相比，该方法在相同安全约束下可带来约 17\% 的额外写入量。
+基于实验室高温TLC颗粒模拟磨损得到的块级 FBC 数据，本文构建了基于集成学习的块寿命预测模型，并在此基础上设计差异化写入策略：对强块挖掘额外可写入空间，对弱块采用更保守的使用策略，在不突破纠错安全边界的前提下提升 SSD 整体可写入量。实验结果表明，与固定读写次数阈值策略相比，该方法在相同安全约束下可带来约 17\% 的额外写入量。
 
 \section{磨损数据集介绍}
 
