@@ -7,95 +7,273 @@
 
     \section{SMART 字段筛选剔除明细}
 
-    附表~\ref{tab:app-field-filter-removed} 列出正文~\ref{sec:chap3-field-filter} 节三步字段筛选中剔除的 SMART 读数列、对应剔除原因及适用型号；读数列记法与正文一致（$r_i$ 为原始读数，$n_i$ 为归一化读数）。
+    附表~\ref{tab:app-field-filter-removed} 对应正文第\ref{sec:chap3-field-filter} 节三步字段筛选流程，汇总各步骤剔除的读数列、剔除原因及 MB1/MB2 型号适配情况；读数列标记规则与正文保持一致，$r_i$ 代表原始读数，$n_i$ 代表归一化读数。
 
     \begin{table}[htbp]
         \centering
-        \caption{\label{tab:app-field-filter-removed}SMART 字段筛选剔除明细}
         \footnotesize
-        \begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\centering\arraybackslash}p{1.4cm} >{\centering\arraybackslash}p{1.4cm}@{}}
+        \caption{\label{tab:app-field-filter-removed} SMART 字段筛选剔除明细}
+        \begin{tabularx}{0.92\linewidth}{
+            @{}
+            >{\raggedright\arraybackslash}X
+            >{\raggedright\arraybackslash}X
+            >{\centering\arraybackslash}p{1.4cm}
+            >{\centering\arraybackslash}p{1.4cm}
+            @{}
+        }
             \toprule
             读数列 & 剔除原因 & MB1 & MB2 \\
             \midrule
-            \multicolumn{4}{@{}l@{}}{\textbf{第一步：恒为空列剔除}} \\
+            \multicolumn{4}{@{}l}{第一步：恒为空列剔除} \\
             \addlinespace[2pt]
-            $r_2$/$n_2$、$r_3$/$n_3$、$r_4$/$n_4$、$r_6$/$n_6$、$r_7$/$n_7$、$r_8$/$n_8$ &
-            全体"盘--日"样本均为缺失，属性在公开日志中从未上报 &
-            是 & 是 \\
-            $r_{10}$/$n_{10}$、$r_{11}$/$n_{11}$、$r_{13}$/$n_{13}$、$r_{189}$/$n_{189}$、$r_{191}$/$n_{191}$、$r_{193}$/$n_{193}$ &
-            同上 & 是 & 是 \\
-            $r_{200}$/$n_{200}$、$r_{204}$/$n_{204}$、$r_{205}$/$n_{205}$、$r_{207}$/$n_{207}$、$r_{240}$/$n_{240}$ &
-            同上 & 是 & 是 \\
+            $r_2$/$n_2$、$r_3$/$n_3$、$r_4$/$n_4$、$r_6$/$n_6$、$r_7$/$n_7$、$r_8$/$n_8$
+            & 全部盘-日样本均缺失，该属性在公开日志无上报记录 & 是 & 是 \\
+            $r_{10}$/$n_{10}$、$r_{11}$/$n_{11}$、$r_{13}$/$n_{13}$、$r_{189}$/$n_{189}$、$r_{191}$/$n_{191}$、$r_{193}$/$n_{193}$
+            & 同上 & 是 & 是 \\
+            $r_{200}$/$n_{200}$、$r_{204}$/$n_{205}$、$r_{207}$/$n_{207}$、$r_{240}$/$n_{240}$
+            & 同上 & 是 & 是 \\
             \midrule
-            \multicolumn{4}{@{}l@{}}{\textbf{第二步：零方差列剔除}} \\
+            \multicolumn{4}{@{}l}{第二步：零方差列剔除} \\
             \addlinespace[2pt]
-            $r_1$/$n_1$、$r_{170}$/$n_{170}$、$r_{171}$/$n_{171}$、$r_{172}$/$n_{172}$、$r_{173}$/$n_{173}$ &
-            存在非空取值但全样本为同一常数，无区分信息 &
-            是 & 是 \\
-            $r_{174}$/$n_{174}$、$r_{175}$/$n_{175}$、$r_{188}$/$n_{188}$、$r_{192}$/$n_{192}$、$r_{196}$/$n_{196}$、$r_{197}$/$n_{197}$ &
-            同上 & 是 & 是 \\
-            $r_{198}$/$n_{198}$、$r_{206}$/$n_{206}$、$r_{211}$/$n_{211}$、$r_{232}$/$n_{232}$、$r_{233}$/$n_{233}$、$r_{245}$/$n_{245}$ &
-            同上 & 是 & 是 \\
-            $r_{184}$/$n_{184}$、$r_{194}$/$n_{194}$ &
-            同上 & --- & 是 \\
-            $r_{244}$/$n_{244}$ &
-            同上 & 是 & --- \\
-            $n_{244}$ &
-            同上 & --- & 是 \\
+            $r_1$/$n_1$、$r_{170}$/$n_{171}$、$r_{172}$/$n_{173}$
+            & 存在非空值，但全样本取值唯一，无区分能力 & 是 & 是 \\
+            $r_{174}$/$n_{175}$、$r_{188}$/$n_{192}$、$r_{196}$/$n_{197}$
+            & 同上 & 是 & 是 \\
+            $r_{198}$/$n_{206}$、$r_{211}$/$n_{232}$、$r_{233}$/$n_{245}$
+            & 同上 & 是 & 是 \\
+            $r_{184}$/$n_{194}$ & 同上 & --- & 是 \\
+            $r_{244}$ & 同上 & 是 & --- \\
+            $n_{244}$ & 同上 & --- & 是 \\
             \midrule
-            \multicolumn{4}{@{}l@{}}{\textbf{第三步：$r$--$n$ 冗余列剔除（仅 $n_i$）}} \\
+            \multicolumn{4}{@{}l}{第三步：$r$-$n$ 冗余归一化列剔除（仅删 $n_i$）} \\
             \addlinespace[2pt]
-            $n_5$、$n_9$、$n_{177}$、$n_{181}$、$n_{182}$、$n_{183}$、$n_{187}$、$n_{190}$、$n_{195}$、$n_{199}$ &
-            $|\rho_s|>0.8$，$n_i$ 可由 $r_i$ 单调导出 & 是 & 是 \\
-            $n_{184}$、$n_{194}$ &
-            同上 & 是 & --- \\
+            $n_5$、$n_9$、$n_{177}$、$n_{181}$、$n_{182}$、$n_{183}$、$n_{187}$、$n_{190}$、$n_{195}$、$n_{199}$
+            & $|\rho_s|>0.8$，归一化读数可由原始读数单调映射得到 & 是 & 是 \\
+            $n_{184}$、$n_{194}$ & 同上 & 是 & --- \\
             \bottomrule
         \end{tabularx}
-
-        \vspace{2pt}
-        \begin{minipage}{\linewidth}
-            \footnotesize 注："是"表示该型号执行剔除；"---"表示不剔除。
-            第三步 $\rho_s$ 取值见附表~\ref{tab:app-raw-norm-spearman}；MB2 上 $r_{184}$、$r_{194}$ 已于第二步因零方差剔除，故第三步不再涉及 $n_{184}$、$n_{194}$。
+        \vspace{3pt}
+        \begin{minipage}{0.92\linewidth}
+            \footnotesize
+            注：“是”代表该型号剔除此字段；“---”代表该型号未出现此字段。第三步相关 Spearman 系数见附表~\ref{tab:app-raw-norm-spearman}；MB2 数据集内 $r_{184}$、$r_{194}$ 第二步已判定为零方差并剔除，故第三步不再处理对应 $n_{184}$、$n_{194}$。
         \end{minipage}
     \end{table}
 
     \clearpage
-    \section{SMART 属性原始读数与归一化读数的 Spearman 相关}
-
-    附表~\ref{tab:app-raw-norm-spearman} 列出正文公式~(\ref{equ:spearman-rn}) 所依据的各属性 Spearman 系数：在剔除零方差原始读数列后的有效属性上，于 MB1/MB2 全量日日志配对计算。
+    \section{SMART 原始与归一化读数 Spearman 相关系数}
+    附表~\ref{tab:app-raw-norm-spearman} 统计正文公式(\ref{equ:spearman-rn})所需的相关性指标，仅保留第一步、第二步筛选后的有效属性，分别对 MB1、MB2 全量盘日日志配对计算原始读数 $r_i$ 与归一化读数 $n_i$ 的 Spearman 相关系数 $\rho_s$。
 
     \begin{table}[htbp]
         \centering
-        \caption{\label{tab:app-raw-norm-spearman}字段筛选后 SMART 原始读数与归一化读数的 Spearman 相关（MB1/MB2）}
         \footnotesize
-        \begin{tabularx}{\linewidth}{@{}>{\centering\arraybackslash}p{0.85cm} >{\raggedright\arraybackslash}X >{\centering\arraybackslash}p{2.0cm} >{\centering\arraybackslash}p{2.0cm} >{\centering\arraybackslash}p{2.2cm}@{}}
+        \caption{\label{tab:app-raw-norm-spearman} 筛选后 SMART 原始/归一化读数 Spearman 相关系数（MB1、MB2）}
+        \begin{tabularx}{0.92\linewidth}{
+            @{}
+            >{\centering\arraybackslash}p{0.85cm}
+            >{\raggedright\arraybackslash}X
+            >{\centering\arraybackslash}p{2.0cm}
+            >{\centering\arraybackslash}p{2.0cm}
+            >{\centering\arraybackslash}p{2.2cm}
+            @{}
+        }
             \toprule
-            ID & SMART 属性 & MB1 $\rho_s$ & MB2 $\rho_s$ & 保留列 \\
+            属性ID & SMART 属性名称 & MB1 $\rho_s$ & MB2 $\rho_s$ & 最终保留字段 \\
             \midrule
-            5   & 重映射扇区计数        & $-1.0000$ & $-1.0000$ & $r_{5}$ \\
-            9   & 通电时间累计          & $-0.9682$ & $-0.9681$ & $r_{9}$ \\
-            12  & 通电周期计数          & $-0.0183$ & $-0.0472$ & $r_{12}$/$n_{12}$ \\
-            177 & 磨损范围对比值        & $-0.9274$ & $-0.8269$ & $r_{177}$ \\
-            180 & 未用的备用块计数      & $0.0407$  & $0.1512$  & $r_{180}$/$n_{180}$ \\
-            181 & 编程失败计数          & $-1.0000$ & $-1.0000$ & $r_{181}$ \\
-            182 & 擦写失败计数          & $-1.0000$ & $-1.0000$ & $r_{182}$ \\
-            183 & 串口降速错误计数      & $-1.0000$ & $-1.0000$ & $r_{183}$ \\
-            184 & 点到点错误检测计数    & $-1.0000$ & ---       & $r_{184}$ \\
-            187 & 无法校正的错误        & $-1.0000$ & $-1.0000$ & $r_{187}$ \\
-            190 & 气流温度              & $-1.0000$ & $-1.0000$ & $r_{190}$ \\
-            194 & 温度                  & $-1.0000$ & ---       & $r_{194}$ \\
-            195 & 编程错误块计数        & $-1.0000$ & $-1.0000$ & $r_{195}$ \\
-            199 & Ultra ATA CRC 错误率  & $-0.9987$ & $-0.9993$ & $r_{199}$ \\
-            241 & LBA 写入总数          & $-0.0842$ & $-0.1709$ & $r_{241}$/$n_{241}$ \\
-            242 & LBA 读取总数          & $-0.0881$ & $-0.0922$ & $r_{242}$/$n_{242}$ \\
+            5     & 重映射扇区计数        & $-1.0000$ & $-1.0000$ & $r_{5}$ \\
+            9     & 通电时间累计          & $-0.9682$ & $-0.9681$ & $r_{9}$ \\
+            12    & 通电周期计数          & $-0.0183$ & $-0.0472$ & $r_{12}$/$n_{12}$ \\
+            177   & 磨损范围对比值        & $-0.9274$ & $-0.8269$ & $r_{177}$ \\
+            180   & 未用的备用块计数      & $0.0407$  & $0.1512$  & $r_{180}$/$n_{180}$ \\
+            181   & 编程失败计数          & $-1.0000$ & $-1.0000$ & $r_{181}$ \\
+            182   & 擦写失败计数          & $-1.0000$ & $-1.0000$ & $r_{182}$ \\
+            183   & 串口降速错误计数      & $-1.0000$ & $-1.0000$ & $r_{183}$ \\
+            184   & 点到点错误检测计数    & $-1.0000$ & ---       & $r_{184}$ \\
+            187   & 无法校正的错误        & $-1.0000$ & $-1.0000$ & $r_{187}$ \\
+            190   & 气流温度              & $-1.0000$ & $-1.0000$ & $r_{190}$ \\
+            194   & 温度                  & $-1.0000$ & ---       & $r_{194}$ \\
+            195   & 编程错误块计数        & $-1.0000$ & $-1.0000$ & $r_{195}$ \\
+            199   & Ultra ATA CRC 错误率  & $-0.9987$ & $-0.9993$ & $r_{199}$ \\
+            241   & LBA 写入总数          & $-0.0842$ & $-0.1709$ & $r_{241}$/$n_{241}$ \\
+            242   & LBA 读取总数          & $-0.0881$ & $-0.0922$ & $r_{242}$/$n_{242}$ \\
             \bottomrule
         \end{tabularx}
-
-        \vspace{2pt}
-        \begin{minipage}{\linewidth}
-            \footnotesize 注：$\rho_s$ 按正文公式~(\ref{equ:spearman-rn}) 在同行 $r_i$ 与 $n_i$ 上配对计算；"---"表示该型号上 $r_i$ 与 $n_i$ 至少一侧为零方差而未列入相关统计。正文以 $|\rho_s|>0.8$ 作为冗余判定阈值：超过阈值时仅保留 $r_i$，否则 $r_i$ 与 $n_i$ 均保留。
+        \vspace{3pt}
+        \begin{minipage}{0.92\linewidth}
+            \footnotesize
+            注：$\rho_s$ 依据正文公式(\ref{equ:spearman-rn})在同ID原始、归一化读数配对计算；“---”代表该型号下此字段存在零方差，无有效相关样本。全文以 $|\rho_s|>0.8$ 作为冗余判定阈值，超阈值仅保留原始读数 $r_i$，否则 $r_i$、$n_i$ 全部保留。
         \end{minipage}
     \end{table}
+
+    \clearpage
+    \section{智慧 SSD 运维系统设计明细表}
+    \label{sec:app-sw-design-details}
+
+    本节汇总正文第五章数据库字段设计、REST 接口定义与功能测试用例等工程明细，供查阅完整实现规范时使用。
+
+    \begin{table}[htbp]
+        \centering
+        \footnotesize
+        \caption{\label{tab:disk-info-schema}磁盘信息表字段设计}
+        \begin{tabularx}{0.92\linewidth}{>{\raggedright\arraybackslash}p{2.2cm} >{\raggedright\arraybackslash}p{2.0cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{2.4cm}}
+            \toprule
+            字段名 & 字段类型 & 字段表述 & 备注 \\
+            \midrule
+            id & BIGINT & 记录主键 & 主键 \\
+            serial\_number & VARCHAR & 磁盘序列号 & \\
+            model\_type & VARCHAR & 磁盘型号 & \\
+            capacity & BIGINT & 容量（单位：KB） & \\
+            manufacturer & VARCHAR & 制造商 & \\
+            created\_at & DATETIME & 记录创建时间 & \\
+            \bottomrule
+        \end{tabularx}
+    \end{table}
+
+    \begin{table}[htbp]
+        \centering
+        \footnotesize
+        \caption{\label{tab:smart-log-schema}SMART 日志表字段设计}
+        \begin{tabularx}{0.92\linewidth}{>{\raggedright\arraybackslash}p{2.4cm} >{\raggedright\arraybackslash}p{2.2cm} X >{\raggedright\arraybackslash}p{1.6cm}}
+            \toprule
+            字段名 & 字段类型 & 字段表述 & 备注 \\
+            \midrule
+            id & BIGINT & 记录主键 & 主键 \\
+            disk\_id & BIGINT & 关联磁盘 ID & 外键 \\
+            ds & DATE & 日志采集日期 &  \\
+            raw\_5 & DECIMAL & 重映射扇区计数 &  \\
+            raw\_9 & DECIMAL & 通电时间 &  \\
+            raw\_194 & DECIMAL & 温度 &  \\
+            raw\_195 & DECIMAL & 硬件 ECC 恢复 &  \\
+            created\_at & DATETIME & 记录创建时间 &  \\
+            \bottomrule
+        \end{tabularx}
+        \vspace{3pt}
+        \begin{minipage}{0.92\linewidth}
+            \footnotesize
+            注：表中仅列出部分代表性 SMART 字段，其余属性可按 \texttt{raw\_\{id\}} 相同命名规范扩展。
+        \end{minipage}
+    \end{table}
+
+    \begin{table}[htbp]
+        \centering
+        \footnotesize
+        \caption{\label{tab:fault-schema}故障记录表字段设计}
+        \begin{tabularx}{0.92\linewidth}{>{\raggedright\arraybackslash}p{2.4cm} >{\raggedright\arraybackslash}p{2.2cm} X >{\raggedright\arraybackslash}p{1.6cm}}
+            \toprule
+            字段名 & 字段类型 & 字段表述 & 备注 \\
+            \midrule
+            id & BIGINT & 记录主键 & 主键 \\
+            disk\_id & BIGINT & 关联磁盘 ID & 外键 \\
+            fault\_date & DATE & 故障发生日期 &  \\
+            source & VARCHAR & 来源（人工确认/自动写入） &  \\
+            created\_at & DATETIME & 记录创建时间 &  \\
+            \bottomrule
+        \end{tabularx}
+    \end{table}
+
+    \begin{table}[htbp]
+        \centering
+        \footnotesize
+        \caption{\label{tab:warning-schema}预警记录表字段设计}
+        \begin{tabularx}{0.92\linewidth}{>{\raggedright\arraybackslash}p{2.4cm} >{\raggedright\arraybackslash}p{2.2cm} X >{\raggedright\arraybackslash}p{1.6cm}}
+            \toprule
+            字段名 & 字段类型 & 字段表述 & 备注 \\
+            \midrule
+            id & BIGINT & 记录主键 & 主键 \\
+            disk\_id & BIGINT & 关联磁盘 ID & 外键 \\
+            warning\_date & DATE & 预警生成日期 &  \\
+            status & VARCHAR & 处置状态（pending/confirmed/ignored） &  \\
+            score & DECIMAL & 预警评分或概率 &  \\
+            logs\_snapshot & JSON & 关联日志快照 &  \\
+            handled\_at & DATETIME & 处置时间 &  \\
+            created\_at & DATETIME & 记录创建时间 &  \\
+            \bottomrule
+        \end{tabularx}
+    \end{table}
+
+    \begin{table}[htbp]
+        \centering
+        \footnotesize
+        \caption{\label{tab:sw-api}系统主要 REST 接口设计}
+        \begin{tabularx}{0.92\linewidth}{>{\ttfamily\raggedright\arraybackslash}m{5.2cm} >{\centering\arraybackslash}m{1.4cm} >{\raggedright\arraybackslash}X}
+            \toprule
+            接口路径 & 方法 & 功能说明 \\
+            \midrule
+            /api/disks & GET/\allowbreak POST & 查询磁盘列表或新增磁盘资产 \\
+            /api/disks/\{id\} & GET/\allowbreak PUT/\allowbreak DELETE & 查询、更新或删除指定磁盘 \\
+            /api/logs & GET/\allowbreak POST & 按序列号与日期查询或导入 SMART 日志 \\
+            /api/warnings & GET & 分页查询预警记录及处置状态 \\
+            /api/warnings/\{id\} & GET & 查询单条预警详情及关联日志快照 \\
+            /api/warnings/\{id\}/confirm & POST & 确认故障并写入故障记录 \\
+            /api/warnings/\{id\}/ignore & POST & 忽略当前预警 \\
+            /api/faults & GET/\allowbreak POST & 查询或登记故障记录 \\
+            /api/predict/run & POST & 手动触发一次增量预测任务 \\
+            \bottomrule
+        \end{tabularx}
+    \end{table}
+
+    \begin{table}[htbp]
+        \centering
+        \footnotesize
+        \caption{\label{tab:sw-testcase}系统功能测试用例及结果}
+        \begin{tabularx}{0.92\linewidth}{>{\centering\arraybackslash}m{2.0cm} >{\raggedright\arraybackslash}X >{\centering\arraybackslash}m{1.2cm}}
+            \toprule
+            测试模块 & 测试步骤与预期结果 & 结果 \\
+            \midrule
+            SSD 设备资产管理 & 新增 SSD 设备资产信息，列表可正常检索展示 & 通过 \\
+            SSD 设备资产管理 & 修改 SSD 容量并保存，详情页数据同步更新 & 通过 \\
+            SSD 设备资产管理 & 删除测试设备记录，列表不再展示该条目 & 通过 \\
+            SMART 日志管理 & 按设备序列号导入 SMART 日志，支持日期检索 & 通过 \\
+            SMART 日志管理 & 修改日志温度字段，保存后查询数据一致 & 通过 \\
+            预警生成 & 执行预测任务，预警表自动新增 pending 待处置记录 & 通过 \\
+            预警处置 & 查看预警详情，正常展示预测评分与日志快照 & 通过 \\
+            预警处置 & 确认待处置预警，状态更新为 confirmed 已确认故障 & 通过 \\
+            预警处置 & 确认预警后，故障表自动生成对应故障条目 & 通过 \\
+            预警处置 & 忽略待处置预警，状态更新为 ignored 已忽略 & 通过 \\
+            故障管理 & 手动录入故障记录，支持按日期回溯查询 & 通过 \\
+            接口调用 & 调用预警列表接口，返回分页数据与状态字段 & 通过 \\
+            \bottomrule
+        \end{tabularx}
+    \end{table}
+
+    \clearpage
+    \section{智慧 SSD 运维系统界面截图集}
+    \label{sec:app-ui-screenshots}
+
+    本节收录正文第五章系统实现部分各功能模块的前端界面截图，对应磁盘管理、日志管理、故障管理与预警处置四类运维场景。
+
+    \begin{figure}[htbp]
+        \centering
+        \begin{minipage}[t]{0.48\linewidth}
+            \centering
+            \includegraphics[width=\linewidth]{figure/磁盘管理页.png}
+            \captionof{figure}{磁盘管理界面}
+            \label{fig:ssd-disk-ui}
+        \end{minipage}
+        \hfill
+        \begin{minipage}[t]{0.48\linewidth}
+            \centering
+            \includegraphics[width=\linewidth]{figure/日志管理页.png}
+            \captionof{figure}{日志管理界面}
+            \label{fig:ssd-log-ui}
+        \end{minipage}
+    \end{figure}
+
+    \begin{figure}[htbp]
+        \centering
+        \begin{minipage}[t]{0.48\linewidth}
+            \centering
+            \includegraphics[width=\linewidth]{figure/故障管理页.png}
+            \captionof{figure}{故障管理界面}
+            \label{fig:ssd-fault-ui}
+        \end{minipage}
+        \hfill
+        \begin{minipage}[t]{0.48\linewidth}
+            \centering
+            \includegraphics[width=\linewidth]{figure/故障处理页.png}
+            \captionof{figure}{故障处理界面}
+            \label{fig:ssd-warning-flow-ui}
+        \end{minipage}
+    \end{figure}
 
     \removeappendixsecmajornumbering
 }

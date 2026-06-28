@@ -1,7 +1,7 @@
 \chapter{背景介绍与国内外研究现状}
 
 \section{研究背景}
-随着数字化转型和云计算、大数据、物联网、人工智能等技术在各行业的广泛应用，业务系统不断产生和累积海量数据，这些数据被集中部署在数据中心，使数据中心的存储规模快速膨胀。
+随着数字化转型和云计算、大数据、物联网、人工智能等技术在各行业的广泛应用，业务系统不断产生和累积海量数据，这些数据被集中部署在数据中心，使数据中心的存储规模快速扩张。
 根据Cloudscene平台统计\cite{shankar2024challenging}，2024年世界上的数据中心总量超过11,800个，国内数据中心为449个。
 从数据产生规模的角度来看，根据 2024 版《数据存储2030》白皮书\cite{huawei_storage_2030_2024}，如图~\ref{fig:global-data-growth}所示，世界上产生的数据总量2020年为44 泽字节（Zettabyte, ZB），2025年将达175ZB，到2030 年将达到1003ZB。
 如此庞大的数据集中存储于数据中心的存储系统中，如何保障数据的可靠性已成为一个重要挑战。
@@ -43,7 +43,7 @@ Alter 等人\cite{alter2019ssd} 基于 Google 公司的一个大型数据中心�
 
 Xu 等人\cite{xu2019lessons} 则进一步从系统整体视角出发，基于阿里云 7 个数据中心约 3 年时间、覆盖约 45 万块 SSD 的大规模在线存储系统，
 研究了被系统状态监控守护进程标记为 “SSD 相关上报故障（RASR）” 的故障。
-该工作联合分析设备级错误与系统级故障日志，总结了 RASR 故障在分布、症状及相关性方面的典型特征，发现机房温度被动升温、读写负载与磨损不均衡、人为操作失误，以及 SSD 与上层软件系统的交互等因素会共同诱发故障，并在此基础上提炼出若干关于系统可靠性的经验教训以及一套简单而有效的工程缓解措施。
+该工作联合分析设备级错误与系统级故障日志，总结了 RASR 故障在分布、症状及相关性方面的典型特征，机房温度异常升高、读写负载与磨损不均衡、人为操作失误，以及 SSD 与上层软件系统的交互等因素会共同诱发故障，并在此基础上提炼出若干关于系统可靠性的经验教训以及一套简单而有效的工程缓解措施。
 
 Han 等人\cite{han2021depth} 则进一步从“相关故障（Correlated Failures）”视角出发，利用 Alibaba 公司数据中心的大规模生产环境中 SSD 的长期运维数据，对同一机架、同一节点乃至跨节点之间在时间和空间上高度相关的故障现象进行了系统研究。
 研究表明，电源与散热异常、机架/节点级别的运行环境波动、批量固件或硬件问题等因素，容易诱发多块 SSD 在短时间内集中失效，从而削弱传统冗余与容灾机制的有效性。
@@ -642,8 +642,8 @@ $\rho_s$ 取值范围为 $[-1,1]$，$|\rho_s|$ 越大表示单调相关越强。
 \begin{table}[htbp]
     \centering
     \caption{\label{tab:preprocessing-removal}预处理剔除与保留}
-
-    \begin{tabularx}{\linewidth}{lX>{\centering\arraybackslash}X>{\centering\arraybackslash}X}
+    % 使用 tabular 替代 tabularx，并让表格宽度由内容决定
+    \begin{tabular}{l l c c}
         \toprule
         对象 & 规则 & MB1 & MB2 \\
         \midrule
@@ -655,7 +655,7 @@ $\rho_s$ 取值范围为 $[-1,1]$，$|\rho_s|$ 越大表示单调相关越强。
         保留盘数 & 进入补全与建模 & 38\,812 & 43\,128 \\
         保留故障盘 & 2018--2019 可标注故障 & 1\,132 & 460 \\
         \bottomrule
-    \end{tabularx}
+    \end{tabular}
 \end{table}
 
 盘级剔除依据两类互补条件，第一是有效观测总日数不足，第二是日历缺失比例过高。
@@ -665,7 +665,7 @@ $\rho_s$ 取值范围为 $[-1,1]$，$|\rho_s|$ 越大表示单调相关越强。
 通过上述两项检验后，保留轻度（$G_{\max}\le 7$）与中度（$8\le G_{\max}\le 30$）盘并进入补全流程。
 
 原始日志存在上述整日缺失与列级空值，缺失可能由采集中断、设备离线或字段未上报引起。
-此外，部分故障盘在标注故障日后仍持续上报 SMART 日志（可能是因为盘位未及时更换或标识未回收），此类故障后观测无法在故障发生前为故障预测提供信息，所以对标注故障盘删除 $d_s>t_{\mathrm{fail}}$ 的样本，仅保留 $d_s<=t_{\mathrm{fail}}$ 的日志。
+此外，部分故障盘在标注故障日后仍持续上报 SMART 日志（可能是因为盘位未及时更换或标识未回收），此类故障后的观测数据对于预测故障发生并无价值，所以对标注故障盘删除 $d_s>t_{\mathrm{fail}}$ 的样本，仅保留 $d_s<=t_{\mathrm{fail}}$ 的日志。
 对表~\ref{tab:preprocessing-removal} 中保留盘，在 $[t_{\mathrm{first}},\min(t_{\mathrm{last}},t_{\mathrm{fail}})]$（健康盘取 $t_{\mathrm{last}}$）上按日历日补全时间轴。
 
 具体的来说，如果 $X_{t-1}$ 存在，那么特征列采用前向填充 $X_t=X_{t-1}$，如果 $X_{t-1}$ 不存在，先在无前值的首行使用该列所有样本的均值填充，再沿时间轴向前填充。
@@ -876,7 +876,7 @@ $W$ 控制 Lag 回看的日历长度，过小则上下文不足，过大则远�
 \label{sec:chap3-jump-label}
 
 在第~\ref{sec:chap3-b-mutation-eda}~节中的观察表明，部分故障盘存在静默故障问题：这些故障盘在预警时间窗口内的 B 组特征长期保持不变，直到临近故障才会产生跳变，甚至故障发生后也不会产生跳变。
-这类静默故障盘难以与正常运行的盘区分，将它们的样本标记为正样本可能会引入标签噪声，使模型倾向于将健康样本误判。
+这类静默故障盘难以与正常运行的盘区分，将它们的样本标记为正样本可能会引入标签噪声，导致模型将健康样本误判为故障样本的风险增加。
 为了保留失效前变化信息的同时减少噪声带来的风险，本文提出一种将固定窗口标签与首次跳变观测标签取交集的混合标记策略。
 图~\ref{fig:chap3-label-strategy} 给出了固定长窗、固定短窗、故障当日窗口、首跳窗口与本文混合标记策略的直观示意。
 
@@ -1000,11 +1000,14 @@ p_t=
 \subsubsection{数据集划分}
 
 实验在预处理后的 MB1、MB2 子集上进行。
-数据集按日历月做时间顺序划分，训练窗自 2018 年 6 月（剔除入池早期样本后的首个可用月）起算；月份以 2018 年 1 月为第 1 月编号。
+因为SSD 故障预测属于时序预测任务，随机划分会产生时间泄露，模型提前获取未来日志，线上部署失效，
+所以采用滚动训练 / 验证 / 测试完全复现真实运维时序数据流。
+
+数据集按月做时间顺序划分，训练窗自 2018 年 6 月（剔除入池早期样本后的首个可用月）起算；月份以 2018 年 1 月为第 1 月编号。
 采用三轮划分，每轮以连续训练月份拟合模型、以紧邻 1 个月为验证集、再之后 1 个月为测试集
-（例如第 1 轮对应日历约为训练 2018-06–2019-07、验证 2019-08、测试 2019-09），
+（例如第 1 轮对应日历约为训练 2018年6月至2019年7月、验证 2019年8月、测试 2019年9月），
 具体如表~\ref{tab:chap3-scheme-b-split} 所示。
-各轮测试集时间互不重叠，三轮测试集上的盘级指标取算术平均作为主结果。
+各轮测试集时间不重叠，三轮测试集上的盘级指标取算术平均作为最终结果。
 
 \begin{table}[htbp]
     \centering
@@ -1074,7 +1077,6 @@ p_t=
 对 Xu 式 RF 对照及 MVTRF、AE 与 TCAN 等文献方法进行了复现。
 所有实验在 Apple M2 芯片、16~GB 内存的 MacBook Air 设备上完成，代码使用 Python~3.9.6 版本。
 
-\clearpage
 \subsection{关键超参数 $W$ 与 $k$ 的选取}
 \label{sec:chap3-wk-sensitivity}
 
@@ -1107,7 +1109,7 @@ p_t=
 
 综合两维搜索，本文确定 MB1 主实验配置为 $W^{\ast}{=}1$、$k^{\ast}{=}3$，MB2 为 $W^{\ast}{=}2$、$k^{\ast}{=}2$。后续主结果对比、消融实验与提前预警分析均固定上述最优格。
 
-\clearpage
+
 \subsection{模型整体效果的验证与分析}
 \label{sec:chap3-main-results}
 
@@ -1234,22 +1236,22 @@ MB1 与 MB2 上的实验结果分别如表~\ref{tab:chap3-main-results-mb1} 与�
 
 Xu 式 RF 对照在 3 日与 7 日自然日窗上为各 SMART 读数构造统计量，经 XGB 筛选后实际输入维数为 MB1 62 维、MB2 54 维，长于本文 $W{=}1$/2 的短期 Lag 与 $r_k|\Delta|$ 表征（25/41 维）。
 在 MB1 上其 TPR 略高于本文方法（0.765 \emph{vs.}\ 0.738），但 FPR 高了一个数量级（$1.18\times10^{-4}$ \emph{vs.}\ $2.71\times10^{-5}$），导致盘级 $F_{0.5}$ 相对略低（0.895 \emph{vs.}\ 0.921），
-表明更长窗口与更丰富的统计特征虽有助于多检出部分故障盘，亦将更多健康盘的背景波动误判为前兆，误报代价在大盘级评估下更为突出。
+实验表明，虽然更长的时间窗口与更丰富的统计特征有助于提升故障盘的检出率，但也增加了将健康盘背景波动误判为前兆的风险，导致在盘级评估中误报代价显著增加。
 
-AE 为无监督设定，训练阶段不使用故障标签，输入仅为单日 16 维原始读数，模型无法从标注中学习故障前窗口与 SMART 模式的对应关系，
+AE 无监督不使用故障标签，无法学习故障专属时序模式，误报极高。AE 为无监督设定，训练阶段不使用故障标签，输入仅为单日 16 维原始读数，模型无法从标注中学习故障前窗口与 SMART 模式的对应关系，
 此外，异常分数由逐样本重构均方误差给出，对各属性等权计分，而 SMART 退化往往体现为少数属性的缓变或稀少跳变，关键信号易被背景噪声淹没，
 再经盘级规则取 30 日内最早超阈值告警，样本级误判在盘级评估中被进一步放大，故 AE 在 MB1/MB2 上 TPR 与 $F_{0.5}$ 均明显偏低。
 
-TCAN 采用故障当日标签与 10 日 SMART 序列输入，训练时对健康盘约 $1{:}100$ 降采样，以 BCE 优化且未对正类加权，
+TCAN 仅故障当日标注，正样本极度不平衡，模型偏向全健康判别。TCAN 采用故障当日标签与 10 日 SMART 序列输入，训练时对健康盘约 $1{:}100$ 降采样，以 BCE 优化且未对正类加权，
 负类梯度主导下模型倾向于将全部样本判为低风险，样本级概率普遍低于判定阈值 0.5，故盘级评估中健康盘与故障盘均未触发告警，MB1/MB2 上 TPR 与 FPR 均为 0。
 此外，监督正例仅落在故障日当天，相对其他标签策略得到的正样本更为稀疏，模型难以有效学习故障前兆。
 
-MVT-RF 使用了时序、直方图、序列等多种特征，集成了 4 个随机森林模型投票，挖掘出了更多的故障信息，
+MVT-RF 多视图长时序特征引入静默噪声，误报率高于本文方法。MVT-RF 使用了时序、直方图、序列等多种特征，集成了 4 个随机森林模型投票，挖掘出了更多的故障信息，
 在 MB1 上其 TPR 略高于本文方法（0.769 \emph{vs.}\ 0.738），但 FPR 更高（$4.53\times10^{-5}$ \emph{vs.}\ $2.71\times10^{-5}$），Precision 也略低于本文方法（0.967 \emph{vs.}\ 0.981），
 盘级 $F_{0.5}$ 亦略低于本文方法（0.919 \emph{vs.}\ 0.921）；本文在检出率接近的同时误报更少，更符合低误报的工程需求。
 
 
-\clearpage
+
 \subsection{突变时序特征有效性分析}
 \label{sec:chap3-mutation-ablation}
 
@@ -1292,7 +1294,7 @@ MVT-RF 使用了时序、直方图、序列等多种特征，集成了 4 个随�
 
 综上所述，Lag 与 $r_k|\Delta|$ 的联合构造在 MB1 上显著优于任一路单独使用，在 MB2 上以突变通道为主、Lag 贡献有限，但完整拼接仍保持最优或持平的平均表现，验证了 \S\ref{sec:chap3-mutation-features} 短期时序突变特征设计的有效性。
 
-\clearpage
+
 \subsection{标签策略有效性分析}
 \label{sec:chap3-label-ablation}
 
@@ -1334,7 +1336,6 @@ MVT-RF 使用了时序、直方图、序列等多种特征，集成了 4 个随�
 
 综上所述，固定窗口单独使用无法剥离首跳前静默段的标签噪声，首跳单独使用监督区间过宽，当日标记正例过稀；取二者交集既保留近端失效变化、又抑制静默段误标，在 MB1/MB2 上均取得最优三轮平均 $F_{0.5}$，验证了 \S\ref{sec:chap3-jump-label} 混合标记策略的有效性。
 
-\clearpage
 \subsection{异构集成有效性分析}
 \label{sec:chap3-ensemble-ablation}
 
@@ -1785,15 +1786,17 @@ MB1 已检出故障盘的提前预警天数中位数为 1 天，表明方法能�
 
 \begin{table}[htbp]
     \centering
+    \setlength{\tabcolsep}{6pt}
     \caption{\label{tab:sw-func-req}系统功能需求说明}
-    \begin{tabularx}{\linewidth}{>{\centering\arraybackslash}p{1.6cm} >{\raggedright\arraybackslash}p{2.8cm} X}
+    % 移除编号列，第一列左对齐不换行，第二列自适应换行
+    \begin{tabularx}{\linewidth}{l X}
         \toprule
-        编号 & 需求类别 & 需求描述 \\
+        需求类别 & 需求描述 \\
         \midrule
-        FR-01 & 基础数据管理 & 支持对 SSD 盘信息、SMART 日志与故障记录的增删改查及按序列号、日期检索 \\
-        FR-02 & 预测分析 & 按周期对增量日志执行预处理、特征构造与模型推理，生成预警记录及关联日志快照 \\
-        FR-03 & 交互与可视化 & 提供列表分页、详情查看、预警状态更新等运维高频操作界面 \\
-        FR-04 & 可扩展性 & 支持预测模型、特征构造模块与规则引擎的替换与升级，接口与数据表保持向后兼容 \\
+        基础数据管理 & 支持对 SSD 盘信息、SMART 日志与故障记录的增删改查及按序列号、日期检索 \\
+        预测分析 & 按周期对增量日志执行预处理、特征构造与模型推理，生成预警记录及关联日志快照 \\
+        交互与可视化 & 提供列表分页、详情查看、预警状态更新等运维高频操作界面 \\
+        可扩展性 & 支持预测模型、特征构造模块与规则引擎的替换与升级，接口与数据表保持向后兼容 \\
         \bottomrule
     \end{tabularx}
 \end{table}
@@ -1804,16 +1807,18 @@ MB1 已检出故障盘的提前预警天数中位数为 1 天，表明方法能�
 
 \begin{table}[htbp]
     \centering
+    \setlength{\tabcolsep}{6pt}
     \caption{\label{tab:sw-nfr}系统非功能需求说明}
-    \begin{tabularx}{\linewidth}{>{\centering\arraybackslash}p{1.6cm} >{\raggedright\arraybackslash}p{2.4cm} X}
+
+    \begin{tabularx}{\linewidth}{l X}
         \toprule
-        编号 & 需求类别 & 需求描述 \\
+        需求类别 & 需求描述 \\
         \midrule
-        NFR-01 & 可用性 & 核心管理页面在常规浏览器下可正常访问，列表查询响应时间在秒级 \\
-        NFR-02 & 可维护性 & 采用前后端分离与分层架构，业务模块边界清晰，便于独立演进 \\
-        NFR-03 & 数据一致性 & 预警确认后同步更新预警状态并写入故障记录，保证处置链路可追溯 \\
-        NFR-04 & 安全性 & 通过登录鉴权控制管理操作，敏感写操作需经后端校验 \\
-        NFR-05 & 可扩展性 & 算法服务与在线业务服务解耦，模型文件与阈值配置可独立更新 \\
+        可用性 & 核心管理页面在常规浏览器下可正常访问，列表查询响应时间在秒级 \\
+        可维护性 & 采用前后端分离与分层架构，业务模块边界清晰，便于独立演进 \\
+        数据一致性 & 预警确认后同步更新预警状态并写入故障记录，保证处置链路可追溯 \\
+        安全性 & 通过登录鉴权控制管理操作，敏感写操作需经后端校验 \\
+        可扩展性 & 算法服务与在线业务服务解耦，模型文件与阈值配置可独立更新 \\
         \bottomrule
     \end{tabularx}
 \end{table}
@@ -1830,33 +1835,32 @@ MB1 已检出故障盘的提前预警天数中位数为 1 天，表明方法能�
     \caption{智慧 SSD 运维系统用例图}
     \label{fig:ch5-usecase}
 \end{figure}
-
 \begin{table}[htbp]
     \centering
     \caption{\label{tab:sw-usecase}系统核心用例说明}
-    \begin{tabularx}{\linewidth}{>{\centering\arraybackslash}p{1.4cm} >{\raggedright\arraybackslash}p{3.0cm} >{\raggedright\arraybackslash}p{2.0cm} X}
+    \begin{tabularx}{\linewidth}{l l X}
         \toprule
-        编号 & 用例名称 & 参与者 & 用例描述 \\
+        用例名称 & 参与者 & 用例描述 \\
         \midrule
-        UC-01 & 维护 SSD 盘资产 & 运维用户 & 对 SSD 资产主数据进行统一管理 \\
-        UC-01a & 查询 SSD 盘列表 & 运维用户 & 按序列号、型号等条件检索磁盘列表 \\
-        UC-01b & 新增 SSD 盘信息 & 运维用户 & 录入序列号、型号、容量、厂商等字段 \\
-        UC-01c & 编辑 SSD 盘信息 & 运维用户 & 修改已有磁盘的基础属性 \\
-        UC-01d & 删除 SSD 盘记录 & 运维用户 & 删除无效或下线的磁盘资产记录 \\
-        UC-02 & 管理 SMART 日志 & 运维用户 & 对磁盘运行日志进行维护与检索 \\
-        UC-02a & 按条件检索日志 & 运维用户 & 按序列号与日期范围查询 SMART 日志 \\
-        UC-02b & 导入/维护日志 & 运维用户 & 导入或编辑 SMART 原始属性记录 \\
-        UC-03 & 生成故障预警 & 定时调度器 & 周期执行预测流程并写入预警表 \\
-        UC-03a & 手动触发故障预警 & 运维用户 & 在管理界面手动发起一次增量预测 \\
-        UC-03b & 拉取增量日志 & 系统 & 读取尚未参与推理的新增 SMART 日志 \\
-        UC-03c & 执行模型推理 & 系统 & 调用故障预测算法服务完成特征构造与模型推理 \\
-        UC-03d & 写入预警记录 & 系统 & 将预警日期、评分与日志快照写入数据库 \\
-        UC-04 & 处置预警记录 & 运维用户 & 查看预警详情并更新处置状态 \\
-        UC-04a & 确认故障 & 运维用户 & 将预警标记为 confirmed，并登记对应故障记录 \\
-        UC-04b & 忽略预警 & 运维用户 & 将预警标记为 ignored \\
-        UC-05 & 维护故障记录 & 运维用户 & 对已确认或手工登记的故障事件进行统一管理 \\
-        UC-05a & 查询故障记录 & 运维用户 & 按序列号、日期等条件检索故障事件 \\
-        UC-05b & 登记故障记录 & 运维用户/系统 & 在故障管理页面手工登记，或由确认预警流程自动写入 \\
+        维护 SSD 盘资产 & 运维用户 & 对 SSD 资产主数据进行统一管理 \\
+        查询 SSD 盘列表 & 运维用户 & 按序列号、型号等条件检索 SSD 列表 \\
+        新增 SSD 盘信息 & 运维用户 & 录入序列号、型号、容量、厂商等字段 \\
+        编辑 SSD 盘信息 & 运维用户 & 修改已有 SSD 的基础属性 \\
+        删除 SSD 盘记录 & 运维用户 & 删除无效或下线的 SSD 资产记录 \\
+        管理 SMART 日志 & 运维用户 & 对 SSD 运行日志进行维护与检索 \\
+        按条件检索日志 & 运维用户 & 按序列号与日期范围查询 SMART 日志 \\
+        导入/维护日志 & 运维用户 & 导入或编辑 SMART 原始属性记录 \\
+        生成故障预警 & 定时调度器 & 周期执行预测流程并写入预警表 \\
+        手动触发故障预警 & 运维用户 & 在管理界面手动发起一次增量预测 \\
+        拉取增量日志 & 系统 & 读取尚未参与推理的新增 SMART 日志 \\
+        执行模型推理 & 系统 & 调用故障预测算法服务完成特征构造与模型推理 \\
+        写入预警记录 & 系统 & 将预警日期、评分与日志快照写入数据库 \\
+        处置预警记录 & 运维用户 & 查看预警详情并更新处置状态 \\
+        确认故障 & 运维用户 & 将预警标记为 confirmed，并登记对应故障记录 \\
+        忽略预警 & 运维用户 & 将预警标记为 ignored \\
+        维护故障记录 & 运维用户 & 对已确认或手工登记的故障事件进行统一管理 \\
+        查询故障记录 & 运维用户 & 按序列号、日期等条件检索故障事件 \\
+        登记故障记录 & 运维用户/系统 & 在故障管理页面手工登记，或由确认预警流程自动写入 \\
         \bottomrule
     \end{tabularx}
 \end{table}
@@ -1997,24 +2001,19 @@ MB1 已检出故障盘的提前预警天数中位数为 1 天，表明方法能�
 
 \subsection{接口设计}
 
-系统对外提供 REST 风格接口，主要接口设计如表\ref{tab:sw-api}所示。接口按资源类型划分为磁盘、日志、预警与故障四类，采用统一的 JSON 数据格式进行交互。
+系统对外提供 REST 风格接口，按资源类型划分为磁盘、日志、预警与故障四类，采用统一的 JSON 数据格式进行交互；各资源均支持列表查询与单条操作，预警资源另提供确认与忽略处置接口，预测任务可通过手动触发接口调用。接口分层汇总如表\ref{tab:sw-api-summary}所示，完整路径与方法定义见附表~\ref{tab:sw-api}。
 
 \begin{table}[htbp]
     \centering
-    \caption{\label{tab:sw-api}系统主要 REST 接口设计}
-    \begin{tabularx}{0.96\linewidth}{>{\ttfamily\raggedright\arraybackslash}m{5.6cm} >{\centering\arraybackslash}m{1.4cm} >{\raggedright\arraybackslash}X}
+    \caption{\label{tab:sw-api-summary}系统 REST 接口分层汇总}
+    \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{2.4cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{3.2cm}}
         \toprule
-        接口路径 & 方法 & 功能说明 \\
+        资源类型 & 主要能力 & 典型 HTTP 方法 \\
         \midrule
-        /api/disks & GET/\allowbreak POST & 查询磁盘列表或新增磁盘资产 \\
-        /api/disks/\{id\} & GET/\allowbreak PUT/\allowbreak DELETE & 查询、更新或删除指定磁盘 \\
-        /api/logs & GET/\allowbreak POST & 按序列号与日期查询或导入 SMART 日志 \\
-        /api/warnings & GET & 分页查询预警记录及处置状态 \\
-        /api/warnings/\{id\} & GET & 查询单条预警详情及关联日志快照 \\
-        /api/warnings/\{id\}/confirm & POST & 确认故障并写入故障记录 \\
-        /api/warnings/\{id\}/ignore & POST & 忽略当前预警 \\
-        /api/faults & GET/\allowbreak POST & 查询或登记故障记录 \\
-        /api/predict/run & POST & 手动触发一次增量预测任务 \\
+        磁盘 & 资产列表查询、单盘增删改查 & GET、POST、PUT、DELETE \\
+        日志 & 按序列号与日期检索、导入维护 & GET、POST \\
+        预警 & 分页查询、详情查看、确认/忽略处置 & GET、POST \\
+        故障 & 故障事件登记与回溯查询 & GET、POST \\
         \bottomrule
     \end{tabularx}
 \end{table}
@@ -2053,91 +2052,21 @@ MB1 已检出故障盘的提前预警天数中位数为 1 天，表明方法能�
 
 在关联实现上，其余三表通过 \texttt{disk\_id} 外键引用磁盘信息表主键 \texttt{id} 建立一对多联系；\texttt{serial\_number} 仅作为磁盘资产的业务标识字段保留在磁盘信息表中。日志表与预警表还可按时间窗口进行关联查询，以支持预警溯源与详情展示。预警记录与故障记录之间的“确认生成”联系属于业务流转关系，仅当运维人员确认故障时才会写入故障记录，手工登记的故障事件则不经过预警表。
 
-\subsection{磁盘信息表设计}
-磁盘信息表用于维护SSD资产主数据，是日志表、故障表与预警表进行关联查询的基础。
-该表重点记录磁盘序列号、型号、容量、厂商等相对稳定的信息，用于支撑设备唯一标识与资产检索；其余业务表通过 \texttt{disk\_id} 引用本表主键完成关联。其字段设计如表\ref{tab:disk-info-schema}所示：
+\subsection{逻辑结构设计}
+
+四类核心数据表的用途与关键字段汇总如表\ref{tab:sw-db-overview}所示。磁盘信息表维护序列号、型号、容量等资产主数据；SMART 日志表按日历日存储原始属性读数，支撑特征构造与模型推理；预警记录表保存模型评分、关联日志快照及 pending/confirmed/ignored 处置状态；故障记录表沉淀已确认事件及其来源。各表完整字段类型与约束定义见附表~\ref{tab:disk-info-schema}--\ref{tab:warning-schema}。
 
 \begin{table}[htbp]
     \centering
-    \caption{\label{tab:disk-info-schema}磁盘信息表字段设计}
-    \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{2.4cm} >{\raggedright\arraybackslash}p{2.2cm} >{\raggedright\arraybackslash}p{5.0cm} >{\raggedright\arraybackslash}p{3.0cm}}
+    \caption{\label{tab:sw-db-overview}系统核心数据表汇总}
+    \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{2.6cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{2.4cm} >{\raggedright\arraybackslash}p{2.0cm}}
         \toprule
-        字段名 & 字段类型 & 字段表述 & 备注 \\
+        数据表 & 主要用途 & 主键 & 外键 \\
         \midrule
-        id & BIGINT & 记录主键 & 主键 \\
-        serial\_number & VARCHAR & 磁盘序列号 & \\
-        model\_type & VARCHAR & 磁盘型号 & \\
-        capacity & BIGINT & 容量（单位：KB） & \\
-        manufacturer & VARCHAR & 制造商 & \\
-        created\_at & DATETIME & 记录创建时间 & \\
-        \bottomrule
-    \end{tabularx}
-\end{table}
-
-\subsection{SMART日志表设计}
-SMART日志表用于按时间粒度保存磁盘运行日志，是预警分析与历史追溯的核心数据来源。
-该表除记录磁盘标识与采集时间外，还按统一命名规则存储SMART原始属性值，以支持特征构造、时序统计与模型推理。需要说明的是，受版面限制，表\ref{tab:smart-log-schema}仅列出部分代表性SMART字段，并未覆盖系统中采集的全部SMART属性，其余属性可按相同字段规范扩展。
-其字段设计如表\ref{tab:smart-log-schema}所示：
-
-\begin{table}[htbp]
-    \centering
-    \caption{\label{tab:smart-log-schema}SMART日志表字段设计}
-    \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{2.8cm} >{\raggedright\arraybackslash}p{2.6cm} X >{\raggedright\arraybackslash}p{1.8cm}}
-        \toprule
-        字段名 & 字段类型 & 字段表述 & 备注 \\
-        \midrule
-        id & BIGINT & 记录主键 & 主键 \\
-        disk\_id & BIGINT & 关联磁盘 ID & 外键 \\
-        ds & DATE & 日志采集日期 &  \\
-        raw\_5 & DECIMAL & 重映射扇区计数 &  \\
-        raw\_9 & DECIMAL & 通电时间 &  \\
-        raw\_194 & DECIMAL & 温度 &  \\
-        raw\_195 & DECIMAL & 硬件ECC恢复 &  \\
-        created\_at & DATETIME & 记录创建时间 &  \\
-        \bottomrule
-    \end{tabularx}
-\end{table}
-
-\subsection{故障记录表设计}
-故障记录表用于维护已确认故障事件，是预警处置闭环中的关键数据载体。
-该表重点记录故障发生时间、事件来源与关联磁盘标识，可用于支撑预警命中率评估、误报复盘与真实故障样本沉淀。
-其字段设计如表\ref{tab:fault-schema}所示：
-
-\begin{table}[htbp]
-    \centering
-    \caption{\label{tab:fault-schema}故障记录表字段设计}
-    \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{2.8cm} >{\raggedright\arraybackslash}p{2.6cm} X >{\raggedright\arraybackslash}p{1.8cm}}
-        \toprule
-        字段名 & 字段类型 & 字段表述 & 备注 \\
-        \midrule
-        id & BIGINT & 记录主键 & 主键 \\
-        disk\_id & BIGINT & 关联磁盘 ID & 外键 \\
-        fault\_date & DATE & 故障发生日期 &  \\
-        source & VARCHAR & 来源（人工确认/自动写入） &  \\
-        created\_at & DATETIME & 记录创建时间 &  \\
-        \bottomrule
-    \end{tabularx}
-\end{table}
-
-\subsection{预警记录表设计}
-预警记录表用于保存模型输出结果与处置状态，是预测分析页面的直接数据来源，也是形成运维闭环的关键数据表。
-其字段设计如表\ref{tab:warning-schema}所示：
-
-\begin{table}[htbp]
-    \centering
-    \caption{\label{tab:warning-schema}预警记录表字段设计}
-    \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{2.8cm} >{\raggedright\arraybackslash}p{2.6cm} X >{\raggedright\arraybackslash}p{1.8cm}}
-        \toprule
-        字段名 & 字段类型 & 字段表述 & 备注 \\
-        \midrule
-        id & BIGINT & 记录主键 & 主键 \\
-        disk\_id & BIGINT & 关联磁盘 ID & 外键 \\
-        warning\_date & DATE & 预警生成日期 &  \\
-        status & VARCHAR & \mbox{处置状态（pending/confirmed/ignored）} &  \\
-        score & DECIMAL & 预警评分或概率 &  \\
-        logs\_snapshot & JSON & 关联日志快照 &  \\
-        handled\_at & DATETIME & 处置时间 &  \\
-        created\_at & DATETIME & 记录创建时间 &  \\
+        磁盘信息表 & SSD 资产主数据维护与检索 & \texttt{id} & --- \\
+        SMART 日志表 & 按日存储运行日志，支撑预测分析 & \texttt{id} & \texttt{disk\_id} \\
+        预警记录表 & 保存模型输出、日志快照与处置状态 & \texttt{id} & \texttt{disk\_id} \\
+        故障记录表 & 沉淀已确认故障事件及来源 & \texttt{id} & \texttt{disk\_id} \\
         \bottomrule
     \end{tabularx}
 \end{table}
@@ -2150,81 +2079,50 @@ SMART日志表用于按时间粒度保存磁盘运行日志，是预警分析与
 \subsection{管理员模块实现}
 在后台管理模块中，系统按业务对象划分为磁盘管理、日志管理与故障管理三个核心单元。
 磁盘管理模块负责维护 SSD 基础信息，支持列表查询、新增、编辑与删除；日志管理模块负责维护 SMART 日志记录，支持按序列号与日期检索并进行增删改查；故障管理模块负责维护已确认故障事件，支持故障日期登记、回溯查询与记录管理。通过模块化划分，系统将运维高频操作统一纳入标准化流程，提升了后台管理效率。
-对应的页面实现效果分别如图\ref{fig:ssd-disk-ui}、图\ref{fig:ssd-log-ui}与图\ref{fig:ssd-fault-ui}所示。
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.95\linewidth]{figure/磁盘管理页.png}
-    \caption{磁盘管理界面}
-    \label{fig:ssd-disk-ui}
-\end{figure}
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.95\linewidth]{figure/日志管理页.png}
-    \caption{日志管理界面}
-    \label{fig:ssd-log-ui}
-\end{figure}
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.95\linewidth]{figure/故障管理页.png}
-    \caption{故障管理界面}
-    \label{fig:ssd-fault-ui}
-\end{figure}
+磁盘管理、日志管理与故障管理各功能页面完整截图详见附录~\ref{sec:app-ui-screenshots}。
 
 \subsection{预警生成与处置流程实现}
 预警功能由算法服务层与后端服务层协同完成。
 定时调度器周期触发故障预测算法服务，依次执行数据预处理、特征构造、模型推理及阈值判定，并将结果交由预警数据管理服务写入预警表；
 算法服务内部复用第三章离线训练得到的模型与配置。后端服务层根据页面请求返回预警列表、关联日志明细与当前处置状态。
 运维人员可在故障处理页面执行“确认故障”或“忽略预警”操作，系统同步更新预警状态，并在确认故障时写入故障记录表，形成从模型输出到运维动作的闭环链路。
-对应的页面交互与处置流程如图\ref{fig:ssd-warning-flow-ui}所示。
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.95\linewidth]{figure/故障处理页.png}
-    \caption{故障处理界面}
-    \label{fig:ssd-warning-flow-ui}
-\end{figure}
+预警处置页面交互效果详见附录~\ref{sec:app-ui-screenshots}。
 
 \subsection{功能落地效果分析}
-从工程落地效果看，系统已实现以下关键能力：第一，完成 SSD 资产与运行日志的结构化管理，满足日常数据治理需求；第二，实现预警记录与关联日志的联动展示，提升故障定位效率；第三，打通预警状态流转与故障沉淀流程，使模型输出可直接转化为可执行运维动作；第四，为后续模型重训练、阈值优化与策略迭代提供持续数据闭环。与此同时，系统在功能组织与数据链路上保持了较好的模块解耦性，便于后续按业务需求逐步扩展模型服务、规则引擎与可视化能力。
+从工程落地效果看，系统已实现以下关键能力：第一，完成 SSD 资产与运行日志的结构化管理，满足日常数据治理需求；第二，实现预警记录与关联日志的联动展示，提升故障定位效率；第三，打通预警状态流转与故障沉淀流程，使模型输出可直接转化为可执行运维动作；第四，为后续模型重训练、阈值优化与策略迭代提供持续数据闭环。与此同时，系统在功能组织与数据链路上保持了较好的模块解耦性，便于后续按业务需求逐步扩展模型服务、规则引擎与可视化能力。系统各功能模块前端界面完整截图统一收录于附录~\ref{sec:app-ui-screenshots}。
 
 \section{系统测试}
 
 \subsection{测试环境与方法}
 
-系统测试在本地部署环境中进行。前端运行于 Edge 浏览器，后端服务与 MySQL 数据库部署于同一主机；预测任务通过定时调度模块触发。测试以功能测试为主，覆盖 5.1.3 节所列核心用例及 5.3.5 节主要接口，验证需求项能否通过系统操作正确实现。测试方法采用黑盒测试，依据用例步骤执行操作并核对页面展示与数据库状态变化。
+系统测试在本地部署环境中进行。前端运行于 Edge 浏览器，后端服务与 MySQL 数据库部署于同一主机；预测任务通过定时调度模块触发。测试以功能测试为主，覆盖 5.1.3 节所列核心用例及 5.3.5 节 REST 接口（附表~\ref{tab:sw-api}），验证需求项能否通过系统操作正确实现。测试方法采用黑盒测试，依据用例步骤执行操作并核对页面展示与数据库状态变化。
 
 \subsection{功能测试用例与结果}
 
-功能测试用例如表\ref{tab:sw-testcase}所示。测试结果表明，磁盘管理、日志管理、预警生成、预警处置与故障记录等核心功能均可按预期执行，主要用例均通过测试。
-
+功能测试覆盖资产管理、日志维护、预警生成、预警处置、故障登记及接口调用六类场景，共 12 项用例，测试结果汇总如表\ref{tab:sw-test-summary}所示。全部用例均通过测试，完整步骤与预期结果见附表~\ref{tab:sw-testcase}。
 \begin{table}[htbp]
     \centering
-    \caption{\label{tab:sw-testcase}系统功能测试用例及结果}
-    \begin{tabularx}{0.96\linewidth}{>{\centering\arraybackslash}m{1.35cm} >{\centering\arraybackslash}m{2.0cm} >{\raggedright\arraybackslash}X >{\centering\arraybackslash}m{1.2cm}}
+    \setlength{\tabcolsep}{6pt}
+    \caption{\label{tab:sw-test-summary}系统功能测试结果汇总}
+    % 三列均分总宽度，每列占1/3行宽
+    \begin{tabularx}{\linewidth}{*{3}{>{\centering\arraybackslash}X}}
         \toprule
-        编号 & 测试模块 & 测试步骤与预期结果 & 结果 \\
+        测试模块 & 用例数 & 测试结论 \\
         \midrule
-        TC-01 & 磁盘管理 & 新增磁盘信息并在列表中检索，预期可正确显示 & 通过 \\
-        TC-02 & 磁盘管理 & 编辑磁盘容量字段并保存，预期详情页同步更新 & 通过 \\
-        TC-03 & 磁盘管理 & 删除测试磁盘记录，预期列表不再显示该记录 & 通过 \\
-        TC-04 & 日志管理 & 按序列号导入 SMART 日志，预期可按日期查询 & 通过 \\
-        TC-05 & 日志管理 & 修改某条日志温度字段，预期保存后查询结果一致 & 通过 \\
-        TC-06 & 预警生成 & 触发预测任务，预期预警表新增 pending 记录 & 通过 \\
-        TC-07 & 预警处置 & 查看预警详情，预期展示评分与日志快照 & 通过 \\
-        TC-08 & 预警处置 & 对 pending 预警执行确认故障，预期状态变为 confirmed & 通过 \\
-        TC-09 & 预警处置 & 确认故障后检查故障表，预期生成对应故障记录 & 通过 \\
-        TC-10 & 预警处置 & 对 pending 预警执行忽略，预期状态变为 ignored & 通过 \\
-        TC-11 & 故障管理 & 手工登记故障记录并在列表检索，预期可写入并按日期回溯 & 通过 \\
-        TC-12 & 接口调用 & 调用预警列表接口，预期返回分页数据与状态字段 & 通过 \\
+        SSD 设备资产管理 & 3 & 全部通过 \\
+        SMART 日志管理 & 2 & 全部通过 \\
+        预警生成 & 1 & 全部通过 \\
+        预警处置 & 4 & 全部通过 \\
+        故障管理 & 1 & 全部通过 \\
+        接口调用 & 1 & 全部通过 \\
+        \midrule
+        合计 & 12 & 全部通过 \\
         \bottomrule
     \end{tabularx}
 \end{table}
 
 \section{本章小结}
-本章围绕智慧 SSD 运维软件的工程落地展开，按照软件工程基本流程完成了需求分析、概要设计、详细设计、数据库设计、系统实现与系统测试。需求分析部分明确了功能需求、非功能需求与核心用例；概要设计部分给出了总体架构、模块划分、服务层职责、部署方式与技术选型；详细设计部分补充了预警生成与处置流程、状态转换规则、REST 接口设计及与第三章预测方法的衔接；数据库设计部分完成了概念层 E-R 建模、实体关系说明及四张核心业务表的逻辑结构设计；实现部分验证了各管理模块与预警闭环功能；测试部分通过功能测试用例验证了系统主要场景的可执行性。整体上，系统将“数据采集—模型推理—人工处置—结果沉淀”串联为可追踪流程，为后续在真实生产环境中开展策略迭代、指标评估与跨版本对比提供了统一的平台支撑。
+本章围绕智慧 SSD 运维软件的工程落地展开，按照软件工程基本流程完成了需求分析、概要设计、详细设计、数据库设计、系统实现与系统测试。需求分析部分明确了功能需求、非功能需求与核心用例；概要设计部分给出了总体架构、模块划分、服务层职责、部署方式与技术选型；详细设计部分补充了预警生成与处置流程、状态转换规则、REST 接口设计及与第三章预测方法的衔接；数据库设计部分完成了概念层 E-R 建模与核心数据表汇总，完整字段明细见附录；实现部分验证了各管理模块与预警闭环功能，界面截图见附录；测试部分通过 12 项功能测试验证了系统主要场景的可执行性。整体上，系统将“数据采集—模型推理—人工处置—结果沉淀”串联为可追踪流程，为后续在真实生产环境中开展策略迭代、指标评估与跨版本对比提供了统一的平台支撑。
 
 \chapter{总结与展望}
 
