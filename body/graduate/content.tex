@@ -968,7 +968,7 @@ p_t=
 若整盘在测试月均无有效特征，盘级视为未预警，等价于将该盘预测为健康盘。
 
 主实验统一采用混合标注与 Lag+$r_k|\Delta|$ 完整突变特征；标签策略与突变特征消融在固定其余设定下替换单一组件，样本级阈值取 0.5。
-异构集成消融中将集成输出与 RF、XGB、LGB 单基结果对比时，单基学习器省略 Attention 融合步骤，仅在验证集上调整参数。
+异构集成消融中将集成输出与 RF、XGB、LGB 单基结果对比时，单基学习器省略集成融合步骤，仅在验证集上调整参数。
 
 \subsubsection{对比模型介绍}
 
@@ -996,14 +996,18 @@ p_t=
         使用得到的四个随机森林投票得出故障预测结果。
         
     % \item MSFRD~\cite{zhang2024msfrd}：基于突变相似度的故障评级与诊断（MSFRD）面向生产环境中 Telemetry 指标重要性漂移与未见故障模式并存的挑战，实时从监控序列中动态提取稀少突变特征，并通过与历史故障盘、健康盘突变模式的相似度度量进行故障判别与细粒度评级；对轻度故障盘可持续跟踪并给出渐进式处置建议。其在字节跳动 41-M/10-M 数据集上的故障预测精度与召回均优于多种既有方案。
+    \item Mut-RF~\cite{zhang2024msfrd}：
+        采用 30 日固定窗口标签，以健康盘的回看 7 日 SMART 时序作为模型输入；先训练 Informer 时序预测骨干：
+        输入 7 日观测序列预测未来 3 日 SMART 指标，使用 Adam 优化器、 MSFRD 加权稀有损失训练，最大迭代 100 轮、早停阈值 patience\(=5\)；
+        训练完成后，基于加权残差计算突变稀有度分数（对预测残差平方加权属性稀有权重并增加稀有正则项），再提取连续 10 阶滞后突变分数构成输入特征集，送入随机森林完成盘故障判别。
 \end{itemize}
 
 上述文献方法多在私有数据集上验证，且尚未见与本文实验设定完全一致的公开实现。
 为此，使用与本文一致的数据预处理得到的特征、时间划分与盘级指标口径下，
 % 对 Xu 式 RF 对照及 MVTRF、MSFRD、AE 与 TCAN 等文献方法进行了复现。
-对 Xu 式 RF 对照及 MVTRF、AE 与 TCAN 等文献方法进行了复现。
-所有实验在 Apple M2 芯片、16~GB 内存的 MacBook Air 设备上完成，代码使用 Python~3.9.6 版本。
-
+对 Xu 式 RF 对照及 MVT-RF、AE 、 TCAN 与 Mut-RF 等文献方法进行了复现。
+其中 Mut-RF 分为 Informer 时序训练与随机森林分类两步：Informer 大规模时序推理依赖云端 vGPU 加速，
+后续随机森林训练、其余基线模型（RF/AE/TCAN/MVT-RF）全部在 Apple M2 芯片、16GB 内存 MacBook Air 上完成，代码统一基于 Python 3.9.6 实现。
 \subsection{关键超参数 $W$ 与 $k$ 的选取}
 \label{sec:chap3-wk-sensitivity}
 
@@ -1046,10 +1050,11 @@ MB1 与 MB2 上的实验结果分别如表~\ref{tab:chap3-main-results-mb1} 与�
 \begin{table}[htbp]
     \centering
     \caption{\label{tab:chap3-main-results-mb1}MB1 盘级性能对比}
-    \setlength{\tabcolsep}{2.5pt}
+    \setlength{\tabcolsep}{2pt} % 微调列间距，避免拥挤
     \renewcommand{\multirowsetup}{\centering} 
-    
-    \begin{tabularx}{\linewidth}{>{\centering\arraybackslash}m{1.4cm} >{\centering\arraybackslash}m{1.05cm} >{\centering\arraybackslash}m{0.7cm} @{\hspace{4pt}} >{\centering\arraybackslash}m{0.7cm} *{4}{>{\centering\arraybackslash}X}}
+
+    % 加宽方法列，彻底解决Mutation-RF文字溢出重叠问题
+    \begin{tabularx}{\linewidth}{>{\centering\arraybackslash}m{1.6cm} >{\centering\arraybackslash}m{1.05cm} >{\centering\arraybackslash}m{0.7cm} @{\hspace{4pt}} >{\centering\arraybackslash}m{0.7cm} *{4}{>{\centering\arraybackslash}X}}
         \toprule
         方法 & 轮次 & TP & FP & TPR & FPR & Precision & $F_{0.5}$ \\
         \midrule
@@ -1060,7 +1065,7 @@ MB1 与 MB2 上的实验结果分别如表~\ref{tab:chap3-main-results-mb1} 与�
         & R2 & \underline{47} & 2 & \underline{0.723} & $5.41\times10^{-5}$ & \underline{0.959} & \underline{0.900} \\
         & R3 & 66 & \underline{1} & 0.710 & \underline{$2.73\times10^{-5}$} & \textbf{0.985} & \underline{0.914} \\
         & 平均 & 149 & \underline{3} & 0.738 & \underline{$2.71\times10^{-5}$} & \textbf{0.981} & \textbf{0.921} \\
-        \cmidrule{1-8} % 左侧留白，避免与第一列的 \multirow 冲突
+        \cmidrule{1-8}
         
         % --- RF ---
         \multirow{4}{*}{RF}
@@ -1090,26 +1095,30 @@ MB1 与 MB2 上的实验结果分别如表~\ref{tab:chap3-main-results-mb1} 与�
         & R2 & \textbf{48} & \underline{1} & \textbf{0.738} & \underline{$2.71\times10^{-5}$} & \textbf{0.980} & \textbf{0.920} \\
         & R3 & \underline{71} & 2 & \underline{0.763} & $5.46\times10^{-5}$ & \underline{0.973} & \textbf{0.922} \\
         & 平均 & \underline{156} & 5 & \textbf{0.769} & $4.53\times10^{-5}$ & \underline{0.967} & \underline{0.919} \\
-        
-        % --- MSFRD ---
-        % MSFRD & -- & -- & -- & -- & -- & -- & -- \\
+        \cmidrule{1-8}
+        % Mutation-RF 统一科学计数法格式
+        \multirow{4}{*}{Mut-RF}
+        & R1 & 1 & 1 & 0.022 & $2.71\times10^{-5}$ & 0.500 & 0.094 \\
+        & R2 & 1 & 1 & 0.016 & $2.70\times10^{-5}$ & 0.500 & 0.070 \\
+        & R3 & 2 & 2 & 0.022 & $5.46\times10^{-5}$ & 0.500 & 0.094 \\
+        & 平均 & 4 & 4 & 0.020 & $3.63\times10^{-5}$ & 0.500 & 0.086 \\
         
         \bottomrule
     \end{tabularx}
 
     \vspace{2pt}
     \begin{minipage}{\linewidth}
-     注：平均行中 TP、FP 为三轮实验样本数量总和。
+        注：平均行中 TP、FP 为三轮实验检出/误报总数总和。
     \end{minipage}
 \end{table}
+
 \begin{table}[htbp]
     \centering
     \caption{\label{tab:chap3-main-results-mb2}MB2 盘级性能对比}
-    \setlength{\tabcolsep}{2.5pt}
-    % 让 multirow 内容垂直居中
+    \setlength{\tabcolsep}{2pt}
     \renewcommand{\multirowsetup}{\centering} 
     
-    \begin{tabularx}{\linewidth}{>{\centering\arraybackslash}m{1.4cm} >{\centering\arraybackslash}m{1.05cm} >{\centering\arraybackslash}m{0.7cm} @{\hspace{4pt}} >{\centering\arraybackslash}m{0.7cm} *{4}{>{\centering\arraybackslash}X}}
+    \begin{tabularx}{\linewidth}{>{\centering\arraybackslash}m{1.6cm} >{\centering\arraybackslash}m{1.05cm} >{\centering\arraybackslash}m{0.7cm} @{\hspace{4pt}} >{\centering\arraybackslash}m{0.7cm} *{4}{>{\centering\arraybackslash}X}}
         \toprule
         方法 & 轮次 & TP & FP & TPR & FPR & Precision & $F_{0.5}$ \\
         \midrule
@@ -1151,17 +1160,21 @@ MB1 与 MB2 上的实验结果分别如表~\ref{tab:chap3-main-results-mb1} 与�
         & R2 & \underline{1} & \textbf{0} & \underline{0.100} & \textbf{0} & \textbf{1.000} & \underline{0.357} \\
         & R3 & \textbf{1} & \textbf{0} & \textbf{0.056} & \textbf{0} & \textbf{1.000} & \textbf{0.227} \\
         & 平均 & \underline{8} & \textbf{0} & \underline{0.143} & \textbf{0} & \textbf{1.000} & \underline{0.412} \\
-        % \cmidrule{1-8}
+        \cmidrule{1-8}
         
-        % --- MSFRD ---
-        % MSFRD & -- & -- & -- & -- & -- & -- & -- \\
+        % --- Mutation-RF 统一格式 ---
+        \multirow{4}{*}{Mut-RF}
+        & R1 &  0 &  \textbf{0} & 0.000 & \textbf{0} & 0.000 & 0.000 \\
+        & R2 &  0 &  \textbf{0} & 0.000 & \textbf{0} & 0.000 & 0.000 \\
+        & R3 &  0 &  \textbf{0} & 0.000 & \textbf{0} & 0.000 & 0.000 \\
+        & 平均 & 0 &  \textbf{0} & 0.000 & \textbf{0} & 0.000 & 0.000 \\
         
         \bottomrule
     \end{tabularx}
 
     \vspace{2pt}
     \begin{minipage}{\linewidth}
-        注：平均行中 TP、FP 为三轮实验样本数量总和。
+        注：平均行中 TP、FP 为三轮实验检出/误报总数总和。
     \end{minipage}
 \end{table}
 
@@ -1183,8 +1196,10 @@ MVT-RF 多视图长时序特征引入静默噪声，误报率高于本文方法�
 在 MB1 上其 TPR 略高于本文方法（0.769 \emph{vs.}\ 0.738），但 FPR 更高（$4.53\times10^{-5}$ \emph{vs.}\ $2.71\times10^{-5}$），Precision 也略低于本文方法（0.967 \emph{vs.}\ 0.981），
 盘级 $F_{0.5}$ 亦略低于本文方法（0.919 \emph{vs.}\ 0.921）；本文在检出率接近的同时误报更少，更符合低误报的工程需求。
 
+Mut-RF 采用 30 日固定窗口标签，以健康盘的7日SMART时序送入Informer预测未来3日指标，依托稀有权重计算突变分数，截取连续10阶滞后突变特征送入随机森林完成判别。
+突变分数对业务周期波动与故障短时跳变不加区分，无法针对退化指标赋予差异化权重，特征内有效故障信息占比极低。MB1三轮平均TPR仅0.020，MB2无任何故障检出，尽管FPR维持较低水平，但极低检出率使其无法完成磁盘提前预警，稀有权重计算突变分数难以剥离平稳噪声、捕获早期微弱异常。
 
-
+综合两套数据集三轮平均结果，本文异构集成方法在MB1、MB2上均实现更低FPR、更高Precision与最优$F_{0.5}$，在控制误报的同时兼顾故障检出，综合盘级预警效果优于全部对比基线。
 \subsection{突变时序特征有效性分析}
 \label{sec:chap3-mutation-ablation}
 
