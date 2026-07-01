@@ -12,20 +12,20 @@
 在 MB1/MB2 上，异构集成三轮测试均值分别取得 $F_{0.5}{=}0.921$、TPR $0.738$ 与 $F_{0.5}{=}0.490$、TPR $0.187$，
 且 FPR 维持在较低水平，验证了所提方法在低误报约束下的有效性。
 
-（2）围绕寿命提升问题，基于块级错误比特计数（Fault Bit Count, FBC）构建寿命标签，并将块寿命预测问题转化为强块/弱块分类问题：对弱块采用更保守写入上限、对强块在安全边界内适度放宽阈值，以提升整体可写入量。实验结果显示，相比统一 PE 阈值策略，该方法可带来约 17\% 的累计写入量提升，验证了差异化写入策略的有效性。
+（2）围绕寿命提升问题，基于块级错误比特计数（Fault Bit Count, FBC）构建寿命标签，并将块寿命预测问题转化为强块/弱块分类问题：对弱块采用更保守写入上限、对强块在安全边界内适度放宽阈值，以提升整体可写入量。在测试集上基于模型预测核算，相比统一 PE 阈值策略，该方法可带来约 17\% 的累计写入量提升，验证了差异化写入策略的有效性。
 
 （3）最后，基于本文提出的故障预测与寿命提升方法，设计并实现智慧固态硬盘运维软件，形成从预警生成到状态管理的闭环流程，并实现资产管理、日志管理、故障记录与预警处理等功能，验证了方法在工程场景中的可部署性与实用性。
 
 综上，本文按“故障预测—寿命优化—系统落地”的结构形成了较完整的技术链路，在不显著增加误报风险的前提下提升了故障识别能力与存储资源利用效率，为数据中心固态硬盘的可靠性运维与成本优化提供了可行方法与实践参考。
 
-\textbf{关键词}：固态硬盘；机器学习；故障预测；寿命提升；低误报率约束
+\textbf{关键词}：固态硬盘；机器学习；低误报故障预警；寿命提升；
 
 \cleardoublepage
 
-Cloud computing, big data and artificial intelligence are developing rapidly, making data centers larger and larger. 
+Cloud computing, big data and artificial intelligence are developing rapidly, driving the continuous expansion of datacenter scales. 
 Solid State Drives (SSDs) are key storage devices in data centers. 
 The stability and effective service life of SSDs greatly affect the normal operation and maintenance cost of data center systems.
-This thesis solves two important problems in SSD daily operation and maintenance. 
+This thesis investigates two important problems in SSD daily operation and maintenance. 
 The first is SSD failure prediction. 
 Early monitoring data of SSDs is usually insufficient and noisy, so this study aims to find faulty SSDs accurately with few false alarms.
 The second is SSD service life optimization. Traditional unified service life rules cannot adapt to the different durability of different storage blocks. 
@@ -45,7 +45,7 @@ Second, this thesis uses block-level fault bit count (FBC) data to judge the ser
 It divides storage blocks into high-quality blocks and low-quality blocks through classification. 
 A differentiated writing control strategy is proposed accordingly. 
 Strict writing limits are set for low-quality blocks to ensure use safety, while proper higher writing limits are allowed for high-quality blocks on the premise of safety. 
-Compared with the traditional unified erasing and writing threshold strategy, this method increases the total usable writing capacity of SSDs by about 17\% and significantly improves storage utilization.
+Compared with the traditional unified erasing and writing threshold strategy, this method increases the total usable writing capacity by about 17\% on the held-out test set based on model predictions, and significantly improves storage utilization.
 
 Third, based on the above failure prediction and life optimization methods, this thesis develops an intelligent SSD operation and maintenance software. 
 The software realizes full-process management from early fault warning to equipment state monitoring. 
@@ -57,4 +57,4 @@ It improves the accuracy of SSD fault identification and the utilization efficie
 This research provides a reliable and practical reference for daily operation, maintenance and cost control of SSDs in data centers.
 
 
-\textbf{Keywords}：solid-state drive; machine learning; failure prediction; lifetime enhancement; low false-positive-rate constraint
+\textbf{Keywords}：solid-state drive; machine learning; low false positive rate fault early warning; lifetime enhancement; 
