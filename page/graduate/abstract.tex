@@ -25,39 +25,27 @@
 
 \cleardoublepage
 
-Cloud computing, big data and artificial intelligence are developing rapidly, driving the continuous expansion of datacenter scales. 
-Solid State Drives (SSDs) are key storage devices in data centers. 
-The stability and effective service life of SSDs greatly affect the normal operation and maintenance cost of data center systems.
-This thesis investigates two important problems in SSD daily operation and maintenance. 
-The first is SSD failure prediction. 
-Early monitoring data of SSDs is usually insufficient and noisy, so this study aims to find faulty SSDs accurately with few false alarms.
-The second is SSD service life optimization. Traditional unified service life rules cannot adapt to the different durability of different storage blocks. 
-This thesis predicts the service life of each block with almost no false alarms, and designs practical writing rules to improve the total usable writing capacity of SSDs.
-This thesis carries out three core research works as follows.
+With the rapid development of cloud computing, big data, and artificial intelligence applications, datacenter scales continue to expand.
+Solid State Drives (SSDs), as key storage media, directly affect business continuity and operational costs through their reliability and lifetime utilization efficiency.
+This thesis addresses two core problems in large-scale datacenters: the high cost of false alarms in SSD failure warning, and the underutilization of flash block durability differences.
+With the goal of improving operational reliability and resource utilization, it conducts systematic research on drive-level failure warning and block-level lifetime optimization.
 
-First, this thesis analyzes SSD failure rules based on the public Alibaba Cloud SMART dataset. 
-It proposes a new labeling method to reduce data noise in normal working stages. 
-It also extracts new time-series features that can capture short-term data changes, and builds a new prediction model. 
-The model combines three classic machine learning algorithms (RF, XGB, LGB) and uses an attention mechanism to optimize prediction results. 
-All experiments are divided by month in chronological order. 
-The model threshold is adjusted and optimized on the verification set, taking disk-level $F_{0.5}$ as the main evaluation standard. 
-In three repeated experiments, the model achieves an $F_{0.5}$ of 0.921 and a TPR of 0.738 on the MB1 dataset, and an $F_{0.5}$ of 0.490 and a TPR of 0.187 on the MB2 dataset. 
-Meanwhile, the model keeps a low false alarm rate, which proves that it can effectively predict SSD failures with few false alarms.
+For the high false alarm rate of existing drive-level failure prediction methods and their difficulty in capturing near-end sudden-change precursors, this thesis proposes a prediction method oriented toward low false-alarm constraints.
+The method aligns supervisory signals with the time scale of failure precursors through a hybrid labeling strategy and short-term temporal mutation features, suppressing label noise while effectively amplifying weak failure signals.
+The model adopts three heterogeneous base learners (RF, XGB, and LGB), introduces an Attention module for sample-level adaptive weighted fusion, and uses Focal Loss to mitigate class imbalance, thereby improving discrimination stability for sparse failure samples.
+Experimental results on the Alibaba Cloud MB1 and MB2 datasets show that the method achieves $F_{0.5}$ scores of 0.921 and 0.490 respectively while maintaining an extremely low false alarm rate, enabling accurate and timely detection of faulty disks.
 
-Second, this thesis uses block-level fault bit count (FBC) data to judge the service life of storage blocks. 
-It divides storage blocks into high-quality blocks and low-quality blocks through classification. 
-A differentiated writing control strategy is proposed accordingly. 
-Strict writing limits are set for low-quality blocks to ensure use safety, while proper higher writing limits are allowed for high-quality blocks on the premise of safety. 
-Compared with the traditional unified erasing and writing threshold strategy, this method increases the total usable writing capacity by about 17\% on the held-out test set based on model predictions, and significantly improves storage utilization.
+To address the problem that traditional unified Program/Erase (PE) threshold strategies waste the lifetime of strong blocks, this thesis designs a differentiated lifetime enhancement strategy based on block-level Fault Bit Count (FBC).
+The strategy transforms block lifetime prediction into a strong/weak block binary classification problem, and implements differentiated PE write limit control accordingly, fully exploiting the remaining lifetime of strong blocks without crossing reliability boundaries.
+Test results show that the strategy brings about a 17\% improvement in cumulative writable capacity.
+Lightweight collection experiments further validate the feasibility of deploying this strategy on the controller side.
 
-Third, based on the above failure prediction and life optimization methods, this thesis develops an intelligent SSD operation and maintenance software. 
-The software realizes full-process management from early fault warning to equipment state monitoring. 
-It supports equipment asset management, log recording, fault statistics and early warning processing. 
-The practical test proves that the proposed methods can be well applied and deployed in actual engineering scenarios.
+To verify the engineering practicality of the above algorithms, this thesis designs and implements an intelligent SSD operation and maintenance prototype system.
+The system completes the full business loop from data collection and model inference to warning handling, and functional testing validates its ability to translate theoretical models into actual operational workflows.
 
-In summary, this thesis forms a complete technical solution including failure prediction, service life optimization and system development. 
-It improves the accuracy of SSD fault identification and the utilization efficiency of storage resources without increasing false alarms. 
-This research provides a reliable and practical reference for daily operation, maintenance and cost control of SSDs in data centers.
+This thesis constructs a complete technical chain from drive-level precise warning to block-level lifetime optimization to closed-loop system deployment.
+The research shows that applying low false-alarm constraints throughout algorithm design and strategy formulation can significantly improve resource utilization efficiency while ensuring storage reliability.
+This work provides feasible methods and practical references for reliability-oriented operation and cost optimization of SSDs in datacenters.
 
 
 \textbf{Keywords}：solid-state drive; machine learning; low false alarm failure prediction; lifetime enhancement; 
