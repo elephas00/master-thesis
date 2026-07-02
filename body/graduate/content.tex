@@ -39,7 +39,7 @@ SSD 故障预测早期研究依托统计检验、距离度量等浅层数据分�
 监督学习框架成熟后，学界将SSD故障预测抽象为二分类/多分类健康判别任务，支持向量机（Support Vector Machine，SVM）、贝叶斯网络、随机森林（Random Forest，RF）等模型均取得稳定基线精度\cite{murray2005machine,hamerly2001bayesian,chaves2016banhfap,li2014hard,zhang2023multi}。Xu等人开源阿里云4万块MLC-SSD为期两年的SMART时序与故障标签数据集，提出磨损更新集成特征排序筛选算法，以梯度提升决策树（Gradient Boosting Decision Tree，GBDT）、随机森林构建领域通用基线，为后续对比实验提供统一数据基准\cite{xu2021general}。Wang等人基于该开源数据集设计两套随机森林训练方案，分别采用纯随机采样均衡样本、Spearman相关特征筛选+时序特征增强两条路径，但实验未严格区分训练/测试时序，存在信息泄露问题，无法直接迁移至线上流式预测\cite{wang2022ssd}。面向腾讯云30万块三星PM1733、PM9A3私有遥测数据集，Zhang等人提出多视图多任务随机森林，融合短期单点指标、直方图统计、长期时序趋势多类特征，同步完成故障分类、剩余寿命回归多任务学习，两款设备分别取得40\% TPR/72\% $F_{0.5}$、42\% TPR/61\% $F_{0.5}$的实验效果\cite{zhang2023multi}。针对工业落地样本失衡、模型可解释性差两大痛点，Wang等人在FAST 2026提出FailureMiner框架，设计边界保留下采样策略保留分类混淆样本，结合Apriori频繁项集挖掘故障判定规则，在腾讯大规模SSD集群落地，弥补传统随机森林下采样丢失边界样本、单指标阈值误报偏高的缺陷\cite{wang2026failureminer}；Ng等人提出TopoHealth-ET拓扑感知极限随机树，融合机房机架拓扑先验与ExtraTrees模型，在极度样本不平衡场景提升故障富集效率，配套大语言模型生成可审计故障解释\cite{ng2026topology}。
 
 \subsubsection{深度学习方法}
-长短期记忆网络、一维卷积神经网络、Transformer等时序深度网络已在HDD故障预测领域充分验证，逐步迁移适配SSD时序退化建模任务\cite{lu2020making,luo2021ntam}。
+长短期记忆网络、一维卷积神经网络、Transformer等时序深度网络已在HDD故障预测领域充分验证，逐步迁移适配SSD时序退化建模任务\cite{lu2020making,luo2021ntam, vaswani2017attention}。
 
 Chen等人依托阿里云与Solidigm合作私有数据集开展30天提前预警研究，针对高误报带来的大规模换盘、数据重建成本问题，将精确率设为核心优化目标，采用分组k折交叉验证缓解时序过拟合，设计多树模型集成投票机制，在0.35\%–0.44\%极低年故障率场景下实现100\%精确率、21\%召回率\cite{chen2022ssd}。Koh等人基于腾讯云181507块三星PM9A3数据集提出时序上下文注意力网络，放弃冗余特征强筛选策略，采用分组建模思路：LSTM捕捉时序演化、交叉注意力Transformer挖掘指标间耦合关联，弥补传统串行LSTM+Transformer架构建模短板，实验取得68\% TPR、70\% F1-score\cite{koh2024temporal}。
 

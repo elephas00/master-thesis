@@ -11,9 +11,8 @@
 
     \begin{table}[htbp]
         \centering
-        \footnotesize
         \caption{\label{tab:app-field-filter-removed} SMART 字段筛选剔除明细}
-        \begin{tabularx}{0.92\linewidth}{
+        \begin{tabularx}{\linewidth}{
             @{}
             >{\raggedright\arraybackslash}X
             >{\raggedright\arraybackslash}X
@@ -53,21 +52,20 @@
             \bottomrule
         \end{tabularx}
         \vspace{3pt}
-        \begin{minipage}{0.92\linewidth}
-            \footnotesize
+        \begin{minipage}{\linewidth}
             注：“是”代表该型号剔除此字段；“---”代表该型号未出现此字段。第三步相关 Spearman 系数见附表~\ref{tab:app-raw-norm-spearman}；MB2 数据集内 $r_{184}$、$r_{194}$ 第二步已判定为零方差并剔除，故第三步不再处理对应 $n_{184}$、$n_{194}$。
         \end{minipage}
     \end{table}
 
     \clearpage
     \section{SMART 原始与归一化读数 Spearman 相关系数}
+
     附表~\ref{tab:app-raw-norm-spearman} 统计正文公式(\ref{equ:spearman-rn})所需的相关性指标，仅保留第一步、第二步筛选后的有效属性，分别对 MB1、MB2 全量盘日日志配对计算原始读数 $r_i$ 与归一化读数 $n_i$ 的 Spearman 相关系数 $\rho_s$。
 
     \begin{table}[htbp]
         \centering
-        \footnotesize
         \caption{\label{tab:app-raw-norm-spearman} 筛选后 SMART 原始/归一化读数 Spearman 相关系数}
-        \begin{tabularx}{0.92\linewidth}{
+        \begin{tabularx}{\linewidth}{
             @{}
             >{\centering\arraybackslash}p{0.85cm}
             >{\raggedright\arraybackslash}X
@@ -98,8 +96,7 @@
             \bottomrule
         \end{tabularx}
         \vspace{3pt}
-        \begin{minipage}{0.92\linewidth}
-            \footnotesize
+        \begin{minipage}{\linewidth}
             注：$\rho_s$ 依据正文公式(\ref{equ:spearman-rn})在同ID原始、归一化读数配对计算；“---”代表该型号下此字段存在零方差，无有效相关样本。全文以 $|\rho_s|>0.8$ 作为冗余判定阈值，超阈值仅保留原始读数 $r_i$，否则 $r_i$、$n_i$ 全部保留。
         \end{minipage}
     \end{table}
@@ -110,11 +107,11 @@
 
     本节汇总正文第五章用例分解、数据库字段设计、REST 接口定义与功能测试用例等工程明细，供查阅完整实现规范时使用。
 
-    \begin{table}[htbp]
+    \begin{table}[H]
         \centering
-        \footnotesize
         \caption{\label{tab:sw-usecase}系统核心用例说明}
-        \begin{tabularx}{0.92\linewidth}{l l X}
+        \setlength{\tabcolsep}{4pt}
+        \begin{tabularx}{\linewidth}{@{}l c X@{}}
             \toprule
             用例名称 & 参与者 & 用例描述 \\
             \midrule
@@ -143,9 +140,8 @@
 
     \begin{table}[htbp]
         \centering
-        \footnotesize
         \caption{\label{tab:disk-info-schema}磁盘信息表字段设计}
-        \begin{tabularx}{0.92\linewidth}{>{\raggedright\arraybackslash}p{2.2cm} >{\raggedright\arraybackslash}p{2.0cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{2.4cm}}
+        \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{2.2cm} >{\raggedright\arraybackslash}p{2.0cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{2.4cm}}
             \toprule
             字段名 & 字段类型 & 字段表述 & 备注 \\
             \midrule
@@ -161,9 +157,8 @@
 
     \begin{table}[htbp]
         \centering
-        \footnotesize
         \caption{\label{tab:smart-log-schema}SMART 日志表字段设计}
-        \begin{tabularx}{0.92\linewidth}{>{\raggedright\arraybackslash}p{2.4cm} >{\raggedright\arraybackslash}p{2.2cm} X >{\raggedright\arraybackslash}p{1.6cm}}
+        \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{2.4cm} >{\raggedright\arraybackslash}p{2.2cm} X >{\raggedright\arraybackslash}p{1.6cm}}
             \toprule
             字段名 & 字段类型 & 字段表述 & 备注 \\
             \midrule
@@ -178,17 +173,15 @@
             \bottomrule
         \end{tabularx}
         \vspace{3pt}
-        \begin{minipage}{0.92\linewidth}
-            \footnotesize
+        \begin{minipage}{\linewidth}
             注：表中仅列出部分代表性 SMART 字段，其余属性可按 \texttt{raw\_\{id\}} 相同命名规范扩展。
         \end{minipage}
     \end{table}
 
     \begin{table}[htbp]
         \centering
-        \footnotesize
         \caption{\label{tab:fault-schema}故障记录表字段设计}
-        \begin{tabularx}{0.92\linewidth}{>{\raggedright\arraybackslash}p{2.4cm} >{\raggedright\arraybackslash}p{2.2cm} X >{\raggedright\arraybackslash}p{1.6cm}}
+        \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{2.4cm} >{\raggedright\arraybackslash}p{2.2cm} X >{\raggedright\arraybackslash}p{1.6cm}}
             \toprule
             字段名 & 字段类型 & 字段表述 & 备注 \\
             \midrule
@@ -203,9 +196,8 @@
 
     \begin{table}[htbp]
         \centering
-        \footnotesize
         \caption{\label{tab:warning-schema}预警记录表字段设计}
-        \begin{tabularx}{0.92\linewidth}{>{\raggedright\arraybackslash}p{2.4cm} >{\raggedright\arraybackslash}p{2.2cm} X >{\raggedright\arraybackslash}p{1.6cm}}
+        \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{2.4cm} >{\raggedright\arraybackslash}p{2.2cm} X >{\raggedright\arraybackslash}p{1.6cm}}
             \toprule
             字段名 & 字段类型 & 字段表述 & 备注 \\
             \midrule
@@ -223,9 +215,8 @@
 
     \begin{table}[htbp]
         \centering
-        \footnotesize
         \caption{\label{tab:sw-api}系统主要 REST 接口设计}
-        \begin{tabularx}{0.92\linewidth}{>{\ttfamily\raggedright\arraybackslash}m{5.2cm} >{\centering\arraybackslash}m{1.4cm} >{\raggedright\arraybackslash}X}
+        \begin{tabularx}{\linewidth}{>{\ttfamily\raggedright\arraybackslash}m{5.2cm} >{\centering\arraybackslash}m{1.4cm} >{\raggedright\arraybackslash}X}
             \toprule
             接口路径 & 方法 & 功能说明 \\
             \midrule
@@ -244,9 +235,8 @@
 
     \begin{table}[htbp]
         \centering
-        \footnotesize
         \caption{\label{tab:sw-testcase}系统功能测试用例及结果}
-        \begin{tabularx}{0.92\linewidth}{>{\centering\arraybackslash}m{2.0cm} >{\raggedright\arraybackslash}X >{\centering\arraybackslash}m{1.2cm}}
+        \begin{tabularx}{\linewidth}{>{\centering\arraybackslash}m{2.0cm} >{\raggedright\arraybackslash}X >{\centering\arraybackslash}m{1.2cm}}
             \toprule
             测试模块 & 测试步骤与预期结果 & 结果 \\
             \midrule
@@ -274,36 +264,30 @@
 
     \begin{figure}[htbp]
         \centering
-        \begin{minipage}[t]{0.48\linewidth}
-            \centering
-            \includegraphics[width=\linewidth]{figure/磁盘管理页.png}
-            \captionof{figure}{磁盘管理界面}
-            \label{fig:ssd-disk-ui}
-        \end{minipage}
-        \hfill
-        \begin{minipage}[t]{0.48\linewidth}
-            \centering
-            \includegraphics[width=\linewidth]{figure/日志管理页.png}
-            \captionof{figure}{日志管理界面}
-            \label{fig:ssd-log-ui}
-        \end{minipage}
+        \includegraphics[width=0.95\linewidth]{figure/磁盘管理页.png}
+        \caption{磁盘管理界面}
+        \label{fig:ssd-disk-ui}
     \end{figure}
 
     \begin{figure}[htbp]
         \centering
-        \begin{minipage}[t]{0.48\linewidth}
-            \centering
-            \includegraphics[width=\linewidth]{figure/故障管理页.png}
-            \captionof{figure}{故障管理界面}
-            \label{fig:ssd-fault-ui}
-        \end{minipage}
-        \hfill
-        \begin{minipage}[t]{0.48\linewidth}
-            \centering
-            \includegraphics[width=\linewidth]{figure/故障处理页.png}
-            \captionof{figure}{故障处理界面}
-            \label{fig:ssd-warning-flow-ui}
-        \end{minipage}
+        \includegraphics[width=0.95\linewidth]{figure/日志管理页.png}
+        \caption{日志管理界面}
+        \label{fig:ssd-log-ui}
+    \end{figure}
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.95\linewidth]{figure/故障管理页.png}
+        \caption{故障管理界面}
+        \label{fig:ssd-fault-ui}
+    \end{figure}
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.95\linewidth]{figure/故障处理页.png}
+        \caption{故障处理界面}
+        \label{fig:ssd-warning-flow-ui}
     \end{figure}
 
     \removeappendixsecmajornumbering
