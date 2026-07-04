@@ -66,7 +66,7 @@ Zhang等人设计3D TLC块粒度SVM预测框架，配套现场可编程门阵列
 
 在块粒度寿命管理方面，现有工作多局限于健康度或剩余寿命的预测建模，缺乏从“预测输出”到“差异化读写调度”的完整工程闭环。鲜有研究定量测算差异化 PE 策略在可控可靠性风险下的容量与耐久提升收益，难以直接指导固件开发与运维系统的实际部署。
 
-\section{问题定义与研究目标及本文主要工作与贡献}
+\section{研究目标与本文主要工作}
 针对上述现有研究存在的两类核心缺陷，本文确立统一总体研究目标：在数据中心运维可接受故障误报水平约束下，同步提升SSD故障提前检出能力与NAND闪存介质整体耐久容量利用率。围绕该总体目标，本文拆解两大相互关联的核心问题开展系统性研究：
 第一，依托阿里云公开MLC-SSD SMART时序数据集，挖掘故障发生前近端短期突变时序前兆；以盘级$F_{0.5}$分数为核心优化指标，设计混合标签降噪策略、短期突变时序特征构造、异构集成预测完整方案，实现SSD提前30天低误报故障预警。
 第二，依托实验室加速磨损得到的块级FBC细粒度时序数据构建闪存健康预测模型，基于强弱块判别结果设计差异化PE擦写上限管控策略，在不突破LDPC纠错可靠性安全边界的前提下，提升SSD整体累计可写入容量与实际服役寿命。
@@ -212,11 +212,11 @@ NAND 闪存的数据操作可归纳为编程（Program）与擦除（Erase）两
 
 数据分布策略通过将数据分散存储到多个物理设备上，降低单点故障的影响范围。常见的分布策略包括：
 
-\begin{itemize}
+\begin{enumerate}
     \item 条带化（Striping）：将数据块分割成多个条带，分布到不同的存储设备上，提升并行读写性能。
     
     \item RAID 技术：通过将多个物理盘组合成逻辑卷，提供数据冗余和性能提升。常见的 RAID 级别包括 RAID 0（条带化，无冗余）、RAID 1（镜像）、RAID 5（分布式奇偶校验）、RAID 6（双重分布式奇偶校验）等。
-\end{itemize}
+\end{enumerate}
 
 被动容错技术的共同特点是：只能在故障发生后进行数据恢复，属于“事后补救”机制。虽然能够在一定程度上保障数据可靠性，但故障恢复过程需要消耗一定的时间和计算资源，可能导致系统服务降级。
 
@@ -1266,6 +1266,7 @@ Mut-RF 采用 30 日固定窗口标签，以健康盘的7日SMART时序送入Inf
         & R3 & \underline{0.914}/\underline{0.710} & 0.904/\underline{0.710} & 0.812/0.506 & \textbf{0.918}/\textbf{0.720} & 0.894/\underline{0.710} \\
         & 平均 & \textbf{0.921}/\underline{0.738} & 0.896/\textbf{0.746} & 0.811/0.500 & \underline{0.911}/0.730 & 0.897/0.733 \\
 
+        \midrule
         \multirow{4}{*}{MB2}
         & R1 & \textbf{0.686}/\textbf{0.304} & \underline{0.652}/\underline{0.273} & 0.192/0.045 & \textbf{0.686}/\textbf{0.304} & 0.595/0.227 \\
         & R2 & \textbf{0.556}/\textbf{0.200} & \textbf{0.556}/\textbf{0.200} & \textbf{0.556}/\textbf{0.200} & \textbf{0.556}/\textbf{0.200} & 0.357/0.100 \\
@@ -1338,19 +1339,31 @@ Mut-RF 采用 30 日固定窗口标签，以健康盘的7日SMART时序送入Inf
     \centering
     \caption{\label{tab:chap3-tp-lead-by-round}分轮提前预警统计}
 
-    \setlength{\tabcolsep}{4pt}
-    \begin{tabularx}{\linewidth}{@{}>{\centering\arraybackslash}p{0.9cm} >{\raggedright\arraybackslash}p{2.2cm} *{3}{>{\centering\arraybackslash}X} >{\centering\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X@{}}
+    \setlength{\tabcolsep}{5pt}
+    \renewcommand{\multirowsetup}{\centering}
+    \begin{tabularx}{\linewidth}{@{}
+        >{\centering\arraybackslash}m{0.9cm}
+        >{\centering\arraybackslash}m{1.45cm}
+        >{\centering\arraybackslash}m{0.65cm}
+        >{\centering\arraybackslash}m{0.65cm}
+        >{\centering\arraybackslash}m{0.65cm}
+        >{\centering\arraybackslash}m{1.05cm}
+        >{\centering\arraybackslash}X
+        >{\centering\arraybackslash}X
+        >{\centering\arraybackslash}X
+    @{}}
         \toprule
-        型号 & 测试月 & TP & FN & FP & 提前天数中位数 $d$ & $d{=}1$ 占比 & $d{\le}1$ 占比 \\
+        型号 & 测试月 & TP & FN & FP & TN & 提前天数中位数 $d$ & $d{=}1$ 占比 & $d{\le}1$ 占比 \\
         \midrule
         \multirow{3}{*}{MB1}
-        & R1 & 36 & 10 & 0 & 1 天 & 91.7\% & 97.2\% \\
-        & R2 & 47 & 18 & 2 & 1 天 & 91.5\% & 97.9\% \\
-        & R3 & 66 & 27 & 1 & 1 天 & 77.3\% & 100\% \\
+        & R1 & 36 & 10 & 0 & 36\,897 & 1 天 & 91.7\% & 97.2\% \\
+        & R2 & 47 & 18 & 2 & 36\,966 & 1 天 & 91.5\% & 97.9\% \\
+        & R3 & 66 & 27 & 1 & 36\,626 & 1 天 & 77.3\% & 100\% \\
+        \midrule
         \multirow{3}{*}{MB2}
-        & R1 &  7 & 16 & 0 & 0 天 & 14.3\% & 85.7\% \\
-        & R2 &  2 &  8 & 0 & 3 天 &  0\%   & 50.0\% \\
-        & R3 &  1 & 17 & 0 & 0 天 &  0\%   & 100\% \\
+        & R1 &  7 & 16 & 0 & 41\,320 & 0 天 & 14.3\% & 85.7\% \\
+        & R2 &  2 &  8 & 0 & 41\,254 & 3 天 &  0\%   & 50.0\% \\
+        & R3 &  1 & 17 & 0 & 41\,084 & 0 天 &  0\%   & 100\% \\
         \bottomrule
     \end{tabularx}
 \end{table}
@@ -1380,15 +1393,17 @@ MB2 则呈 R1$\to$R3 递减（TPR 由 30.4\% 降至 5.6\%），说明弱信号�
 此外，三轮测试月中“过早告警”（首次告警距故障日 $>30$ 天）在 MB1/MB2 上均为 0，宽窗训练标签并未在部署口径下转化为距故障日过远的虚警。
 
 
-\subsection{局限性讨论}
+\subsection{方法局限性讨论}
 
 本章方法仍存在以下局限：
 
-（1）实验型号使用了两种MLC-SSD，MB2 上 TPR 整体偏低（约 0.19），且特征工程与标签策略依赖当前数据分布，泛化性有待更多型号验证。
+\begin{enumerate}
+    \item 实验型号使用了两种MLC-SSD，MB2 上 TPR 整体偏低（约 0.19），且特征工程与标签策略依赖当前数据分布，泛化性有待更多型号验证。
 
-（2）第 3 轮测试月各配置普遍下滑，提示时间漂移对盘级预警的影响。
+    \item 第 3 轮测试月各配置普遍下滑，提示时间漂移对盘级预警的影响。
 
-（3）B 组突变特征未覆盖 A 组磨损背景的全部信息，静默故障盘仍难以检出。
+    \item B 组突变特征未覆盖 A 组磨损背景的全部信息，静默故障盘仍难以检出。
+\end{enumerate}
 
 \section{本章小结}
 本章针对数据中心盘级 SSD 30 天故障预警任务，分析了主动容错场景下的工程挑战。准确刻画 SMART 时序演化规律及失效前兆信号，是提升预警可靠性与运维决策质量的关键。
@@ -1619,7 +1634,13 @@ MB2 则呈 R1$\to$R3 递减（TPR 由 30.4\% 降至 5.6\%），说明弱信号�
 
 前述实验在实验室条件下使用了四次重复读取（Value0--Value3）、四个早期 PE 档位（0/1000/2000/3000）以及块内全量 Wordline 采样。实际控制器端若照搬该配置，需要在块生命周期的多个节点反复触发额外读操作并遍历大量字线，将显著增加在线采集时延与测试窗口占用。为此，本文从读取次数、磨损档位覆盖与 Wordline 采样范围三个维度设计轻量化采集方案，并在固定 LP/MP/UP 集成建模流程下，以测试集 $R_{\mathrm{imp}}$ 评估各方案相对全量特征的收益保留程度。
 
-（1）单次读取方案。实验室数据中 Value0--Value3 为同一条件下的四次独立采样，用于刻画 FBC 波动；而在线场景往往只能承受一次附加读操作。该方案仅保留 Value0--Value3 中的单次读数构造特征，考察以单次读替代多次重复读是否仍足以支撑块寿命判别与策略收益评估。结果如表~\ref{tab:partial-value-results}所示：
+\begin{enumerate}
+    \item 单次读取方案。实验室数据中 Value0--Value3 为同一条件下的四次独立采样，用于刻画 FBC 波动；而在线场景往往只能承受一次附加读操作。该方案仅保留 Value0--Value3 中的单次读数构造特征，考察以单次读替代多次重复读是否仍足以支撑块寿命判别与策略收益评估。各读取值下的 $R_{\mathrm{imp}}$ 如表~\ref{tab:partial-value-results} 所示。
+
+    \item 稀疏磨损档位方案。全量特征要求块在 PE=0/1000/2000/3000 四个节点均完成 FBC 采集，适用于出厂标定或专门老化测试；而服役中的块往往仅能在当前 PE 进度附近插入一次探测读。该方案分别仅保留单一 Level 参与建模，考察单点快照相对多档轨迹的信息损失。各磨损档位下的 $R_{\mathrm{imp}}$ 如表~\ref{tab:partial-level-results} 所示。
+
+    \item 有限 Wordline 采样方案。全量 Wordline 遍历需对块内逐字线读取，采集开销与块容量成正比；控制器更可行的做法是在空间上抽取代表性字线窗口。该方案将 Wordline 范围由全量逐步收缩至 0--0、0--49 等子区间，考察局部采样能否代表块级 FBC 分布。各字线采样范围下的 $R_{\mathrm{imp}}$ 如表~\ref{tab:partial-wl-results} 所示。
+\end{enumerate}
 
 \begin{table}[htbp]
     \centering
@@ -1672,7 +1693,8 @@ MB2 则呈 R1$\to$R3 递减（TPR 由 30.4\% 降至 5.6\%），说明弱信号�
     \end{tabularx}
 \end{table}
 
-三类轻量化方案的对比如表~\ref{tab:partial-value-results}--\ref{tab:partial-wl-results}所示，可从采集成本、收益保留与部署鲁棒性三方面归纳。
+\clearpage
+对表~\ref{tab:partial-value-results}--\ref{tab:partial-wl-results} 中的实验结果，下面依次从采集成本、收益保留与部署建议三个角度展开讨论。
 
 在采集成本上，DefaultRead 的效果普遍比 BestRead 更好，单次读取方案将同一条件下的重复读降为 1 次，开销最低；稀疏磨损档位方案将多节点轨迹压缩为单点快照，适合块已处于中后期 PE 阶段的在线探测；有限 Wordline 方案的开销介于两者之间，Wordline 0--49 子集已可将遍历规模显著压缩，而全量 Wordline 仍是最重配置。
 
