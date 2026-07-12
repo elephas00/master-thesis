@@ -1073,7 +1073,7 @@ p_t=
 
 前述方法含两个相互耦合的超参数：回看窗口 $W$ 决定 Lag 与 $\tilde{\delta}$ 突变特征所覆盖的近期观测长度（\S\ref{sec:chap3-mutation-features}），标注短窗 $k$ 则通过式~(\ref{equ:proximal-mutation-label}) 将正样本限制于故障前 $k$ 日与 B 组首跳对齐的交集区间。
 二者分别作用于特征编码与监督信号构造，其取值宜与盘级 30 日评估窗口及 B 组首跳时间尺度（图~\ref{fig:first-jump-pmf}，$d\le 3$ 累计占 65.7\%）同阶匹配。
-在报告与文献基线方法的对比及后续消融实验之前，本节先在 MB1/MB2 上联合搜索 $(W,k)$，根据盘级 $F_{0.5}$ 为各型号确定主实验配置 $(W^{\ast}, k^{\ast})$，结果如表~\ref{tab:chap3-wk-grid} 所示：
+在报告与文献基线方法的对比及后续消融实验之前，本节先在 MB1/MB2 上联合搜索 $(W,k)$，根据盘级 $F_{0.5}$ 为各型号确定主实验配置 $(W^{\ast}, k^{\ast})$。图~\ref{fig:chap3-wk-grid-heatmap} 给出网格整体分布，表~\ref{tab:chap3-wk-grid} 列出各格数值便于核对，其中加粗表示该列中的最大值，下划线表示该列中的次大值。
 
 \begin{table}[htbp]
     \centering
@@ -1094,7 +1094,17 @@ p_t=
     \end{tabularx}
 \end{table}
 
-就 $W$ 而言，$W{=}0$ 时 Lag 特征退化为空，突变通道仅剩 B 组按日差分；MB1 在 $k{=}0$/$k{=}2$ 上 $F_{0.5}$ 仍偏低（0.077--0.362），$k{=}3$ 时为 0.602；$k{=}4$ 在基学习器均正常收敛时可升至 0.865，但仍明显低于 $W{=}1$ 最优格 0.921，表明缺少 Lag 水平上下文制约了近端预警上限；MB2 在 $W{=}0$、$k{\ge}1$ 时可达 0.478，与 $W{=}2$ 最优 0.490 接近，但 $k{=}0$ 仅 0.359。MB1 在 $W{=}1$--$3$ 区间内 $F_{0.5}$ 均维持在 0.87 以上，$W{=}1$ 时达到最优（0.921）；MB2 则对 $W$ 更为敏感，$W{=}2$ 时最优（0.490）。两型号最优 $W^{\ast}$ 分别为 1 日与 2 日，均落在 1--2 日量级，与图~\ref{fig:first-jump-pmf} 所示 B 组首跳集中于故障前 1--2 日（$d{=}1$ 占比最高）的观察相吻合。
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.92\linewidth]{figure/chap3-wk-grid-heatmap-A.pdf}
+    \caption{\label{fig:chap3-wk-grid-heatmap}$W$--$k$ 网格搜索的盘级 $F_{0.5}$ 热力图}
+    \vspace{2pt}
+    \begin{minipage}{\linewidth}
+        注：左、右分别为 MB1 与 MB2；$W{=}0$ 行（灰底）表示 Lag 特征退化情形，色深聚焦 $W{\geq}1$ 主搜索区；加粗框与星标为各型号最优格 $(W^{\ast},k^{\ast})$。
+    \end{minipage}
+\end{figure}
+
+结合图~\ref{fig:chap3-wk-grid-heatmap} 与表~\ref{tab:chap3-wk-grid}，就 $W$ 而言，$W{=}0$ 时 Lag 特征退化为空，突变通道仅剩 B 组按日差分；MB1 在 $k{=}0$/$k{=}2$ 上 $F_{0.5}$ 仍偏低（0.077--0.362），$k{=}3$ 时为 0.602；$k{=}4$ 在基学习器均正常收敛时可升至 0.865，但仍明显低于 $W{=}1$ 最优格 0.921，表明缺少 Lag 水平上下文制约了近端预警上限；MB2 在 $W{=}0$、$k{\ge}1$ 时可达 0.478，与 $W{=}2$ 最优 0.490 接近，但 $k{=}0$ 仅 0.359。MB1 在 $W{=}1$--$3$ 区间内 $F_{0.5}$ 均维持在 0.87 以上，$W{=}1$ 时达到最优（0.921）；MB2 则对 $W$ 更为敏感，$W{=}2$ 时最优（0.490）。两型号最优 $W^{\ast}$ 分别为 1 日与 2 日，均落在 1--2 日量级，与图~\ref{fig:first-jump-pmf} 所示 B 组首跳集中于故障前 1--2 日（$d{=}1$ 占比最高）的观察相吻合。
 
 就 $k$ 而言，$k{=}0$（故障当日标注）在两型号上均明显落后，正例过稀导致模型难以学习提前预警；将 $k$ 扩大至 1--3 日后，$F_{0.5}$ 迅速抬升，与图~\ref{fig:first-jump-pmf} 所示首跳多集中于近故障短窗口的统计一致。MB1 在 $k{=}3$ 达峰，MB2 在 $k{=}2$ 略优，二者最优标注短窗同样处于 1--3 日量级，验证了混合标注将正样本限制于故障前短窗与 B 组首跳对齐的设定。
 
@@ -1105,8 +1115,9 @@ p_t=
 \label{sec:chap3-main-results}
 
 在 \S\ref{sec:chap3-wk-sensitivity} 确定各型号最优 $(W^{\ast}, k^{\ast})$ 后，本节将本文异构集成与文献复现基线进行对比，采用盘级 TPR、FPR、Precision 与 $F_{0.5}$ 四项指标评估。
-MB1 与 MB2 上的实验结果分别如表~\ref{tab:chap3-main-results-mb1} 与表~\ref{tab:chap3-main-results-mb2} 所示。
-其中除 FPR 外均保留三位小数，FPR 以科学计数法表示；加粗表示该列中的最大值，下划线表示该列中的次大值。
+分轮明细见表~\ref{tab:chap3-main-results-mb1} 与表~\ref{tab:chap3-main-results-mb2}，三轮平均指标对比见图~\ref{fig:chap3-baseline-bar-grid}；表便于核对各轮次 TP/FP 与单项指标，图便于跨方法、跨指标的整体比较。
+其中除 FPR 外均保留三位小数，FPR 以科学计数法表示。
+
 \begin{table}[htbp]
     \centering
     \caption{\label{tab:chap3-main-results-mb1}MB1 盘级性能对比}
@@ -1238,6 +1249,16 @@ MB1 与 MB2 上的实验结果分别如表~\ref{tab:chap3-main-results-mb1} 与�
     \end{minipage}
 \end{table}
 
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.98\linewidth]{figure/chap3-baseline-bar-grid.pdf}
+    \caption{\label{fig:chap3-baseline-bar-grid} 三轮平均的 MB1/MB2 盘级基线性能对比}
+    \vspace{2pt}
+    \begin{minipage}{\linewidth}
+        注：上、下两行分别为 MB1 与 MB2；四列依次为 TPR、FPR、Precision 与 $F_{0.5}$。FPR 纵轴按 $10^{-5}$ 缩放；部分子图采用断轴以突出低误报区间差异。
+    \end{minipage}
+\end{figure}
+
 通过比较本文提出模型与基准模型在测试集上所得出的结果，可以得到以下结论。
 
 Xu 式 RF 对照在 3 日与 7 日自然日窗上为各 SMART 读数构造统计量，经 XGB 筛选后实际输入维数为 MB1 62 维、MB2 54 维，长于本文 $W{=}1$/2 的短期 Lag 与 $r_k|\Delta|$ 表征（25/41 维）。
@@ -1348,9 +1369,9 @@ Mut-RF 采用 30 日固定窗口标签，以健康盘的7日SMART时序送入Inf
 \subsection{异构集成有效性分析}
 \label{sec:chap3-ensemble-ablation}
 
-为了说明 \S\ref{sec:chap3-ensemble} 异构集成预测的有效性，本节将 Attention + FocalLoss 异构集成后的集成输出与 RF、XGB、LGB 三个异构基学习器的单模型结果进行对比。
-三基学习器对稀疏突变信号的拟合偏好各异；若集成能在同一评估协议下取得优于或不低于任一单基的稳定表现，则可说明样本级加权融合的必要性。
-结果见表~\ref{tab:chap3-ensemble-ablation}，表中的报告的指标为 $F_{0.5}$ / TPR。
+为说明 \S\ref{sec:chap3-ensemble} 异构集成预测的有效性，本节对比了 Attention + FocalLoss 集成输出与 RF、XGB、LGB 三个基学习器的单模型结果。
+三基学习器对稀疏突变信号的拟合偏好各异；若集成能在同一评估协议下取得优于或不低于任一单基的稳定表现，则证明了样本级加权融合的必要性。
+结果见表~\ref{tab:chap3-ensemble-ablation}，评估指标为 $F_{0.5}$ / TPR。
 
 \begin{table}[htbp]
     \centering
@@ -1381,36 +1402,48 @@ Mut-RF 采用 30 日固定窗口标签，以健康盘的7日SMART时序送入Inf
 分轮看，R1 中 RF 领先（0.954/0.804），R2 中 RF 与集成并列（0.900/0.723），R3 则 XGB 单基最优（0.925/0.742），集成（0.914/0.710）介于 XGB 与 LGB 之间。
 总体而言，MB1 上异构集成能够互补不同基学习器的决策边界，减少单一模型过拟合特定轮次数据的风险。
 
-在 MB2（$W^{\ast}{=}2$、$k^{\ast}{=}2$）上，三轮测试的均值中异构集成的 $F_{0.5}$（0.490）为四者最高，TPR（0.187）与 XGB 持平并略高于 RF（0.176）；LGB 平均 TPR 可达 0.220，但 $F_{0.5}$ 仅 0.460。
+在 MB2（$W^{\ast}{=}2$、$k^{\ast}{=}2$）上，三轮均值显示异构集成 $F_{0.5}$（0.490）居首，TPR（0.187）与 XGB 持平且略高于 RF（0.176）；LGB 虽 TPR 达 0.220，但 $F_{0.5}$ 仅 0.460。
 分轮看，R1 中集成与 XGB、LGB 并列最优（0.686/0.304）；R2 中 RF/XGB/集成 $F_{0.5}$ 均为 0.556，LGB 的 TPR 更高（0.300 \emph{vs.}\ 0.200）；R3 随测试月推移各方法均下滑，集成 $F_{0.5}$ 为 0.227，仍高于三基（0.192），TPR 同为 0.056。
-这表明在弱信号型号上，于网格最优配置下异构集成主要在 $F_{0.5}$ 上带来小幅但稳定的抬升，对 R3 边缘检出场景略有改善。
+这表明在弱信号型号上，异构集成主要在 $F_{0.5}$ 上带来小幅但稳定的抬升，对 R3 边缘检出场景略有改善。
 
 综上所述，现有数据已表明所提方法能够在保持高准确率的同时，增强系统在极端分布下的稳定性。
 
 \subsection{预警时效性与提前量分析}
 \label{sec:chap3-tp-lead-time-analysis}
 
-盘级检出率尚不足以说明有效前兆所处的时间尺度。
-为此，各取 \S\ref{sec:chap3-wk-sensitivity} 最优格，混合标注，Lag + $r_k|\Delta|$ 特征，异构集成输出，三轮测试月分别统计 TP 的提前预警天数 $d=t_{\mathrm{fail}}-t_{\mathrm{alarm}}$。
-分轮汇总见表~\ref{tab:chap3-tp-lead-by-round}，分布形态见图~\ref{fig:chap3-tp-lead-time}，表便于横向对比各测试月的检出规模与提前天数统计量，图展示 $d$ 在 0--30 日上的具体分布。
+\S\ref{sec:chap3-main-results} 已从 TPR/FPR 等盘级指标比较各方法检出能力，但对已被检出的 TP，仍缺少距故障日提前量的刻画，亦难以判断各方法是否存在系统性的“更早告警”优势。
+为此，本节先做三轮合计口径下的横向对比，再在最优配置下按测试月细读本文方法的 $d$ 分布，最后联系混合标注讨论近端集中的成因。
+记提前预警天数 $d=t_{\mathrm{fail}}-t_{\mathrm{alarm}}$，评估协议与 \S\ref{sec:chap3-main-results} 一致；横向对比见图~\ref{fig:chap3-tp-lead-method-compare}，本文方法分轮结果见表~\ref{tab:chap3-tp-lead-by-round} 与图~\ref{fig:chap3-tp-lead-time}。
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.98\linewidth]{figure/chap3-tp-lead-method-E-heatmap.pdf}
+    \caption{\label{fig:chap3-tp-lead-method-compare}多方法提前预警天数分布对比}
+    \vspace{2pt}
+
+    \begin{minipage}{\linewidth}
+        注：左、右分别为 MB1、MB2；行侧 $n$ 为三轮 TP 合计；$d=0..7$ 逐日统计，$d=8$--$30$ 合并；格内为 TP 盘数，底色为该格占同行 TP 的比例；评估协议与表~\ref{tab:chap3-main-results-mb1} 一致。
+    \end{minipage}
+\end{figure}
+
+图~\ref{fig:chap3-tp-lead-method-compare} 将各方法三轮 TP 的 $d$ 分布并列呈现，行侧 $n$ 为合计检出规模，格内数字与底色分别为各 $d$ 档 TP 盘数及其占该行比例。
+MB1 上，本文方法、RF 与 MVT-RF 的 $n$ 分别为 149、157 与 156，在检出数量上的差距并不明显；
+三者已检出 TP 均高度近端，$d\le 1$ 者分别为 147、153 与 154 块（占各行 97.5\%--98.7\%），且均以 $d=1$ 格为主，$d=8$--$30$ 仅各 1--3 块，就该图可直接读取的信息而言，头部方法在已检出盘上的 $d$ 形态相近，未见某一方法系统性占据更远的提前天数。
+AE 与 Mut-RF 的 $n$ 仅分别为 7 与 4，且 Mut-RF 合计 TP 全部落在 $d=8$--$30$，但是它们的误报数量多，且TP检出盘过少，不宜与上述方法作稳定的提前量对比。
+MB2 右图各行 $n$ 仅为 5--10，整体检出盘数量偏小，但相对差异仍可自图读取。
+本文方法 $n=10$ 为各行最高，在个方法上的检出领先。
+进一步看 $d$ 结构，对比方法 TP 均仅落在 $d=0$--$1$ 两列；本文方法除 7 块 $d=0$、1 块 $d=1$ 外，$d=5$ 与 $d=8$--$30$ 各 1 块，为右图唯一在 $d\ge 5$ 仍保留检出的方法，这表明在弱信号型号SSD上，本文对部分个体故障盘仍能在故障日前若干日给出告警，而不仅限于 $d\le 1$ 的近端检出。
+
+各方法的提前预警天数分布横向对比显示各方法 $d$ 分布形态相近；结合 \S\ref{sec:chap3-main-results}，方法间更显著的差异体现在检出规模与 FPR，而非图~\ref{fig:chap3-tp-lead-method-compare} 所呈现的已检出盘提前量。
+下文转而按测试月拆解本文最优配置（\S\ref{sec:chap3-wk-sensitivity} 最优格，混合标注，Lag + $r_k|\Delta|$ 特征，异构集成），检验上述近端集中在各测试月下是否稳定，并将检出规模的变化与已检出盘提前量的变化区分开来。
 
 \begin{table}[htbp]
     \centering
-    \caption{\label{tab:chap3-tp-lead-by-round}分轮提前预警统计}
+    \caption{\label{tab:chap3-tp-lead-by-round}本文方法分轮提前预警统计}
 
-    \setlength{\tabcolsep}{5pt}
+    \setlength{\tabcolsep}{3pt}
     \renewcommand{\multirowsetup}{\centering}
-    \begin{tabularx}{\linewidth}{@{}
-        >{\centering\arraybackslash}m{0.9cm}
-        >{\centering\arraybackslash}m{1.45cm}
-        >{\centering\arraybackslash}m{0.65cm}
-        >{\centering\arraybackslash}m{0.65cm}
-        >{\centering\arraybackslash}m{0.65cm}
-        >{\centering\arraybackslash}m{1.05cm}
-        >{\centering\arraybackslash}X
-        >{\centering\arraybackslash}X
-        >{\centering\arraybackslash}X
-    @{}}
+    \begin{tabularx}{\linewidth}{c c c c c c c *{2}{>{\centering\arraybackslash}X}}
         \toprule
         型号 & 测试月 & TP & FN & FP & TN & 提前天数中位数 $d$ & $d{=}1$ 占比 & $d{\le}1$ 占比 \\
         \midrule
@@ -1430,7 +1463,7 @@ Mut-RF 采用 30 日固定窗口标签，以健康盘的7日SMART时序送入Inf
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.98\linewidth]{figure/tp_lead_time_test.png}
-    \caption{\label{fig:chap3-tp-lead-time}提前预警时间分布}
+    \caption{\label{fig:chap3-tp-lead-time}本文方法提前预警时间分布（分轮）}
     \vspace{2pt}
     
     \begin{minipage}{\linewidth}
@@ -1438,18 +1471,16 @@ Mut-RF 采用 30 日固定窗口标签，以健康盘的7日SMART时序送入Inf
     \end{minipage}
 \end{figure}
 
-由表~\ref{tab:chap3-tp-lead-by-round} 可见，检出时效与检出规模应分开解读。
+表~\ref{tab:chap3-tp-lead-by-round} 与图~\ref{fig:chap3-tp-lead-time} 显示，对本文方法而言，检出规模与提前量宜分开解读。
+MB1 三轮提前天数中位数均为 1 天，$d=1$ 占 77\%--92\%，$d\le 1$ 占 97\%--100\%，已检出盘的告警时刻普遍贴近故障日；仅 R1、R2 各 1 例 $d>2$ 远端检出（\texttt{R1·d17·×1}、\texttt{R2·d6·×1}），不影响总体判断。
+R3 TP 增至 66 块而 $d$ 分布仍近端集中，说明规模扩张并未改变已检出盘的时效形态。
+关于 R3 统计口径：可评估故障盘共 93 块（66 TP + 27 FN），图例 \texttt{FAIL}$=95$ 系按故障单 \texttt{failure\_time} 落入 2019-11 统计，二者差异源于口径不完全对齐——6 块盘虽故障日在 11 月但测试月内无可用 SMART 日志而未纳入评估；4 块 TP 于 11 月 30 日告警、故障日在 12 月 1 日，计入 $\mathrm{TP}+\mathrm{FN}$ 但不计入 11 月 \texttt{FAIL}，属跨月边界情形。
+MB2 各轮 TP 仅 1--7 块：R1 以 $d=0$ 为主（6/7 满足 $d\le 1$），含 1 例 $d=20$ 远端检出；R2 两例 TP 分处 $d=0$ 与 $d=5$，故 $d\le 1$ 占比为 50\%。
+随测试月由 R1 推进至 R3，TPR 由 30.4\% 降至 5.6\%，但柱形仍集中于 $d=0$--$1$，与图~\ref{fig:chap3-tp-lead-method-compare} 中 MB2 合计行一致，再次表明弱信号下漂移主要侵蚀检出能力。
 
-就时效而言，MB1 三轮 TP 的提前天数中位数均为 1 天，$d=1$ 占比 77\%--92\%，$d\le 1$ 占比为 97\%--100\%，表明在不同测试月下，已被检出的故障盘其告警时刻均贴近故障日；
-仅 R1/R2 各出现 1 例 $d>2$ 的远端检出（图~\ref{fig:chap3-tp-lead-time} 中 \texttt{R1·d17·×1}、\texttt{R2·d6·×1}），不影响主体结论。
-MB2 各轮 TP 仅 1--7 块，R1 以 $d=0$ 为主（6/7 满足 $d\le 1$），但含 1 例 $d=20$ 的远端检出；R2 两例 TP 分别位于 $d=0$ 与 $d=5$，故 $d\le 1$ 占比为 50\%。
-
-就规模而言，MB1 R3 检出 66 块 TP、漏检 27 块 FN，可评估故障盘共 93 块。
-图例中 \texttt{FAIL}$=95$ 按故障单 \texttt{failure\_time} 落在 2019-11 统计，与 $\mathrm{TP}+\mathrm{FN}$ 之差来自两侧口径不完全对齐：6 块盘故障日在 11 月但测试月内无可用 SMART 日志，未进入盘级评估；另有 4 块 TP 于 11 月 30 日告警、实际故障日为 12 月 1 日，计入 $\mathrm{TP}+\mathrm{FN}$ 但不计入 11 月 \texttt{FAIL}，属跨月边界情形。
-MB2 则呈 R1$\to$R3 递减（TPR 由 30.4\% 降至 5.6\%），说明弱信号型号上时间漂移主要影响能否检出，而非已检出盘的提前多久，MB1 图~\ref{fig:chap3-tp-lead-time} 中 R3 柱形仍集中于 $d=0$--$1$，与 R1/R2 形态一致。
-上述分布与混合标注将正样本限制于故障前 $k$ 日短窗（MB1 $k{=}3$、MB2 $k{=}2$）及 B 组首跳近端突变（图~\ref{fig:first-jump-pmf}）的时间尺度一致。
-
-此外，三轮测试月中“过早告警”（首次告警距故障日 $>30$ 天）在 MB1/MB2 上均为 0，宽窗训练标签并未在部署口径下转化为距故障日过远的虚警。
+横向对比与分轮细读均显示，已检出 TP 高度集中于故障前 0--1 日。
+该形态与混合标注所限定的监督区间相契：正样本取故障前 $k$ 日短窗（MB1 $k{=}3$、MB2 $k{=}2$）与 B 组首跳近端突变（图~\ref{fig:first-jump-pmf}）的时间尺度。
+此外，三轮测试中不存在首次告警距故障日超过 30 天的“过早告警”，说明宽窗训练标签未在部署口径下诱发远端虚警。
 
 
 \subsection{方法局限性讨论}
