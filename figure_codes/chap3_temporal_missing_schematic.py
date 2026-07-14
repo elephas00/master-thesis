@@ -1,6 +1,6 @@
 """第三章：日历级缺失补全/剔除示意
 
-生成 figure/temporal-missing-schematic.png。
+生成 figure/chap3-temporal-missing-schematic.png。
 
 三行子图分别示意轻度、中度、重度缺失下 40 日历日内的
 有日志 / 待补全 / 整盘删除 三种状态（非真实盘数据）。
@@ -16,7 +16,7 @@ import numpy as np
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 FIGURE_DIR = PROJECT_ROOT / "figure"
-OUTPUT_PNG = FIGURE_DIR / "temporal-missing-schematic.png"
+OUTPUT_PNG = FIGURE_DIR / "chap3-temporal-missing-schematic.png"
 
 plt.rcParams.update({
     "font.sans-serif": ["Arial Unicode MS", "SimHei", "DejaVu Sans"],

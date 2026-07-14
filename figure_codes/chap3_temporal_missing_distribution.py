@@ -1,6 +1,6 @@
 """第三章：日历缺失分布
 
-生成 figure/temporal-missing-distribution.png。
+生成 figure/chap3-temporal-missing-distribution.png。
 
 数据固化自「清洗前」盘级时序质量：
   data/preprocess/{MB1,MB2}_selected.parquet.pre_early_drop
@@ -23,7 +23,7 @@ import numpy as np
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 FIGURE_DIR = PROJECT_ROOT / "figure"
-OUTPUT_PNG = FIGURE_DIR / "temporal-missing-distribution.png"
+OUTPUT_PNG = FIGURE_DIR / "chap3-temporal-missing-distribution.png"
 
 plt.rcParams.update({
     "font.sans-serif": ["Arial Unicode MS", "PingFang SC", "SimHei", "DejaVu Sans"],

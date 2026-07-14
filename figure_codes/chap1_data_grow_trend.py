@@ -1,12 +1,12 @@
 """全球每年新产生的数据总量预测趋势图 (白底版)
 
-生成 figure/chap3-data-growth-trend.png 与同名 .pdf。
+生成 figure/chap1-data-growth-trend.png 与同名 .pdf。
 数据来源：用户提供的图表 OCR 结果 (2015-2030)。
 去除了灰色背景，保持白色底色。
 调整了纵轴范围至 1200，并压缩了图片高度。
 
 用法（项目根目录）:
-    python figure_codes/chap3_data_growth_trend.py
+    python3 figure_codes/chap1_data_grow_trend.py
 """
 
 from __future__ import annotations

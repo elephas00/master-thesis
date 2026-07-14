@@ -1,7 +1,7 @@
 """第三章：B 组属性故障前时序示意（MB1 / MB2）
 
-使用 figure_codes/b_group_mutation_eda_data.json 中的冻结观测，
-生成 figure/b-group-mutation-eda-mb1.png 与 figure/b-group-mutation-eda-mb2.png。
+使用 figure_codes/chap3_b_group_mutation_eda_data.json 中的冻结观测，
+生成 figure/chap3-b-group-mutation-eda-mb1.png 与 figure/chap3-b-group-mutation-eda-mb2.png。
 
 数据快照来源：codes/eda/scripts/plot_b_group_mutation_combined.py
 （MB1 2019-06 六块盘；MB2 2018-11 六块盘；仅 is_imputed=False 原始观测日）。
@@ -21,7 +21,7 @@ import matplotlib.pyplot as plt
 
 HERE = Path(__file__).resolve().parent
 PROJECT_ROOT = HERE.parent
-DATA_PATH = HERE / "b_group_mutation_eda_data.json"
+DATA_PATH = HERE / "chap3_b_group_mutation_eda_data.json"
 FIGURE_DIR = PROJECT_ROOT / "figure"
 
 ATTR_LABEL = {
@@ -33,8 +33,8 @@ ATTR_LABEL = {
 }
 
 OUTPUTS = {
-    "MB1": FIGURE_DIR / "b-group-mutation-eda-mb1.png",
-    "MB2": FIGURE_DIR / "b-group-mutation-eda-mb2.png",
+    "MB1": FIGURE_DIR / "chap3-b-group-mutation-eda-mb1.png",
+    "MB2": FIGURE_DIR / "chap3-b-group-mutation-eda-mb2.png",
 }
 
 COLORS = plt.cm.tab10.colors

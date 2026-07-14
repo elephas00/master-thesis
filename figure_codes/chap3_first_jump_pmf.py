@@ -1,6 +1,6 @@
 """第三章：B 组首跳距故障日 PMF（含静默盘）
 
-生成 figure/first-jump-pmf.png。
+生成 figure/chap3-first-jump-pmf.png。
 
 数据固化自 codes/eda/notebooks/eda_first_jump_cdf.ipynb
 （源：eda/run/first_jump_detail_*.parquet / first_jump_cdf_points.csv；
@@ -20,7 +20,7 @@ from matplotlib.ticker import PercentFormatter
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 FIGURE_DIR = PROJECT_ROOT / "figure"
-OUTPUT_PNG = FIGURE_DIR / "first-jump-pmf.png"
+OUTPUT_PNG = FIGURE_DIR / "chap3-first-jump-pmf.png"
 
 plt.rcParams.update({
     "font.sans-serif": ["Arial Unicode MS", "PingFang SC", "SimHei", "DejaVu Sans"],

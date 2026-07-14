@@ -1,6 +1,6 @@
 """第三章：月度故障盘分布
 
-生成 figure/failure-by-month.png。
+生成 figure/chap3-failure-by-month.png。
 
 数据固化自 codes/eda/scripts/plot_failure_by_month.py
 （源：ssd_failure_label.csv 按型号×月聚合）。
@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 FIGURE_DIR = PROJECT_ROOT / "figure"
-OUTPUT_PNG = FIGURE_DIR / "failure-by-month.png"
+OUTPUT_PNG = FIGURE_DIR / "chap3-failure-by-month.png"
 
 plt.rcParams.update({
     "font.sans-serif": ["Arial Unicode MS", "PingFang SC", "SimHei", "DejaVu Sans"],
