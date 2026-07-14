@@ -164,7 +164,6 @@ def plot_wk_panel(
 
 def plot_heatmap(*, save_path_png: Path | None = None, save_path_pdf: Path | None = None) -> plt.Figure:
     fig, axes = plt.subplots(1, 2, figsize=(9.2, 3.9), constrained_layout=True)
-    fig.suptitle(r"$W$–$k$ 网格搜索：盘级 $F_{0.5}$", fontsize=12, fontweight="bold", y=1.02)
 
     ims = []
     for ax, model in zip(axes, MODELS):

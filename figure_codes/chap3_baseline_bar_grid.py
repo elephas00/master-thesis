@@ -401,7 +401,6 @@ def main():
 
 
     fig, axes = plt.subplots(2, 4, figsize=(13.8, 7.4), sharex=False)
-    fig.suptitle("盘级基线对比（三轮平均）", fontsize=13, fontweight="bold", y=0.995)
 
     broken_pairs = []
     row_panels = [[], []]
@@ -448,7 +447,7 @@ def main():
         framealpha=0.95, edgecolor="#CBD5E1", bbox_to_anchor=(0.5, -0.01), fontsize=9,
     )
 
-    fig.subplots_adjust(left=0.08, right=0.98, top=0.92, bottom=0.14, wspace=0.42, hspace=0.62)
+    fig.subplots_adjust(left=0.08, right=0.98, top=0.96, bottom=0.14, wspace=0.42, hspace=0.62)
 
     for ax_top, ax_bot in broken_pairs:
         _align_broken_pair(ax_top, ax_bot)

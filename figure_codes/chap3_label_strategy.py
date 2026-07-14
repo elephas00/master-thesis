@@ -223,14 +223,14 @@ def plot_label_strategy(disks=DISKS, strategies=STRATEGIES, w=W, record_left=REC
                     fontsize=8.0, color="#424242",
                 )
 
-    fig.suptitle(
-        "不同标签策略示意图",
-        y=0.02,
-        fontsize=11,
-        fontweight="bold",
-        ha="center",
-        color="#212121",
-    )
+    # fig.suptitle(
+    #     "不同标签策略示意图",
+    #     y=0.02,
+    #     fontsize=11,
+    #     fontweight="bold",
+    #     ha="center",
+    #     color="#212121",
+    # )
     for ax in axes:
         ax.set_xticks([0])
         ax.set_xticklabels(["$t_{\\mathrm{fail}}$"])

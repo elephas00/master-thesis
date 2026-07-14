@@ -96,7 +96,6 @@ def plot_grouped_bars(
     save_path: Path | None = None,
 ) -> plt.Figure:
     fig, axes = plt.subplots(1, 2, figsize=(12.0, 4.6), sharex=True)
-    fig.suptitle("测试集 TP 提前预警天数分布", y=1.02, fontsize=11)
 
     for ax, model in zip(axes, MODELS):
         cluster_peak = 0.0

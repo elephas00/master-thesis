@@ -102,7 +102,6 @@ def plot_heatmap(*, save_path_png: Path | None = None, save_path_pdf: Path | Non
 
         fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04, label="TP 占比")
 
-    fig.suptitle("方法提前预警天数分布", fontsize=12, fontweight="bold", y=1.02)
     fig.subplots_adjust(left=0.17, wspace=0.38)
     fig.tight_layout()
 

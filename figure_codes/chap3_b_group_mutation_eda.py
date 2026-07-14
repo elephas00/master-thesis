@@ -98,11 +98,6 @@ def plot_model(model: str, bundle: dict) -> Path:
         ax.grid(True, alpha=0.25)
         ax.set_xlabel(f"日期（{date_label}）", fontsize=9)
 
-    fig.suptitle(
-        f"{model} {bundle['failure_month']} 故障盘样本 (n = {len(plotted_ids)})  B 组属性时序",
-        fontsize=11,
-        y=1.02,
-    )
     fig.legend(
         legend_handles,
         legend_labels,
