@@ -6,7 +6,7 @@
 jump_inter + Lag + r_k|Δ|；阈值 0.5。数据已固化，无需读取实验 CSV 或故障标签。
 
 用法（项目根目录）:
-    python figure_codes/tp_lead_time_test.py
+    python3 figure_codes/chap3_tp_lead_time_test.py
 """
 
 from __future__ import annotations
