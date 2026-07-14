@@ -1592,7 +1592,7 @@ MB2 各轮 TP 仅 1--7 块：R1 以 $d=0$ 为主（6/7 满足 $d\le 1$），含 
 基于该假设，将块编号 BlockFilter 的数值对 4 取余进行分组，在逻辑上认为每个组对应一个逻辑块，组内不同物理块在不同 PE 档位上的数据共同构成该逻辑块的观测轨迹。如图\ref{fig:blockfilter-grouping}所示：
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.75\linewidth]{figure/逻辑组划分.jpg}
+    \includegraphics[width=0.75\linewidth]{figure/chap4-blockfilter-grouping.pdf}
     \caption{分组逻辑示意图}
     \label{fig:blockfilter-grouping}
 \end{figure}
@@ -1647,7 +1647,7 @@ MB2 各轮 TP 仅 1--7 块：R1 以 $d=0$ 为主（6/7 满足 $d\le 1$），含 
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.4\linewidth]{figure/块标记流程.jpg}
+    \includegraphics[width=0.4\linewidth]{figure/chap4-block-labeling-flow.pdf}
     \caption{块寿命标签构造流程}
     \label{fig:block-labeling-flow}
 \end{figure}
@@ -1671,7 +1671,7 @@ MB2 各轮 TP 仅 1--7 块：R1 以 $d=0$ 为主（6/7 满足 $d\le 1$），含 
 考虑到特征数量中等、存在非线性关系、且样本数量有限（仅 256 个块），本文采用 XGBoost、RandomForest 与 LightGBM 三种集成学习模型进行块寿命预测。由于 LP、MP、UP 与 label 的对应关系存在一定差异，在数据量有限的情况下容易导致过拟合，本文分别针对 LP、MP、UP 建模，并采用投票机制对最终分类结果进行融合。集成投票流程如图\ref{fig:ensemble-voting-flow}所示：
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.6\linewidth]{figure/集成投票流程.jpg}
+    \includegraphics[width=0.6\linewidth]{figure/chap4-ensemble-voting-flow.pdf}
     \caption{集成投票流程}
     \label{fig:ensemble-voting-flow}
 \end{figure}
