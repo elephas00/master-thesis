@@ -152,9 +152,9 @@ def _sd_open_arc(ax, join_x, top_y, edge_x, bot_y, *, side: str, label: str):
            + 3 * (1 - t) * t ** 2 * p2 + t ** 3 * p3)
     ax.plot(pts[:, 0], pts[:, 1], color=C_EDGE, lw=LW, zorder=2.5,
             solid_capstyle="butt", solid_joinstyle="round")
-    # 文字夹在顶线与弧线中间，并略靠两侧
-    ax.text(lx, top_y - 0.28 * depth, label,
-            ha="center", va="center", fontsize=10, color=C_TEXT, zorder=8)
+    # 文字顶对齐于衬底上边线略下方，落在顶线与开放弧之间的空隙内
+    ax.text(lx, top_y - 4.0, label,
+            ha="center", va="top", fontsize=10, color=C_TEXT, zorder=8)
 
 
 def _draw_cell(ax, ox: float, *, mode: str) -> None:

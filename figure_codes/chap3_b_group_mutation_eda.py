@@ -1,7 +1,9 @@
 """第三章：B 组属性故障前时序示意（MB1 / MB2）
 
 使用 figure_codes/chap3_b_group_mutation_eda_data.json 中的冻结观测，
-生成 figure/chap3-b-group-mutation-eda-mb1.png 与 figure/chap3-b-group-mutation-eda-mb2.png。
+生成：
+    figure/chap3-b-group-mutation-eda-mb1.pdf
+    figure/chap3-b-group-mutation-eda-mb2.pdf
 
 数据快照来源：codes/eda/scripts/plot_b_group_mutation_combined.py
 （MB1 2019-06 六块盘；MB2 2018-11 六块盘；仅 is_imputed=False 原始观测日）。
@@ -13,7 +15,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 import matplotlib.dates as mdates
@@ -33,8 +35,8 @@ ATTR_LABEL = {
 }
 
 OUTPUTS = {
-    "MB1": FIGURE_DIR / "chap3-b-group-mutation-eda-mb1.png",
-    "MB2": FIGURE_DIR / "chap3-b-group-mutation-eda-mb2.png",
+    "MB1": FIGURE_DIR / "chap3-b-group-mutation-eda-mb1.pdf",
+    "MB2": FIGURE_DIR / "chap3-b-group-mutation-eda-mb2.pdf",
 }
 
 COLORS = plt.cm.tab10.colors
@@ -57,7 +59,6 @@ def plot_model(model: str, bundle: dict) -> Path:
     fig, axes = plt.subplots(1, 3, figsize=(13.5, 4.0))
     legend_handles: list = []
     legend_labels: list[str] = []
-    plotted_ids: list[str] = []
 
     for col_idx, col in enumerate(cols):
         ax = axes[col_idx]
@@ -82,9 +83,7 @@ def plot_model(model: str, bundle: dict) -> Path:
                 color=color,
             )
             ax.axvline(ft, color="crimson", ls="--", lw=0.9, alpha=0.45)
-            ax.axvspan(ft - timedelta(days=30), ft, color="orange", alpha=0.06)
             if col_idx == 0:
-                plotted_ids.append(disk_id)
                 legend_handles.append(line)
                 legend_labels.append(f"disk {disk_id} (fail {ft_str})")
 
@@ -112,7 +111,7 @@ def plot_model(model: str, bundle: dict) -> Path:
 
     output = OUTPUTS[model]
     output.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(output, dpi=300, bbox_inches="tight", facecolor="white")
+    fig.savefig(output, bbox_inches="tight", facecolor="white")
     plt.close(fig)
     return output
 
@@ -127,6 +126,8 @@ def main() -> None:
                 "DejaVu Sans",
             ],
             "axes.unicode_minus": False,
+            "pdf.fonttype": 42,
+            "ps.fonttype": 42,
         }
     )
     data = json.loads(DATA_PATH.read_text(encoding="utf-8"))

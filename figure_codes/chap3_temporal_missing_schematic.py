@@ -1,6 +1,6 @@
 """第三章：日历级缺失补全/剔除示意
 
-生成 figure/chap3-temporal-missing-schematic.png。
+生成 figure/chap3-temporal-missing-schematic.pdf。
 
 三行子图分别示意轻度、中度、重度缺失下 40 日历日内的
 有日志 / 待补全 / 整盘删除 三种状态（非真实盘数据）。
@@ -16,7 +16,7 @@ import numpy as np
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 FIGURE_DIR = PROJECT_ROOT / "figure"
-OUTPUT_PNG = FIGURE_DIR / "chap3-temporal-missing-schematic.png"
+OUTPUT_PDF = FIGURE_DIR / "chap3-temporal-missing-schematic.pdf"
 
 plt.rcParams.update({
     "font.sans-serif": ["Arial Unicode MS", "SimHei", "DejaVu Sans"],
@@ -25,10 +25,12 @@ plt.rcParams.update({
     "axes.titlesize": 11,
     "axes.labelsize": 10,
     "legend.fontsize": 9,
+    "pdf.fonttype": 42,
+    "ps.fonttype": 42,
 })
 
 
-def plot_timeline_schematic(output: Path = OUTPUT_PNG) -> plt.Figure:
+def plot_timeline_schematic(output: Path = OUTPUT_PDF) -> plt.Figure:
     """示意：40 日历日内轻度/中度/重度缺失结构。"""
     n_days = 40
     days = np.arange(1, n_days + 1)
@@ -48,8 +50,9 @@ def plot_timeline_schematic(output: Path = OUTPUT_PNG) -> plt.Figure:
         ("重度", sev_obs, "remove"),
     ]
 
-    fig, axes = plt.subplots(3, 1, figsize=(10.5, 5.6), sharex=True)
-    fig.subplots_adjust(left=0.07, right=0.93, top=0.82, bottom=0.14, hspace=0.48)
+    # 偏扁：三行条带示意图不需要大画布高度
+    fig, axes = plt.subplots(3, 1, figsize=(10.5, 3.2), sharex=True)
+    fig.subplots_adjust(left=0.06, right=0.98, top=0.86, bottom=0.16, hspace=0.32)
 
     obs_color = "#4A7FB5"
     impute_face, impute_edge = "#EEF3F8", "#8EAEC9"
@@ -58,7 +61,7 @@ def plot_timeline_schematic(output: Path = OUTPUT_PNG) -> plt.Figure:
     spine_color = "#D0D7E2"
 
     for ax, (tier, obs_set, gap_kind) in zip(axes, scenarios):
-        ax.set_title(f"{tier}缺失", loc="left", fontsize=10, pad=10)
+        ax.set_title(f"{tier}缺失", loc="left", fontsize=10, pad=3)
 
         for d in days:
             if d in obs_set:
@@ -80,7 +83,7 @@ def plot_timeline_schematic(output: Path = OUTPUT_PNG) -> plt.Figure:
         ax.set_xlim(0.5, n_days + 0.5)
         ax.set_xticks([1, 10, 20, 30, 40])
         ax.set_yticks([])
-        ax.set_ylim(0, 1.12)
+        ax.set_ylim(0, 1.05)
         ax.set_facecolor("#FAFBFC")
         for spine in ax.spines.values():
             spine.set_linewidth(0.8)
@@ -100,16 +103,15 @@ def plot_timeline_schematic(output: Path = OUTPUT_PNG) -> plt.Figure:
         frameon=False,
         fontsize=8,
         ncol=3,
-        bbox_to_anchor=(0.5, 0.98),
+        bbox_to_anchor=(0.5, 1.0),
     )
 
     axes[-1].set_xlabel("日历日 $t$（40 天观测窗）")
     fig.savefig(
         output,
-        dpi=200,
         facecolor="white",
-        bbox_inches=None,
-        pad_inches=0.12,
+        bbox_inches="tight",
+        pad_inches=0.08,
     )
     return fig
 
@@ -118,7 +120,7 @@ def main():
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
     fig = plot_timeline_schematic()
     plt.close(fig)
-    print(f"saved: {OUTPUT_PNG}")
+    print(f"saved: {OUTPUT_PDF}")
 
 
 if __name__ == "__main__":
