@@ -1,6 +1,6 @@
 """第三章：日历缺失分布
 
-生成 figure/chap3-temporal-missing-distribution.png。
+生成 figure/chap3-temporal-missing-distribution.pdf。
 
 数据固化自「清洗前」盘级时序质量：
   data/preprocess/{MB1,MB2}_selected.parquet.pre_early_drop
@@ -23,7 +23,7 @@ import numpy as np
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 FIGURE_DIR = PROJECT_ROOT / "figure"
-OUTPUT_PNG = FIGURE_DIR / "chap3-temporal-missing-distribution.png"
+OUTPUT_PDF = FIGURE_DIR / "chap3-temporal-missing-distribution.pdf"
 
 plt.rcParams.update({
     "font.sans-serif": ["Arial Unicode MS", "PingFang SC", "SimHei", "DejaVu Sans"],
@@ -32,6 +32,8 @@ plt.rcParams.update({
     "axes.titlesize": 11,
     "axes.labelsize": 10,
     "legend.fontsize": 9,
+    "pdf.fonttype": 42,
+    "ps.fonttype": 42,
 })
 
 MAX_GAP_LABELS = ["0", "1–7", "8–30", "31–90", ">90"]
@@ -65,7 +67,7 @@ def _pct(counts: list[int]) -> np.ndarray:
     return 100.0 * arr / arr.sum()
 
 
-def plot(*, save_path: Path = OUTPUT_PNG) -> plt.Figure:
+def plot(*, save_path: Path = OUTPUT_PDF) -> plt.Figure:
     models = ["MB1", "MB2"]
     width = 0.36
     fig, axes = plt.subplots(1, 3, figsize=(12.5, 4.2))
@@ -121,14 +123,14 @@ def plot(*, save_path: Path = OUTPUT_PNG) -> plt.Figure:
 
     fig.tight_layout()
     save_path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(save_path, dpi=180, bbox_inches="tight")
+    fig.savefig(save_path, bbox_inches="tight", facecolor="white")
     return fig
 
 
 def main() -> None:
     fig = plot()
     plt.close(fig)
-    print(f"saved: {OUTPUT_PNG}")
+    print(f"saved: {OUTPUT_PDF}")
 
 
 if __name__ == "__main__":

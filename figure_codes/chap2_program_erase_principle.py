@@ -230,12 +230,14 @@ def _draw_cell(ax, ox: float, *, mode: str) -> None:
 
     # 隧穿箭头：完整贯通（浮于灰色隧道氧化层之上）
     a_bot = top - sd_ry * 0.35
-    a_touch = e_y - e_r + 1.5
     for ex in e_xs:
         if mode == "program":
-            _v_arrow(ax, ex, a_bot, a_touch, tip_len=2.6, tip_w=1.9)
+            # 箭头尖停在电子下方，避免与电子重叠
+            a_top = e_y - e_r - 2.8
+            _v_arrow(ax, ex, a_bot, a_top, tip_len=2.6, tip_w=1.9)
         else:
-            _v_arrow(ax, ex, a_touch, a_bot, tip_len=2.6, tip_w=1.9)
+            a_top = e_y - e_r + 1.5
+            _v_arrow(ax, ex, a_top, a_bot, tip_len=2.6, tip_w=1.9)
 
     # 「隧道氧化层」白底文字浮于箭头之上（仅盖住字幅，箭头仍从上下露出）
     ax.text(

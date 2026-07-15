@@ -81,6 +81,7 @@ Zhang等人设计3D TLC块粒度SVM预测框架，配套现场可编程门阵列
 3. 整套算法工程化落地验证：设计并实现智慧SSD运维原型软件，搭建“数据接入—模型预警—人工处置—运行数据沉淀”全闭环业务流程，完整验证本文算法在真实数据中心运维场景的部署可行性。
 
 本文完整研究内容与技术路线整体框架如图~\ref{fig:framework}所示：
+
 \begin{figure}[htbp]
     \centering
     \vspace*{-8pt}
@@ -500,7 +501,7 @@ MB1 与 MB2 均为 MLC-SSD，SMART 属性集合相近，故障样本活跃，因
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.88\linewidth]{figure/chap3-failure-by-month.png}
+    \includegraphics[width=0.88\linewidth]{figure/chap3-failure-by-month.pdf}
     \caption{月度故障盘分布}
     \label{fig:failure-by-month}
 \end{figure}
@@ -590,7 +591,7 @@ $\rho_s$ 取值范围为 $[-1,1]$，$|\rho_s|$ 越大表示单调相关越强。
 
 \begin{figure}[!htbp]
     \centering
-    \includegraphics[width=\linewidth]{figure/chap3-temporal-missing-distribution.png}
+    \includegraphics[width=\linewidth]{figure/chap3-temporal-missing-distribution.pdf}
     \caption{日历缺失分布}
     \label{fig:temporal-missing-distribution}
 \end{figure}
@@ -781,7 +782,7 @@ $W=30$ 日时，MB1 属性 5/180/183 命中率约 68.0\%（健康盘不足 0.1\%
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.92\linewidth]{figure/chap3-first-jump-pmf.png}
+    \includegraphics[width=0.92\linewidth]{figure/chap3-first-jump-pmf.pdf}
     \caption{\label{fig:first-jump-pmf}B 组首跳距故障日分布}
     \vspace{2pt}
     \begin{minipage}{\linewidth}
@@ -868,7 +869,7 @@ $W$ 控制 Lag 回看的日历长度，过小则上下文不足，过大则远�
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\linewidth]{figure/chap3-label-strategy.png}
+    \includegraphics[width=\linewidth]{figure/chap3-label-strategy.pdf}
     \caption{\label{fig:chap3-label-strategy} 不同标签策略示意图}
     \vspace{2pt}
     \begin{minipage}{\linewidth}
@@ -1460,7 +1461,7 @@ MB2 上，各行 $n$ 仅为 5--10，样本偏小；本文 $n=10$ 居各行之首
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.98\linewidth]{figure/chap3-tp-lead-time-test.png}
+    \includegraphics[width=0.98\linewidth]{figure/chap3-tp-lead-time-test.pdf}
     \caption{\label{fig:chap3-tp-lead-time}本文方法提前预警时间分布（分轮）}
     \vspace{2pt}
     

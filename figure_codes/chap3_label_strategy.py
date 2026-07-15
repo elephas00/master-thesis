@@ -1,6 +1,6 @@
 """第三章：五种标记策略对比示意
 
-生成 figure/chap3-label-strategy.png。
+生成 figure/chap3-label-strategy.pdf。
 
 横轴为示意天数（非真实日历），仅保持相对位置：
 近端 d=1,2,3 更易辨认，远端首跳压缩。
@@ -22,8 +22,9 @@ plt.rcParams.update({
     "font.sans-serif": ["Arial Unicode MS", "SimHei", "DejaVu Sans"],
     "axes.unicode_minus": False,
     "figure.dpi": 120,
-    "savefig.dpi": 300,
     "font.size": 11,
+    "pdf.fonttype": 42,
+    "ps.fonttype": 42,
 })
 
 # ---------- 示意参数（线性坐标，等比缩小远端） ----------
@@ -63,7 +64,7 @@ COLORS = {
 }
 
 BAR_H = 0.13
-OUTPUT_PNG = FIGURE_DIR / "chap3-label-strategy.png"
+OUTPUT_PDF = FIGURE_DIR / "chap3-label-strategy.pdf"
 
 
 def _rect(ax, d_left, d_right, y, h, **kwargs):
@@ -273,9 +274,9 @@ def plot_label_strategy(disks=DISKS, strategies=STRATEGIES, w=W, record_left=REC
 def main():
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
     fig = plot_label_strategy()
-    fig.savefig(OUTPUT_PNG, bbox_inches="tight")
+    fig.savefig(OUTPUT_PDF, bbox_inches="tight", facecolor="white")
     plt.close(fig)
-    print(f"saved: {OUTPUT_PNG}")
+    print(f"saved: {OUTPUT_PDF}")
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 """第三章：B 组首跳距故障日 PMF（含静默盘）
 
-生成 figure/chap3-first-jump-pmf.png。
+生成 figure/chap3-first-jump-pmf.pdf。
 
 数据固化自 codes/eda/notebooks/eda_first_jump_cdf.ipynb
 （源：eda/run/first_jump_detail_*.parquet / first_jump_cdf_points.csv；
@@ -20,14 +20,15 @@ from matplotlib.ticker import PercentFormatter
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 FIGURE_DIR = PROJECT_ROOT / "figure"
-OUTPUT_PNG = FIGURE_DIR / "chap3-first-jump-pmf.png"
+OUTPUT_PDF = FIGURE_DIR / "chap3-first-jump-pmf.pdf"
 
 plt.rcParams.update({
     "font.sans-serif": ["Arial Unicode MS", "PingFang SC", "SimHei", "DejaVu Sans"],
     "axes.unicode_minus": False,
     "figure.dpi": 120,
-    "savefig.dpi": 200,
     "font.size": 11,
+    "pdf.fonttype": 42,
+    "ps.fonttype": 42,
 })
 
 MODELS = ["MB1", "MB2"]
@@ -53,7 +54,7 @@ N_AT_D = {
 }
 
 
-def plot(*, save_path: Path = OUTPUT_PNG) -> plt.Figure:
+def plot(*, save_path: Path = OUTPUT_PDF) -> plt.Figure:
     fig, axes = plt.subplots(1, 2, figsize=(16, 4.6))
     days = np.arange(0, MAX_D + 1)
 
@@ -81,14 +82,14 @@ def plot(*, save_path: Path = OUTPUT_PNG) -> plt.Figure:
 
     fig.tight_layout()
     save_path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(save_path, bbox_inches="tight")
+    fig.savefig(save_path, bbox_inches="tight", facecolor="white")
     return fig
 
 
 def main() -> None:
     fig = plot()
     plt.close(fig)
-    print(f"saved: {OUTPUT_PNG}")
+    print(f"saved: {OUTPUT_PDF}")
 
 
 if __name__ == "__main__":

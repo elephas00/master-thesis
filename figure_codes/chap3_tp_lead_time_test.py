@@ -1,6 +1,6 @@
 """测试集 TP 提前预警天数分布（分组柱图）
 
-生成 figure/chap3-tp-lead-time-test.png。
+生成 figure/chap3-tp-lead-time-test.pdf。
 
 协议与表 3.11 一致：Attention 集成；MB1 取 W=1,k=3，MB2 取 W=2,k=2；
 jump_inter + Lag + r_k|Δ|；阈值 0.5。数据已固化，无需读取实验 CSV 或故障标签。
@@ -19,14 +19,15 @@ from matplotlib.patches import Patch
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 FIGURE_DIR = PROJECT_ROOT / "figure"
-OUTPUT_PNG = FIGURE_DIR / "chap3-tp-lead-time-test.png"
+OUTPUT_PDF = FIGURE_DIR / "chap3-tp-lead-time-test.pdf"
 
 plt.rcParams.update({
     "font.sans-serif": ["Arial Unicode MS", "PingFang SC", "SimHei", "DejaVu Sans"],
     "axes.unicode_minus": False,
     "figure.dpi": 120,
-    "savefig.dpi": 180,
     "font.size": 10,
+    "pdf.fonttype": 42,
+    "ps.fonttype": 42,
 })
 
 MODELS = ["MB1", "MB2"]
@@ -159,16 +160,16 @@ def plot_grouped_bars(
     fig.subplots_adjust(bottom=0.16)
 
     if save_path is not None:
-        fig.savefig(save_path, dpi=180, bbox_inches="tight")
+        fig.savefig(save_path, bbox_inches="tight", facecolor="white")
 
     return fig
 
 
 def main() -> None:
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
-    fig = plot_grouped_bars(save_path=OUTPUT_PNG)
+    fig = plot_grouped_bars(save_path=OUTPUT_PDF)
     plt.close(fig)
-    print(f"saved: {OUTPUT_PNG}")
+    print(f"saved: {OUTPUT_PDF}")
 
 
 if __name__ == "__main__":

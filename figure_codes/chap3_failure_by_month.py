@@ -1,6 +1,6 @@
 """第三章：月度故障盘分布
 
-生成 figure/chap3-failure-by-month.png。
+生成 figure/chap3-failure-by-month.pdf。
 
 数据固化自 codes/eda/scripts/plot_failure_by_month.py
 （源：ssd_failure_label.csv 按型号×月聚合）。
@@ -17,12 +17,14 @@ import matplotlib.pyplot as plt
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 FIGURE_DIR = PROJECT_ROOT / "figure"
-OUTPUT_PNG = FIGURE_DIR / "chap3-failure-by-month.png"
+OUTPUT_PDF = FIGURE_DIR / "chap3-failure-by-month.pdf"
 
 plt.rcParams.update({
     "font.sans-serif": ["Arial Unicode MS", "PingFang SC", "SimHei", "DejaVu Sans"],
     "axes.unicode_minus": False,
     "font.size": 11,
+    "pdf.fonttype": 42,
+    "ps.fonttype": 42,
 })
 
 MONTHS = [
@@ -38,7 +40,7 @@ COUNTS = {
 COLORS = {"MB1": "#2563EB", "MB2": "#F97316"}
 
 
-def plot(*, save_path: Path = OUTPUT_PNG) -> plt.Figure:
+def plot(*, save_path: Path = OUTPUT_PDF) -> plt.Figure:
     x = range(len(MONTHS))
     width = 0.38
     fig, ax = plt.subplots(figsize=(10, 4.5))
@@ -64,14 +66,14 @@ def plot(*, save_path: Path = OUTPUT_PNG) -> plt.Figure:
     fig.tight_layout()
 
     save_path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(save_path, dpi=300, bbox_inches="tight")
+    fig.savefig(save_path, bbox_inches="tight", facecolor="white")
     return fig
 
 
 def main() -> None:
     fig = plot()
     plt.close(fig)
-    print(f"saved: {OUTPUT_PNG}")
+    print(f"saved: {OUTPUT_PDF}")
 
 
 if __name__ == "__main__":
