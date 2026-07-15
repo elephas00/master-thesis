@@ -163,10 +163,38 @@ def plot_wk_panel(
 
 
 def plot_heatmap(*, save_path_png: Path | None = None, save_path_pdf: Path | None = None) -> plt.Figure:
-    fig, axes = plt.subplots(1, 2, figsize=(9.2, 3.9), constrained_layout=True)
+    # 按相同方格边长定位；两图紧挨并排（正常子图间距）
+    cell = 0.56
+    n_rows = 4
+    n_cols = [len(K_LABELS[m]) for m in MODELS]
+    y_label = 0.46
+    cbar_w, cbar_pad = 0.16, 0.04
+    panel_gap = 0.42  # 左色条刻度文字 → 右 y 标签
+    left_m, right_m, bot_m, top_m = 0.02, 0.02, 0.40, 0.42
 
-    ims = []
-    for ax, model in zip(axes, MODELS):
+    panel_w = [y_label + n * cell + cbar_pad + cbar_w for n in n_cols]
+    fig_w = left_m + panel_w[0] + panel_gap + panel_w[1] + right_m
+    fig_h = bot_m + n_rows * cell + top_m
+    fig = plt.figure(figsize=(fig_w, fig_h))
+
+    def _panel_axes(x0: float, n_col: int):
+        ax = fig.add_axes([
+            (x0 + y_label) / fig_w,
+            bot_m / fig_h,
+            (n_col * cell) / fig_w,
+            (n_rows * cell) / fig_h,
+        ])
+        cax = fig.add_axes([
+            (x0 + y_label + n_col * cell + cbar_pad) / fig_w,
+            bot_m / fig_h,
+            cbar_w / fig_w,
+            (n_rows * cell) / fig_h,
+        ])
+        return ax, cax
+
+    xs = [left_m, left_m + panel_w[0] + panel_gap]
+    for x0, model, nc in zip(xs, MODELS, n_cols):
+        ax, cax = _panel_axes(x0, nc)
         col_start = 1 if model == "MB2" else 0
         im, _ = plot_wk_panel(
             ax, F05[model], model,
@@ -174,15 +202,14 @@ def plot_heatmap(*, save_path_png: Path | None = None, save_path_pdf: Path | Non
             zoom_col_start=col_start,
             mute_row0=True,
         )
-        ims.append(im)
-
-    for ax, im in zip(axes, ims):
-        fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04).set_label(r"$F_{0.5}$")
+        cbar = fig.colorbar(im, cax=cax)
+        cbar.ax.set_title(r"$F_{0.5}$", fontsize=9, pad=3)
+        cbar.ax.tick_params(labelsize=7, pad=1)
 
     if save_path_png is not None:
-        fig.savefig(save_path_png, bbox_inches="tight")
+        fig.savefig(save_path_png, bbox_inches="tight", pad_inches=0.02)
     if save_path_pdf is not None:
-        fig.savefig(save_path_pdf, bbox_inches="tight")
+        fig.savefig(save_path_pdf, bbox_inches="tight", pad_inches=0.02)
 
     return fig
 
