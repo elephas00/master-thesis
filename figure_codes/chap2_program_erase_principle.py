@@ -284,9 +284,10 @@ def _draw_cell(ax, ox: float, *, mode: str) -> None:
 
 
 def plot() -> plt.Figure:
-    fig, ax = plt.subplots(figsize=(11.0, 3.1))
+    fig, ax = plt.subplots(figsize=(11.0, 2.7))
     ax.set_xlim(0, 540)
-    ax.set_ylim(22, 175)
+    # 内容约 y∈[26, 162+$V_{PP}$]：上沿贴紧 $V_{PP}$，仅留极少空白
+    ax.set_ylim(24, 168)
     ax.set_aspect("equal")
     ax.axis("off")
 
@@ -299,15 +300,15 @@ def plot() -> plt.Figure:
     ax.text(410, 26, "b) 擦除原理", fontsize=11.5, fontweight="bold",
             ha="center", va="top", color=C_TEXT)
 
-    fig.tight_layout(pad=0.12)
+    fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
     return fig
 
 
 def main() -> None:
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
     fig = plot()
-    fig.savefig(OUT_PDF, bbox_inches="tight", facecolor="white", pad_inches=0.12)
-    fig.savefig(OUT_PNG, bbox_inches="tight", facecolor="white", pad_inches=0.12)
+    fig.savefig(OUT_PDF, bbox_inches="tight", facecolor="white", pad_inches=0.04)
+    fig.savefig(OUT_PNG, bbox_inches="tight", facecolor="white", pad_inches=0.04)
     plt.close(fig)
     print(f"saved: {OUT_PDF}")
     print(f"saved: {OUT_PNG}")

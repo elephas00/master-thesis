@@ -60,9 +60,9 @@ def _box(ax, xy, w, h, text, fc, ec, fs=10, weight="bold", lw=1.4):
 
 
 def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
-    fig, ax = plt.subplots(figsize=(11, 8))
+    fig, ax = plt.subplots(figsize=(11, 8.2))
     ax.set_xlim(-2, 102)
-    ax.set_ylim(-5, 84)
+    ax.set_ylim(0, 90)
     ax.axis("off")
 
     def _draw_block(bx, by, bw, bh, name):
@@ -131,8 +131,8 @@ def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
     ax.text(50, 40, "⋯", ha="center", va="center",
             fontsize=28, color=C_TEXT, fontweight="bold")
 
-    # 底部说明
-    ax.text(50, -3.0,
+    # 顶部说明
+    ax.text(50, 88.5,
             "层级关系：LUN (Die) → Plane → Block → Page；每块含 256 页（页0–页255）",
             ha="center", va="top", fontsize=11, color=C_MUTED)
 
