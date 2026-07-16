@@ -1,9 +1,9 @@
 """$W$–$k$ 网格搜索热力图（方案 A2）
 
-生成 figure/chap3-wk-grid-heatmap-A.png 与同名 .pdf。
+生成 figure/chap3-wk-grid-heatmap-A.pdf。
 
 对应 notebook `codes/eda/notebooks/eda_wk_grid_heatmap.ipynb` §A2：
-- `cmap="Blues"`（与 chap3_tp_lead_method_heatmap.py 一致）
+- `cmap=CMAP_HEAT`（饱和蓝阶，与 thesis_style 一致）
 - 色标聚焦 $W{\\geq}1$（MB2 另排除 $k{=}0$ 列），$W{=}0$ 行浅灰底
 - 最优格 $(W^\\ast, k^\\ast)$ 加粗框 + ★
 
@@ -21,21 +21,21 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.patches import Rectangle
 
+from thesis_style import CMAP_HEAT, apply_rc
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 FIGURE_DIR = PROJECT_ROOT / "figure"
-OUT_PNG = FIGURE_DIR / "chap3-wk-grid-heatmap-A.png"
 OUT_PDF = FIGURE_DIR / "chap3-wk-grid-heatmap-A.pdf"
 
+apply_rc()
 plt.rcParams.update({
-    "font.sans-serif": ["Arial Unicode MS", "PingFang SC", "SimHei", "DejaVu Sans"],
-    "axes.unicode_minus": False,
     "figure.dpi": 120,
     "savefig.dpi": 300,
     "font.size": 10,
 })
 
 MODELS = ["MB1", "MB2"]
-CMAP_ABS = "Blues"
+CMAP_ABS = CMAP_HEAT
 
 # 行=W，列=k；来源 content.tex tab:chap3-wk-grid
 F05 = {
@@ -64,7 +64,7 @@ def _text_color(val: float, vmin: float, vmax: float, *, force_dark: bool = Fals
     if vmax <= vmin:
         return "#0F172A"
     t = (val - vmin) / (vmax - vmin)
-    return "white" if t > 0.35 else "#0F172A"
+    return "white" if t > 0.48 else "#0F172A"
 
 
 def compute_zoom_limits(
@@ -162,7 +162,7 @@ def plot_wk_panel(
     return im, (vmin, vmax)
 
 
-def plot_heatmap(*, save_path_png: Path | None = None, save_path_pdf: Path | None = None) -> plt.Figure:
+def plot_heatmap(*, save_path_pdf: Path | None = None) -> plt.Figure:
     # 按相同方格边长定位；两图紧挨并排（正常子图间距）
     cell = 0.56
     n_rows = 4
@@ -206,8 +206,6 @@ def plot_heatmap(*, save_path_png: Path | None = None, save_path_pdf: Path | Non
         cbar.ax.set_title(r"$F_{0.5}$", fontsize=9, pad=3)
         cbar.ax.tick_params(labelsize=7, pad=1)
 
-    if save_path_png is not None:
-        fig.savefig(save_path_png, bbox_inches="tight", pad_inches=0.02)
     if save_path_pdf is not None:
         fig.savefig(save_path_pdf, bbox_inches="tight", pad_inches=0.02)
 
@@ -216,9 +214,8 @@ def plot_heatmap(*, save_path_png: Path | None = None, save_path_pdf: Path | Non
 
 def main() -> None:
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
-    fig = plot_heatmap(save_path_png=None, save_path_pdf=OUT_PDF)
+    fig = plot_heatmap(save_path_pdf=OUT_PDF)
     plt.close(fig)
-    print(f"saved: {OUT_PNG}")
     print(f"saved: {OUT_PDF}")
 
 

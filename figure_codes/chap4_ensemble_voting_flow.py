@@ -1,6 +1,6 @@
 """第四章：LP/MP/UP 分层建模 + 投票融合
 
-生成 figure/chap4-ensemble-voting-flow.png / .pdf。
+生成 figure/chap4-ensemble-voting-flow.pdf。
 配色对齐第三章异构集成示意（蓝基学习器 / 绿输出）。
 
 用法（项目根目录）:
@@ -16,7 +16,6 @@ from matplotlib.patches import FancyBboxPatch
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 FIGURE_DIR = PROJECT_ROOT / "figure"
-OUT_PNG = FIGURE_DIR / "chap4-ensemble-voting-flow.png"
 OUT_PDF = FIGURE_DIR / "chap4-ensemble-voting-flow.pdf"
 
 plt.rcParams.update({
@@ -46,7 +45,7 @@ def _box(ax, xy, w, h, text, fc, ec, fontsize=11):
             linespacing=1.25)
 
 
-def plot(*, save_png: Path = OUT_PNG, save_pdf: Path = OUT_PDF) -> plt.Figure:
+def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
     fig, ax = plt.subplots(figsize=(8.4, 5.0))
     ax.set_xlim(0, 100)
     ax.set_ylim(0, 70)
@@ -111,7 +110,6 @@ def plot(*, save_png: Path = OUT_PNG, save_pdf: Path = OUT_PDF) -> plt.Figure:
             fontsize=8.5, color=C_MUTED)
 
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
-    # fig.savefig(save_png, bbox_inches="tight", facecolor="white")
     fig.savefig(save_pdf, bbox_inches="tight", facecolor="white")
     return fig
 
@@ -119,7 +117,6 @@ def plot(*, save_png: Path = OUT_PNG, save_pdf: Path = OUT_PDF) -> plt.Figure:
 def main() -> None:
     fig = plot()
     plt.close(fig)
-    print(f"saved: {OUT_PNG}")
     print(f"saved: {OUT_PDF}")
 
 

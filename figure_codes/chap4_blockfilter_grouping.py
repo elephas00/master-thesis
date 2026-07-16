@@ -1,6 +1,6 @@
 """第四章：BlockFilter 逻辑组划分示意
 
-生成 figure/chap4-blockfilter-grouping.png / .pdf。
+生成 figure/chap4-blockfilter-grouping.pdf。
 配色对齐第三章流程图（蓝系主色，灰系辅色）。
 
 用法（项目根目录）:
@@ -16,7 +16,6 @@ from matplotlib.patches import FancyBboxPatch
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 FIGURE_DIR = PROJECT_ROOT / "figure"
-OUT_PNG = FIGURE_DIR / "chap4-blockfilter-grouping.png"
 OUT_PDF = FIGURE_DIR / "chap4-blockfilter-grouping.pdf"
 
 plt.rcParams.update({
@@ -43,7 +42,7 @@ def _group_cells(remainder: int) -> list[str]:
     return [f"B{i}" for i in early + late]
 
 
-def plot(*, save_png: Path = OUT_PNG, save_pdf: Path = OUT_PDF) -> plt.Figure:
+def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
     fig, ax = plt.subplots(figsize=(9.2, 5.6))
     ax.set_xlim(0, 100)
     ax.set_ylim(0, 100)
@@ -103,7 +102,6 @@ def plot(*, save_png: Path = OUT_PNG, save_pdf: Path = OUT_PDF) -> plt.Figure:
     )
 
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
-    # fig.savefig(save_png, bbox_inches="tight", facecolor="white")
     fig.savefig(save_pdf, bbox_inches="tight", facecolor="white")
     return fig
 
@@ -111,7 +109,6 @@ def plot(*, save_png: Path = OUT_PNG, save_pdf: Path = OUT_PDF) -> plt.Figure:
 def main() -> None:
     fig = plot()
     plt.close(fig)
-    print(f"saved: {OUT_PNG}")
     print(f"saved: {OUT_PDF}")
 
 

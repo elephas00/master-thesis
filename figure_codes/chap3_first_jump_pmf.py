@@ -18,24 +18,23 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.ticker import PercentFormatter
 
+from thesis_style import BAR_LW, C_ZERO, FONT, apply_rc, bar_key, bar_style, legend_swatch
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 FIGURE_DIR = PROJECT_ROOT / "figure"
 OUTPUT_PDF = FIGURE_DIR / "chap3-first-jump-pmf.pdf"
 
-plt.rcParams.update({
-    "font.sans-serif": ["Arial Unicode MS", "PingFang SC", "SimHei", "DejaVu Sans"],
-    "axes.unicode_minus": False,
-    "figure.dpi": 120,
-    "font.size": 11,
-    "pdf.fonttype": 42,
-    "ps.fonttype": 42,
-})
+apply_rc()
 
 MODELS = ["MB1", "MB2"]
 MAX_D = 30
 NEAR_END = 14
-COLORS = {"MB1": "#1565C0", "MB2": "#EF6C00"}
-SILENT_COLOR = "#9E9E9E"
+
+# 按柱图优先序：第 1 位 b1 白底（无跳变），第 2 位（有跳变）；两栏同色
+ST_SILENT = bar_style(0)
+ST_JUMP = bar_style(1)
+KEY_SILENT = bar_key(0)
+KEY_JUMP = bar_key(1)
 
 # eligible 故障盘数、静默盘数、d=0..30 的盘数
 META = {
@@ -65,20 +64,36 @@ def plot(*, save_path: Path = OUTPUT_PDF) -> plt.Figure:
         pmf_all = np.concatenate([[n_silent / n], counts / n])
         labels_all = ["无跳变"] + [str(int(d)) for d in days]
         x = np.arange(len(labels_all))
-        colors_bar = [SILENT_COLOR] + [COLORS[model]] * len(days)
+        colors_bar = [ST_SILENT["color"]] + [ST_JUMP["color"]] * len(days)
+        hatches_bar = [ST_SILENT["hatch"]] + [ST_JUMP["hatch"]] * len(days)
 
-        bars = ax.bar(x, pmf_all, color=colors_bar, alpha=0.88, width=0.82)
+        bars = ax.bar(
+            x, pmf_all, color=colors_bar, hatch=hatches_bar,
+            edgecolor=ST_JUMP["edge"], linewidth=BAR_LW, width=0.82,
+        )
+
         ax.set_xticks(x)
         ax.set_xticklabels(labels_all, rotation=0, ha="center", fontsize=6)
         ax.yaxis.set_major_formatter(PercentFormatter(1.0, decimals=0))
-        ax.set_title(f"{model}（$N$={n}）")
-        ax.set_ylabel("占故障盘比例")
+        ax.set_title(f"{model}（$N$={n}）", fontsize=FONT["title"])
+        ax.set_ylabel("占故障盘比例", fontsize=FONT["label"])
         ax.set_ylim(0, max(float(pmf_all.max()) * 1.12, 0.08))
         ax.grid(axis="y", alpha=0.25)
-        ax.text(0, pmf_all[0] + 0.01, f"{pmf_all[0]:.0%}", ha="center", fontsize=8, color="#444")
+        ax.text(
+            0, pmf_all[0] + 0.01, f"{pmf_all[0]:.0%}",
+            ha="center", fontsize=FONT["annot"], color=C_ZERO,
+        )
         for i, day in enumerate(days, start=1):
             if day > NEAR_END and pmf_all[i] > 0:
                 bars[i].set_alpha(0.72)
+
+        ax.legend(
+            handles=[
+                legend_swatch(KEY_SILENT, "无跳变"),
+                legend_swatch(KEY_JUMP, f"{model} 有跳变"),
+            ],
+            frameon=False, fontsize=FONT["legend"], loc="upper right",
+        )
 
     fig.tight_layout()
     save_path.parent.mkdir(parents=True, exist_ok=True)

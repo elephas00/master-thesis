@@ -1,76 +1,95 @@
+"""第四章：固定阈值 vs 理想策略 PE 对比（水平柱）
+
+生成 figure/chap4_pe_comparison.pdf（正文 graphicspath=figure/）。
+
+用法（项目根目录）:
+    PYTHONPATH=figure_codes python3 figure_codes/chap4_bar_chart.py
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+
 import matplotlib.pyplot as plt
-import numpy as np
 
-# 设置中文字体
-plt.rcParams['font.sans-serif'] = ['SimHei', 'Arial Unicode MS', 'DejaVu Sans']
-plt.rcParams['axes.unicode_minus'] = False
+from thesis_style import (
+    BAR_LW,
+    C_EDGE,
+    FONT,
+    apply_rc,
+    bar_key,
+    bar_style,
+    legend_swatch,
+)
 
-# 数据：6个块的PE次数
-# 注意：您提到有6个数据，但只列出了5个值，这里假设第6个也是10000
-# 如果需要修改，请调整下面的pe_values列表
-pe_values = [9000, 8500, 9500, 10000, 10000, 10000]  # 6个数据值
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+FIGURE_DIR = PROJECT_ROOT / "figure"
+OUT_PDF = FIGURE_DIR / "chap4_pe_comparison.pdf"
 
-# 创建图形
-fig, ax = plt.subplots(figsize=(5, 3))
+apply_rc()
 
-# 块的标签（从上到下）
-block_labels = [f'块{i+1}' for i in range(len(pe_values))]
+# 左段 / 右段：柱图优先序前两档
+ST_LEFT = bar_style(0)
+ST_RIGHT = bar_style(1)
+KEY_LEFT = bar_key(0)
+KEY_RIGHT = bar_key(1)
 
-# 阈值
-threshold = 8500
+PE_VALUES = [9000, 8500, 9500, 10000, 10000, 10000]
+THRESHOLD = 8500
 
-# 计算左侧（灰色）和右侧（绿色）的长度
-left_values = [min(pe, threshold) for pe in pe_values]  # 左侧灰色部分
-right_values = [max(0, pe - threshold) for pe in pe_values]  # 右侧绿色部分
 
-# 绘制左侧灰色部分（从0开始）
-bars_left = ax.barh(range(len(pe_values)), left_values, 
-                    color='gray', edgecolor='black', linewidth=1)
+def plot(*, save_path: Path = OUT_PDF) -> plt.Figure:
+    pe_values = PE_VALUES
+    threshold = THRESHOLD
+    left_values = [min(pe, threshold) for pe in pe_values]
+    right_values = [max(0, pe - threshold) for pe in pe_values]
+    block_labels = [f"块{i + 1}" for i in range(len(pe_values))]
 
-# 绘制右侧绿色部分（从threshold开始，使用left参数指定起始位置）
-bars_right = ax.barh(range(len(pe_values)), right_values, 
-                     left=left_values, color='green', edgecolor='black', linewidth=1)
+    fig, ax = plt.subplots(figsize=(5, 3))
+    y = range(len(pe_values))
 
-# 在x=8000处添加垂直虚线
-ax.axvline(x=threshold, color='black', linestyle='--', linewidth=1.5, label='固定阈值策略每个块的PE')
+    ax.barh(
+        y, left_values,
+        color=ST_LEFT["color"], hatch=ST_LEFT["hatch"],
+        edgecolor=C_EDGE, linewidth=BAR_LW,
+    )
+    ax.barh(
+        y, right_values, left=left_values,
+        color=ST_RIGHT["color"], hatch=ST_RIGHT["hatch"],
+        edgecolor=C_EDGE, linewidth=BAR_LW,
+    )
+    ax.axvline(x=threshold, color=C_EDGE, linestyle="--", linewidth=1.5)
 
-# 设置y轴标签
-ax.set_yticks(range(len(pe_values)))
-ax.set_yticklabels(block_labels)
+    ax.set_yticks(list(y))
+    ax.set_yticklabels(block_labels)
+    ax.set_xlabel("每个块理想 PE 次数", fontsize=FONT["label"])
+    ax.set_ylabel("")
+    ax.set_xlim(0, max(pe_values) * 1.1)
 
-# 设置x轴标签
-ax.set_xlabel('每个块理想PE次数', fontsize=12)
+    ax.legend(
+        handles=[
+            legend_swatch(KEY_LEFT, "固定阈值策略每个块的 PE 次数"),
+            legend_swatch(KEY_RIGHT, "理想策略可额外使用的 PE 次数"),
+        ],
+        loc="best",
+        fontsize=FONT["legend"],
+        frameon=False,
+    )
 
-# 移除y轴标签（无纵坐标）
-ax.set_ylabel('')
+    for i, pe in enumerate(pe_values):
+        ax.text(pe, i, f"{pe}", ha="left", va="center", fontsize=FONT["annot"])
 
-# 设置x轴范围，留出一些边距
-ax.set_xlim(0, max(pe_values) * 1.1)
+    fig.tight_layout()
+    save_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(save_path, bbox_inches="tight", facecolor="white")
+    return fig
 
-# 添加图例
-# 创建自定义图例元素
-from matplotlib.patches import Patch
-legend_elements = [
-    Patch(facecolor='gray', edgecolor='black'),
-    Patch(facecolor='green', edgecolor='black'),
-]
-ax.legend(handles=legend_elements, labels=['固定阈值策略每个块的PE次数', '理想策略可额外使用的PE次数'], 
-          loc='best', fontsize=10)
 
-# 在柱状图上添加数值标签（显示在右侧）
-for i, pe in enumerate(pe_values):
-    ax.text(pe, i, f'{pe}', ha='left', va='center', fontsize=10, 
-            bbox=dict(boxstyle='round,pad=0.3', facecolor='white', alpha=0.7))
+def main() -> None:
+    fig = plot()
+    plt.close(fig)
+    print(f"saved: {OUT_PDF}")
 
-# 调整布局
-plt.tight_layout()
 
-# 保存图片
-plt.savefig('chap4_pe_comparison.pdf', dpi=300, bbox_inches='tight')
-plt.savefig('chap4_pe_comparison.png', dpi=300, bbox_inches='tight')
-
-# 显示图片
-plt.show()
-
-print("图表已保存为 figure/chap4_pe_comparison.pdf 和 figure/chap4_pe_comparison.png")
-
+if __name__ == "__main__":
+    main()

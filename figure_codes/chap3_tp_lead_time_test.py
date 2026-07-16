@@ -17,24 +17,20 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.patches import Patch
 
+from thesis_style import FONT, ROUND_STYLES, BAR_LW, C_LEGEND_FRAME, apply_rc
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 FIGURE_DIR = PROJECT_ROOT / "figure"
 OUTPUT_PDF = FIGURE_DIR / "chap3-tp-lead-time-test.pdf"
 
+apply_rc()
 plt.rcParams.update({
-    "font.sans-serif": ["Arial Unicode MS", "PingFang SC", "SimHei", "DejaVu Sans"],
-    "axes.unicode_minus": False,
     "figure.dpi": 120,
-    "font.size": 10,
-    "pdf.fonttype": 42,
-    "ps.fonttype": 42,
 })
 
 MODELS = ["MB1", "MB2"]
 ROUNDS = [1, 2, 3]
 ROUND_MONTH = {1: "2019-09", 2: "2019-10", 3: "2019-11"}
-ROUND_FILL = {1: "#2563EB", 2: "#DC2626", 3: "#16A34A"}
-ROUND_EDGE = {1: "#1E3A8A", 2: "#7F1D1D", 3: "#14532D"}
 DAYS = np.arange(31)
 
 # 各型号 × 轮次 × 提前天数 d 的 TP 盘数（d=0..30）
@@ -75,11 +71,13 @@ def _legend_entries(model: str) -> tuple[list[Patch], list[str]]:
     handles, labels = [], []
     for rid in ROUNDS:
         stats = LEGEND_STATS[model][rid]
+        st = ROUND_STYLES[rid]
         handles.append(
             Patch(
-                facecolor=ROUND_FILL[rid],
-                edgecolor=ROUND_EDGE[rid],
-                linewidth=0.85,
+                facecolor=st["color"],
+                hatch=st["hatch"],
+                edgecolor=st["edge"],
+                linewidth=BAR_LW,
             )
         )
         labels.append(
@@ -108,13 +106,15 @@ def plot_grouped_bars(
         for i, rid in enumerate(ROUNDS):
             hist = np.asarray(HIST_COUNTS[model][rid], dtype=float)
             xs = DAYS + (i - 1) * bar_width
+            st = ROUND_STYLES[rid]
             bars = ax.bar(
                 xs,
                 hist,
                 width=bar_width,
-                color=ROUND_FILL[rid],
-                edgecolor=ROUND_EDGE[rid],
-                linewidth=0.85,
+                color=st["color"],
+                hatch=st["hatch"],
+                edgecolor=st["edge"],
+                linewidth=BAR_LW,
                 zorder=3,
             )
 
@@ -129,17 +129,17 @@ def plot_grouped_bars(
                     xytext=(0, 4),
                     ha="center",
                     va="bottom",
-                    fontsize=7.5,
-                    color=ROUND_EDGE[rid],
+                    fontsize=FONT["annot"],
+                    color=st["edge"],
                     fontweight="bold",
                     zorder=5,
                 )
 
-        ax.set_title(model, fontweight="bold")
+        ax.set_title(model, fontweight="bold", fontsize=FONT["title"])
         ax.set_xlim(-0.9, 30.9)
         ax.set_ylim(0, ymax)
         ax.set_xticks([0, 1, 2, 3, 5, 10, 15, 20, 25, 30])
-        ax.set_ylabel("TP 盘数")
+        ax.set_ylabel("TP 盘数", fontsize=FONT["label"])
         ax.grid(axis="y", alpha=0.3, linewidth=0.6, zorder=0)
         ax.set_axisbelow(True)
 
@@ -148,9 +148,9 @@ def plot_grouped_bars(
             leg_handles,
             leg_labels,
             loc="upper right",
-            fontsize=7.5,
+            fontsize=FONT["legend"],
             framealpha=0.95,
-            edgecolor="#CBD5E1",
+            edgecolor=C_LEGEND_FRAME,
             handlelength=1.2,
             handleheight=0.9,
         )

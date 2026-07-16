@@ -2,7 +2,6 @@
 
 生成：
     figure/chap2-random-forest.pdf
-    figure/chap2-random-forest.png
 
 正文引用：figure/chap2-random-forest.pdf
 
@@ -27,7 +26,6 @@ from matplotlib.lines import Line2D
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 FIGURE_DIR = PROJECT_ROOT / "figure"
 OUT_PDF = FIGURE_DIR / "chap2-random-forest.pdf"
-OUT_PNG = FIGURE_DIR / "chap2-random-forest.png"
 
 plt.rcParams.update({
     "font.sans-serif": ["Arial Unicode MS", "PingFang SC", "PingFang HK",
@@ -238,8 +236,6 @@ def main() -> None:
     fig = plot()
     fig.savefig(OUT_PDF, bbox_inches="tight", facecolor="white",
                 edgecolor="none", pad_inches=0.12)
-    # fig.savefig(OUT_PNG, bbox_inches="tight", facecolor="white",
-    #             edgecolor="none", pad_inches=0.12)
     plt.close(fig)
     print(f"saved: {OUT_PDF}")
 

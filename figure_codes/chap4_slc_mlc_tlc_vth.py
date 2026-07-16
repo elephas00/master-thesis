@@ -2,7 +2,7 @@
 
 生成 figure/chap4-slc-mlc-tlc-vth.pdf。
 
-黑白曲线 + 状态间虚线（示意读参考电压）+ 峰顶 Gray 编码。
+黑线概率密度 + 浅灰填充峰区 + 状态间虚线（读参考电压）+ 峰顶 Gray 编码。
 
 用法（项目根目录）:
     python3 figure_codes/chap4_slc_mlc_tlc_vth.py
@@ -28,6 +28,7 @@ plt.rcParams.update({
 })
 
 C_CURVE = "#111111"
+C_FILL = "#D0D0D0"   # 峰下浅灰，突出状态区域
 C_DASH = "#555555"
 C_TEXT = "#111111"
 
@@ -39,19 +40,21 @@ def gauss(x, mu, sigma=0.2):
 def _panel(ax, mus, codes, title, *, sigma=0.2, xlabel=False):
     x = np.linspace(0, 10, 2000)
     for mu in mus:
-        ax.plot(x, gauss(x, mu, sigma=sigma), color=C_CURVE, lw=2.2)
+        y = gauss(x, mu, sigma=sigma)
+        ax.fill_between(x, 0, y, color=C_FILL, alpha=0.85, zorder=1, linewidth=0)
+        ax.plot(x, y, color=C_CURVE, lw=2.0, zorder=2)
 
     # 相邻状态中点虚线：示意读参考电压边界
     for i in range(len(mus) - 1):
         mid = 0.5 * (mus[i] + mus[i + 1])
-        ax.axvline(mid, color=C_DASH, ls="--", lw=1.0, zorder=1)
+        ax.axvline(mid, color=C_DASH, ls="--", lw=1.0, zorder=3)
 
     # 峰顶编码
     for mu, code in zip(mus, codes):
         ax.text(
             mu, 1.05, code,
             ha="center", va="bottom", fontsize=10,
-            color=C_TEXT, fontfamily="monospace", zorder=3,
+            color=C_TEXT, fontfamily="monospace", zorder=4,
         )
 
     ax.set_title(title, fontsize=12, pad=8)

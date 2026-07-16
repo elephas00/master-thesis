@@ -1,6 +1,6 @@
 """多方法 TP 提前预警天数热力图（方案 E）
 
-生成 figure/chap3-tp-lead-method-E-heatmap.png 与同名 .pdf。
+生成 figure/chap3-tp-lead-method-E-heatmap.pdf。
 
 列：$d=0..7$ 逐日 + $d=8$–$30$ 合并；格内为 TP 盘数，底色为占该方法合计 TP 的比例。
 数据已固化，来源 eda/run/tp_lead_time_test_*_summary.json（2026-07-10）。
@@ -16,14 +16,14 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
+from thesis_style import CMAP_HEAT, apply_rc
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 FIGURE_DIR = PROJECT_ROOT / "figure"
-OUT_PNG = FIGURE_DIR / "chap3-tp-lead-method-E-heatmap.png"
 OUT_PDF = FIGURE_DIR / "chap3-tp-lead-method-E-heatmap.pdf"
 
+apply_rc()
 plt.rcParams.update({
-    "font.sans-serif": ["Arial Unicode MS", "PingFang SC", "SimHei", "DejaVu Sans"],
-    "axes.unicode_minus": False,
     "figure.dpi": 120,
     "savefig.dpi": 300,
     "font.size": 10,
@@ -61,7 +61,7 @@ def _counts_to_share(counts: list[int]) -> np.ndarray:
     return np.asarray(counts, dtype=float) / total
 
 
-def plot_heatmap(*, save_path_png: Path | None = None, save_path_pdf: Path | None = None) -> plt.Figure:
+def plot_heatmap(*, save_path_pdf: Path | None = None) -> plt.Figure:
     fig, axes = plt.subplots(1, 2, figsize=(12.8, 3.8))
 
     for ax, model in zip(axes, MODELS):
@@ -71,7 +71,7 @@ def plot_heatmap(*, save_path_png: Path | None = None, save_path_pdf: Path | Non
         mat_share = np.asarray(share_rows, dtype=float)
 
         vmax = mat_share.max() if mat_share.size else 1.0
-        im = ax.imshow(mat_share, aspect="auto", cmap="Blues", vmin=0, vmax=max(vmax, 0.05))
+        im = ax.imshow(mat_share, aspect="auto", cmap=CMAP_HEAT, vmin=0, vmax=max(vmax, 0.05))
 
         row_labels = [
             f"{method}  ($n$={int(mat_count[i].sum())})"
@@ -97,7 +97,7 @@ def plot_heatmap(*, save_path_png: Path | None = None, save_path_pdf: Path | Non
                     ha="center",
                     va="center",
                     fontsize=8,
-                    color="white" if share > 0.35 else "#0F172A",
+                    color="white" if share > 0.48 else "#0F172A",
                 )
 
         fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04, label="TP 占比")
@@ -105,8 +105,6 @@ def plot_heatmap(*, save_path_png: Path | None = None, save_path_pdf: Path | Non
     fig.subplots_adjust(left=0.17, wspace=0.38)
     fig.tight_layout()
 
-    if save_path_png is not None:
-        fig.savefig(save_path_png, bbox_inches="tight")
     if save_path_pdf is not None:
         fig.savefig(save_path_pdf, bbox_inches="tight")
 
@@ -115,9 +113,8 @@ def plot_heatmap(*, save_path_png: Path | None = None, save_path_pdf: Path | Non
 
 def main() -> None:
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
-    fig = plot_heatmap(save_path_png=None, save_path_pdf=OUT_PDF)
+    fig = plot_heatmap(save_path_pdf=OUT_PDF)
     plt.close(fig)
-    print(f"saved: {OUT_PNG}")
     print(f"saved: {OUT_PDF}")
 
 

@@ -2,7 +2,6 @@
 
 1:1 复刻 figure/SSD读写原理.png，生成更清晰的矢量图：
     figure/chap2-program-erase-principle.pdf
-    figure/chap2-program-erase-principle.png
 
 用法（项目根目录）:
     python3 figure_codes/chap2_program_erase_principle.py
@@ -20,7 +19,6 @@ import numpy as np
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 FIGURE_DIR = PROJECT_ROOT / "figure"
 OUT_PDF = FIGURE_DIR / "chap2-program-erase-principle.pdf"
-OUT_PNG = FIGURE_DIR / "chap2-program-erase-principle.png"
 
 plt.rcParams.update({
     "font.sans-serif": ["Arial Unicode MS", "PingFang SC", "SimHei", "Heiti SC", "DejaVu Sans"],
@@ -310,10 +308,8 @@ def main() -> None:
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
     fig = plot()
     fig.savefig(OUT_PDF, bbox_inches="tight", facecolor="white", pad_inches=0.04)
-    fig.savefig(OUT_PNG, bbox_inches="tight", facecolor="white", pad_inches=0.04)
     plt.close(fig)
     print(f"saved: {OUT_PDF}")
-    print(f"saved: {OUT_PNG}")
 
 
 if __name__ == "__main__":

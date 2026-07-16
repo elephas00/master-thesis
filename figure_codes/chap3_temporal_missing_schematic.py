@@ -14,20 +14,24 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
+from thesis_style import (
+    BAR_LW, C_EDGE, C_SPINE_MUTED, FONT,
+    apply_rc, bar_key, bar_style, legend_swatch,
+)
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 FIGURE_DIR = PROJECT_ROOT / "figure"
 OUTPUT_PDF = FIGURE_DIR / "chap3-temporal-missing-schematic.pdf"
 
-plt.rcParams.update({
-    "font.sans-serif": ["Arial Unicode MS", "SimHei", "DejaVu Sans"],
-    "axes.unicode_minus": False,
-    "font.size": 10,
-    "axes.titlesize": 11,
-    "axes.labelsize": 10,
-    "legend.fontsize": 9,
-    "pdf.fonttype": 42,
-    "ps.fonttype": 42,
-})
+apply_rc()
+
+# 全序：删除=b1 白；有日志=b2；待补全=b3
+ST_REMOVE = bar_style(0)
+ST_OBS = bar_style(1)
+ST_IMPUTE = bar_style(2)
+KEY_REMOVE = bar_key(0)
+KEY_OBS = bar_key(1)
+KEY_IMPUTE = bar_key(2)
 
 
 def plot_timeline_schematic(output: Path = OUTPUT_PDF) -> plt.Figure:
@@ -41,7 +45,6 @@ def plot_timeline_schematic(output: Path = OUTPUT_PDF) -> plt.Figure:
     mod_gap = set(range(9, 24)) | set(range(31, 33)) | set(range(36, 39))
     mod_obs = set(days) - mod_gap
 
-    sev_gap = set(days)
     sev_obs: set[int] = set()
 
     scenarios = [
@@ -50,63 +53,63 @@ def plot_timeline_schematic(output: Path = OUTPUT_PDF) -> plt.Figure:
         ("重度", sev_obs, "remove"),
     ]
 
-    # 偏扁：三行条带示意图不需要大画布高度
     fig, axes = plt.subplots(3, 1, figsize=(10.5, 3.2), sharex=True)
     fig.subplots_adjust(left=0.06, right=0.98, top=0.86, bottom=0.16, hspace=0.32)
 
-    obs_color = "#4A7FB5"
-    impute_face, impute_edge = "#EEF3F8", "#8EAEC9"
-    remove_face, remove_edge = "#F0F1F4", "#8B95A5"
-    bar_sep = "#FFFFFF"
-    spine_color = "#D0D7E2"
+    spine_color = C_SPINE_MUTED
 
     for ax, (tier, obs_set, gap_kind) in zip(axes, scenarios):
-        ax.set_title(f"{tier}缺失", loc="left", fontsize=10, pad=3)
+        ax.set_title(f"{tier}缺失", loc="left", fontsize=FONT["title"], pad=3)
 
         for d in days:
             if d in obs_set:
                 ax.bar(
-                    d, 1, width=0.88, facecolor=obs_color,
-                    edgecolor=bar_sep, linewidth=0.35,
+                    d, 1, width=0.88,
+                    facecolor=ST_OBS["color"],
+                    edgecolor=C_EDGE,
+                    linewidth=BAR_LW,
+                    hatch=ST_OBS["hatch"],
                 )
             elif gap_kind == "remove":
                 ax.bar(
-                    d, 1, width=0.88, facecolor=remove_face,
-                    edgecolor=remove_edge, linewidth=0.55, hatch="xx",
+                    d, 1, width=0.88,
+                    facecolor=ST_REMOVE["color"],
+                    edgecolor=C_EDGE,
+                    linewidth=BAR_LW,
+                    hatch=ST_REMOVE["hatch"],
                 )
             else:
                 ax.bar(
-                    d, 1, width=0.88, facecolor=impute_face,
-                    edgecolor=impute_edge, linewidth=0.55, hatch="//",
+                    d, 1, width=0.88,
+                    facecolor=ST_IMPUTE["color"],
+                    edgecolor=C_EDGE,
+                    linewidth=BAR_LW,
+                    hatch=ST_IMPUTE["hatch"],
                 )
 
         ax.set_xlim(0.5, n_days + 0.5)
         ax.set_xticks([1, 10, 20, 30, 40])
         ax.set_yticks([])
         ax.set_ylim(0, 1.05)
-        ax.set_facecolor("#FAFBFC")
+        ax.set_facecolor("#FFFFFF")
         for spine in ax.spines.values():
             spine.set_linewidth(0.8)
             spine.set_color(spine_color)
 
-    obs_patch = plt.Rectangle((0, 0), 1, 1, fc=obs_color, ec=bar_sep, lw=0.5)
-    impute_patch = plt.Rectangle(
-        (0, 0), 1, 1, fc=impute_face, ec=impute_edge, hatch="//", lw=0.8,
-    )
-    remove_patch = plt.Rectangle(
-        (0, 0), 1, 1, fc=remove_face, ec=remove_edge, hatch="xx", lw=0.8,
-    )
     fig.legend(
-        [obs_patch, impute_patch, remove_patch],
-        ["有日志", "缺失（待补全）", "缺失（删除）"],
+        handles=[
+            legend_swatch(KEY_OBS, "有日志"),
+            legend_swatch(KEY_IMPUTE, "缺失（待补全）"),
+            legend_swatch(KEY_REMOVE, "缺失（删除）"),
+        ],
         loc="upper center",
         frameon=False,
-        fontsize=8,
+        fontsize=FONT["legend"],
         ncol=3,
         bbox_to_anchor=(0.5, 1.0),
     )
 
-    axes[-1].set_xlabel("日历日 $t$（40 天观测窗）")
+    axes[-1].set_xlabel("日历日 $t$（40 天观测窗）", fontsize=FONT["label"])
     fig.savefig(
         output,
         facecolor="white",

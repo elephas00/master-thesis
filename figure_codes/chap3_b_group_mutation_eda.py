@@ -21,6 +21,8 @@ from pathlib import Path
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 
+from thesis_style import FONT, apply_rc, line_style
+
 HERE = Path(__file__).resolve().parent
 PROJECT_ROOT = HERE.parent
 DATA_PATH = HERE / "chap3_b_group_mutation_eda_data.json"
@@ -39,7 +41,7 @@ OUTPUTS = {
     "MB2": FIGURE_DIR / "chap3-b-group-mutation-eda-mb2.pdf",
 }
 
-COLORS = plt.cm.tab10.colors
+apply_rc()
 
 
 def _parse_day(s: str) -> datetime:
@@ -71,18 +73,19 @@ def plot_model(model: str, bundle: dict) -> Path:
             ys = [p[col] for p in points]
             ft = _parse_day(points[0]["failure_time"])
             ft_str = ft.strftime("%m-%d")
-            color = COLORS[i % len(COLORS)]
+            st = line_style(i)
 
             (line,) = ax.plot(
                 ds,
                 ys,
-                marker="o",
-                ms=3,
+                marker=st["marker"],
+                ms=3.5,
                 lw=1.3,
-                alpha=0.85,
-                color=color,
+                ls=st["ls"],
+                alpha=0.9,
+                color=st["color"],
             )
-            ax.axvline(ft, color="crimson", ls="--", lw=0.9, alpha=0.45)
+            ax.axvline(ft, color="#444444", ls="--", lw=0.9, alpha=0.55)
             if col_idx == 0:
                 legend_handles.append(line)
                 legend_labels.append(f"disk {disk_id} (fail {ft_str})")
@@ -91,18 +94,18 @@ def plot_model(model: str, bundle: dict) -> Path:
         ax.xaxis.set_major_locator(mdates.MonthLocator())
         ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m"))
         ax.xaxis.set_minor_locator(mdates.WeekdayLocator(byweekday=mdates.MO))
-        ax.set_ylabel("读数", fontsize=9)
+        ax.set_ylabel("读数", fontsize=FONT["label"])
         panel = chr(ord("a") + col_idx)
-        ax.set_title(f"({panel}) {col} {ATTR_LABEL[col]}", fontsize=10, pad=6)
+        ax.set_title(f"({panel}) {col} {ATTR_LABEL[col]}", fontsize=FONT["title"], pad=6)
         ax.grid(True, alpha=0.25)
-        ax.set_xlabel(f"日期（{date_label}）", fontsize=9)
+        ax.set_xlabel(f"日期（{date_label}）", fontsize=FONT["label"])
 
     fig.legend(
         legend_handles,
         legend_labels,
         loc="lower center",
         ncol=3,
-        fontsize=8,
+        fontsize=FONT["legend"],
         bbox_to_anchor=(0.5, -0.14),
         frameon=True,
     )
@@ -117,19 +120,7 @@ def plot_model(model: str, bundle: dict) -> Path:
 
 
 def main() -> None:
-    plt.rcParams.update(
-        {
-            "font.sans-serif": [
-                "Arial Unicode MS",
-                "SimHei",
-                "PingFang SC",
-                "DejaVu Sans",
-            ],
-            "axes.unicode_minus": False,
-            "pdf.fonttype": 42,
-            "ps.fonttype": 42,
-        }
-    )
+    apply_rc()
     data = json.loads(DATA_PATH.read_text(encoding="utf-8"))
     for model in ("MB1", "MB2"):
         path = plot_model(model, data[model])

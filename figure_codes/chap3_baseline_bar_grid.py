@@ -1,7 +1,7 @@
 """第三章：盘级基线对比 2×4 分组柱图（方案 4）
 
 对应 notebook `codes/eda/notebooks/eda_baseline_bar_chart.ipynb` §4。
-生成 figure/chap3-baseline-bar-grid.png 与同名 .pdf。
+生成 figure/chap3-baseline-bar-grid.pdf。
 
 用法（项目根目录）:
     python figure_codes/chap3_baseline_bar_grid.py
@@ -15,13 +15,14 @@ import pandas as pd
 from matplotlib.patches import Patch
 from matplotlib.transforms import blended_transform_factory
 
+from thesis_style import METHOD_COLORS, METHOD_HATCH, C_EDGE, C_ZERO, C_LEGEND_FRAME, BAR_LW, apply_rc
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 FIGURE_DIR = PROJECT_ROOT / "figure"
 FIGURE_DIR.mkdir(parents=True, exist_ok=True)
 
+apply_rc()
 plt.rcParams.update({
-    "font.sans-serif": ["Arial Unicode MS", "SimHei", "DejaVu Sans"],
-    "axes.unicode_minus": False,
     "figure.dpi": 120,
     "savefig.dpi": 300,
 })
@@ -51,17 +52,9 @@ df["method"] = pd.Categorical(df["method"], categories=METHODS, ordered=True)
 df = df.sort_values(["model", "method"]).reset_index(drop=True)
 
 def main():
-    OUT_GRID = FIGURE_DIR / "chap3-baseline-bar-grid.png"
     OUT_GRID_PDF = FIGURE_DIR / "chap3-baseline-bar-grid.pdf"
 
-    METHOD_COLORS = {
-        "本文方法": "#2563EB",
-        "RF": "#DC2626",
-        "AE": "#F59E0B",
-        "TCAN": "#6B7280",
-        "MVT-RF": "#16A34A",
-        "Mut-RF": "#9333EA",
-    }
+    METHOD_HATCHES = METHOD_HATCH
 
     GRID_METRICS = [
         ("TPR", "TPR", 1.0, "{:.3f}"),
@@ -77,8 +70,8 @@ def main():
     }
 
     # MB1 TPR / Precision / F0.5：断轴
-    # - top / bottom：上下段 y 轴显示范围（放大区间 vs 0 附近密集刻度区）
-    # - split：截断阈值（默认 = bottom 上界）；v >= split → 下段画延续柱；v >= top[0] → 上段画真实柱
+    # - top / bottom：上下段 y 轴显示范围
+    # - split：截断阈值；v >= split → 上段真实柱 + 下段按字典样式画满；v < split → 仅下段真实柱
     BROKEN_YLIM_GRID = {
         ("MB1", "TPR"): {
             "top": (0.73, 0.78),
@@ -142,7 +135,7 @@ def main():
             return
         if v > yhi:
             ax.text(xi, yhi - 0.05 * span, label, ha="center", va="top",
-                    fontsize=6.0, rotation=rotation, zorder=4, color="#7F1D1D")
+                    fontsize=6.0, rotation=rotation, zorder=4, color=C_ZERO)
             return
         if v < ylo:
             return
@@ -150,50 +143,45 @@ def main():
                 ha="center", va="bottom", fontsize=6.0, rotation=rotation, zorder=4)
 
 
-    def _draw_low_bar(ax, xi, v, raw, color, bot_lo, bot_hi, fmt, key):
-        """下段：真实低值柱 + 数值标注。"""
+    def _draw_low_bar(ax, xi, v, raw, color, hatch, bot_lo, bot_hi, fmt, key):
+        """下段：真实低值柱 + 数值标注（与普通柱同形）。"""
         if raw <= 0:
             return
         draw_v = min(max(v, bot_lo), bot_hi)
         if draw_v <= bot_lo:
             return
         bar = ax.bar(xi, draw_v - bot_lo, width=bar_width, bottom=bot_lo,
-                     color=color, edgecolor="#0F172A", linewidth=0.6, zorder=3)
+                     color=color, hatch=hatch, edgecolor=C_EDGE, linewidth=BAR_LW, zorder=3)
         if xi == 0:
-            bar[0].set_linewidth(1.8)
+            bar[0].set_linewidth(BAR_LW * 1.5)
         _annotate_bar(ax, xi, draw_v, raw, fmt, key, bot_lo, bot_hi)
 
 
-    def _draw_continuation_stub(ax, xi, color, bot_lo, bot_hi):
-        """下段：高值方法画到顶部的截断柱，表示向上延续（省略区上方还有该方法的柱）。"""
+    def _draw_bottom_fill(ax, xi, color, hatch, bot_lo, bot_hi):
+        """下段：高值方法在短轴内画满（字典色/底纹原样，无三角/无额外底纹）。"""
         span = bot_hi - bot_lo
+        if span <= 0:
+            return
         bar = ax.bar(xi, span, width=bar_width, bottom=bot_lo,
-                     color=color, edgecolor="#0F172A", linewidth=0.6,
-                     hatch="///", alpha=0.92, zorder=3)
+                     color=color, hatch=hatch, edgecolor=C_EDGE, linewidth=BAR_LW, zorder=3)
         if xi == 0:
-            bar[0].set_linewidth(1.8)
-        # 柱顶小三角，提示向上延续
-        cx = xi
-        tri_h = span * 0.10
-        ax.plot([cx, cx - bar_width * 0.18, cx + bar_width * 0.18],
-                [bot_hi, bot_hi - tri_h, bot_hi - tri_h],
-                color="#0F172A", lw=0.8, zorder=4, clip_on=True)
+            bar[0].set_linewidth(BAR_LW * 1.5)
 
 
-    def _draw_top_bar(ax, xi, v, raw, color, top_lo, top_hi, fmt, key):
+    def _draw_top_bar(ax, xi, v, raw, color, hatch, top_lo, top_hi, fmt, key):
         """上段：放大区间内的真实柱 + 数值标注。"""
         if raw <= 0 or v < top_lo:
             return
         draw_v = min(v, top_hi)
         bar = ax.bar(xi, draw_v - top_lo, width=bar_width, bottom=top_lo,
-                     color=color, edgecolor="#0F172A", linewidth=0.6, zorder=3)
+                     color=color, hatch=hatch, edgecolor=C_EDGE, linewidth=BAR_LW, zorder=3)
         if xi == 0:
-            bar[0].set_linewidth(1.8)
+            bar[0].set_linewidth(BAR_LW * 1.5)
         _annotate_bar(ax, xi, draw_v, raw, fmt, key, top_lo, top_hi)
 
 
     def _draw_break_marks(ax_top, ax_bot, d=0.018):
-        kw = dict(color="#334155", clip_on=False, linewidth=0.9)
+        kw = dict(color=C_ZERO, clip_on=False, linewidth=0.9)
         ax_top.plot((-d, +d), (-d, +d), transform=ax_top.transAxes, **kw)
         ax_top.plot((1 - d, 1 + d), (-d, +d), transform=ax_top.transAxes, **kw)
         ax_bot.plot((-d, +d), (1 - d, 1 + d), transform=ax_bot.transAxes, **kw)
@@ -257,7 +245,7 @@ def main():
             )
 
 
-    def _plot_broken_panel(fig, ax_placeholder, *, raw_vals, vals, colors, cfg, ylabel, fmt, key,
+    def _plot_broken_panel(fig, ax_placeholder, *, raw_vals, vals, colors, hatches, cfg, ylabel, fmt, key,
                            show_title=False, show_model_label=False):
         pos = ax_placeholder.get_position()
         ax_placeholder.remove()
@@ -271,16 +259,16 @@ def main():
         bot_lo, bot_hi = cfg["bottom"]
         split = cfg.get("split", bot_hi)  # 截断阈值：与 bottom 上界对齐，独立于 top 放大区间
 
-        for xi, v, raw, c in zip(x, vals, raw_vals, colors):
+        for xi, v, raw, c, h in zip(x, vals, raw_vals, colors, hatches):
             if raw <= 0:
                 _annotate_zero(ax_bot, xi, bot_lo, bot_hi, c)
                 continue
             if v >= split:
-                _draw_continuation_stub(ax_bot, xi, c, bot_lo, bot_hi)
+                _draw_bottom_fill(ax_bot, xi, c, h, bot_lo, bot_hi)
             else:
-                _draw_low_bar(ax_bot, xi, v, raw, c, bot_lo, bot_hi, fmt, key)
+                _draw_low_bar(ax_bot, xi, v, raw, c, h, bot_lo, bot_hi, fmt, key)
             if v >= top_lo:
-                _draw_top_bar(ax_top, xi, v, raw, c, top_lo, top_hi, fmt, key)
+                _draw_top_bar(ax_top, xi, v, raw, c, h, top_lo, top_hi, fmt, key)
 
         ax_top.set_ylim(top_lo, top_hi)
         ax_bot.set_ylim(bot_lo, bot_hi)
@@ -366,7 +354,7 @@ def main():
                 _align_plot_left_margin(p1["ax"], mb1_broken_ref, fig, x0, y0_col, h_col, w)
 
 
-    def _plot_simple_panel(ax, *, raw_vals, vals, colors, ylabel, fmt, key, model,
+    def _plot_simple_panel(ax, *, raw_vals, vals, colors, hatches, ylabel, fmt, key, model,
                            show_title=False, show_model_label=False):
         custom_ylim = YLIM_GRID.get((model, key))
         if custom_ylim is not None:
@@ -380,9 +368,9 @@ def main():
             else:
                 yhi = 1.0
 
-        bars = ax.bar(x, vals, width=bar_width, color=colors,
-                      edgecolor="#0F172A", linewidth=0.6, zorder=3)
-        bars[0].set_linewidth(1.8)
+        bars = ax.bar(x, vals, width=bar_width, color=colors, hatch=hatches,
+                      edgecolor=C_EDGE, linewidth=BAR_LW, zorder=3)
+        bars[0].set_linewidth(BAR_LW * 1.5)
         ax.set_ylim(ylo, yhi)
         if model == "MB1" and key == "FPR":
             ax.set_ylabel("FPR", labelpad=2)
@@ -412,12 +400,13 @@ def main():
             raw_vals = sub[key].to_numpy(dtype=float)
             vals = raw_vals * scale
             colors = [METHOD_COLORS[m] for m in METHODS]
+            hatches = [METHOD_HATCHES[m] for m in METHODS]
             broken_cfg = BROKEN_YLIM_GRID.get((model, key))
 
             if broken_cfg is not None:
                 ax_top, ax_bot = _plot_broken_panel(
                     fig, ax,
-                    raw_vals=raw_vals, vals=vals, colors=colors,
+                    raw_vals=raw_vals, vals=vals, colors=colors, hatches=hatches,
                     cfg=broken_cfg, ylabel=ylabel, fmt=fmt, key=key,
                     show_title=(row == 0),
                     show_model_label=(col == 0),
@@ -427,7 +416,7 @@ def main():
                 axes[row, col] = ax_bot
             else:
                 _plot_simple_panel(
-                    ax, raw_vals=raw_vals, vals=vals, colors=colors,
+                    ax, raw_vals=raw_vals, vals=vals, colors=colors, hatches=hatches,
                     ylabel=ylabel, fmt=fmt, key=key, model=model,
                     show_title=(row == 0),
                     show_model_label=(col == 0),
@@ -441,10 +430,14 @@ def main():
     for _, ax_bot in broken_pairs:
         _apply_xlim(ax_bot)
 
-    legend_handles = [Patch(facecolor=METHOD_COLORS[m], edgecolor="#0F172A", label=m) for m in METHODS]
+    legend_handles = [
+        Patch(facecolor=METHOD_COLORS[m], hatch=METHOD_HATCHES[m],
+              edgecolor=C_EDGE, linewidth=BAR_LW, label=m)
+        for m in METHODS
+    ]
     fig.legend(
         handles=legend_handles, loc="lower center", ncol=6,
-        framealpha=0.95, edgecolor="#CBD5E1", bbox_to_anchor=(0.5, -0.01), fontsize=9,
+        framealpha=0.95, edgecolor=C_LEGEND_FRAME, bbox_to_anchor=(0.5, -0.01), fontsize=9,
     )
 
     fig.subplots_adjust(left=0.08, right=0.98, top=0.96, bottom=0.14, wspace=0.42, hspace=0.62)
@@ -456,7 +449,6 @@ def main():
     _draw_row_label(row_panels[1][0], "MB2")
     # fig.savefig(OUT_GRID, bbox_inches="tight")
     fig.savefig(OUT_GRID_PDF, bbox_inches="tight")
-    print(f"saved: {OUT_GRID}")
     print(f"saved: {OUT_GRID_PDF}")
 
 
