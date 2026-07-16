@@ -40,15 +40,13 @@ plt.rcParams.update({
     "ps.fonttype": 42,
 })
 
-# 配色：贴近原图，白底
-C_DATA_FILL = "#D6EAF8"  # light blue
-C_DATA_EDGE = "#2E6BA6"
-C_PROC_FILL = "#C8E6C0"  # light green
-C_PROC_EDGE = "#3A8A3A"
-C_ARROW = "#4A90C4"
-C_DASH = "#5BA3D0"
-C_TEXT = "#1A1A1A"
-C_TREE = "#2E6BA6"
+# 配色：黑白教材风格，容器白底/无底色
+C_FILL = "#FFFFFF"
+C_EDGE = "#000000"
+C_ARROW = "#000000"
+C_DASH = "#666666"
+C_TEXT = "#000000"
+C_TREE = "#000000"
 
 CYL_W = 7.0
 CYL_H = 6.2
@@ -56,26 +54,21 @@ ELL_H = 1.6
 
 
 def _cylinder(ax, cx, cy, w=CYL_W, h=CYL_H, label=r"$D$", fs=16):
-    """3D 风格圆柱：矩形体 + 上下椭圆。"""
+    """3D 风格圆柱：矩形体 + 上下椭圆（白底黑框）。"""
     x0, y0 = cx - w / 2, cy - h / 2
     ax.add_patch(Rectangle(
         (x0, y0), w, h,
-        facecolor=C_DATA_FILL, edgecolor="none", zorder=2,
+        facecolor=C_FILL, edgecolor="none", zorder=2,
     ))
-    # 左/右边线
-    ax.plot([x0, x0], [y0, y0 + h], color=C_DATA_EDGE, lw=1.6, zorder=3)
-    ax.plot([x0 + w, x0 + w], [y0, y0 + h], color=C_DATA_EDGE, lw=1.6, zorder=3)
+    ax.plot([x0, x0], [y0, y0 + h], color=C_EDGE, lw=1.6, zorder=3)
+    ax.plot([x0 + w, x0 + w], [y0, y0 + h], color=C_EDGE, lw=1.6, zorder=3)
     ax.add_patch(Ellipse(
         (cx, y0), w, ELL_H,
-        facecolor=C_DATA_FILL, edgecolor=C_DATA_EDGE, lw=1.6, zorder=2,
+        facecolor=C_FILL, edgecolor=C_EDGE, lw=1.6, zorder=2,
     ))
     ax.add_patch(Ellipse(
         (cx, y0 + h), w, ELL_H,
-        facecolor=C_DATA_FILL, edgecolor=C_DATA_EDGE, lw=1.6, zorder=4,
-    ))
-    ax.add_patch(Ellipse(
-        (cx, y0 + h), w * 0.92, ELL_H * 0.75,
-        facecolor="#EAF5FB", edgecolor="none", zorder=4,
+        facecolor=C_FILL, edgecolor=C_EDGE, lw=1.6, zorder=4,
     ))
     ax.text(cx, cy + 0.2, label, ha="center", va="center",
             fontsize=fs, color=C_TEXT, style="italic", zorder=5,
@@ -114,7 +107,7 @@ def _decision_tree_icon(ax, cx, cy, scale=1.0):
                 color=C_TREE, lw=1.5, zorder=4)
     for p in (root, left, right):
         ax.add_patch(Circle(
-            p, r, facecolor="#FFFFFF", edgecolor=C_TREE, lw=1.5, zorder=5,
+            p, r, facecolor=C_FILL, edgecolor=C_TREE, lw=1.5, zorder=5,
         ))
 
 
@@ -123,7 +116,7 @@ def _tree_box(ax, cx, cy, label=None, *, show_tree=True):
     box = FancyBboxPatch(
         (cx - w / 2, cy - h / 2), w, h,
         boxstyle="round,pad=0.15,rounding_size=0.7",
-        facecolor=C_DATA_FILL, edgecolor=C_DATA_EDGE, lw=1.6, zorder=2,
+        facecolor=C_FILL, edgecolor=C_EDGE, lw=1.6, zorder=2,
     )
     ax.add_patch(box)
     if show_tree:
@@ -158,7 +151,7 @@ def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
     boot_box = FancyBboxPatch(
         (boot_x0, boot_y0), boot_w, boot_h,
         boxstyle="round,pad=0.12,rounding_size=0.7",
-        facecolor=C_PROC_FILL, edgecolor=C_PROC_EDGE, lw=1.6, zorder=2,
+        facecolor=C_FILL, edgecolor=C_EDGE, lw=1.6, zorder=2,
     )
     ax.add_patch(boot_box)
     _vtext(ax, boot_x0 + boot_w / 2, mid_y, "自助采样", fs=12, weight="bold")
@@ -178,7 +171,7 @@ def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
                lw=1.8, mutation_scale=12)
 
     ax.text(boot_cx, (ys[1] + ys[2]) / 2, "⋮", ha="center", va="center",
-            fontsize=15, color=C_DATA_EDGE, zorder=5)
+            fontsize=15, color=C_EDGE, zorder=5)
 
     # ---- 分隔线 1 ----
     sep1 = 48.5
@@ -198,7 +191,7 @@ def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
         _vtext(ax, feat_x, y, "随机特征选择", fs=9, color=C_TEXT)
 
     ax.text(tree_cx, (ys[1] + ys[2]) / 2, "⋮", ha="center", va="center",
-            fontsize=15, color=C_DATA_EDGE, zorder=5)
+            fontsize=15, color=C_EDGE, zorder=5)
 
     # ---- 分隔线 2 ----
     sep2 = 78.0
@@ -213,7 +206,7 @@ def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
     ens = FancyBboxPatch(
         (ens_x0, ens_y0), ens_w, ens_h,
         boxstyle="round,pad=0.12,rounding_size=0.7",
-        facecolor=C_PROC_FILL, edgecolor=C_PROC_EDGE, lw=1.6, zorder=2,
+        facecolor=C_FILL, edgecolor=C_EDGE, lw=1.6, zorder=2,
     )
     ax.add_patch(ens)
     _vtext(ax, ens_x0 + ens_w / 2, ens_y0 + ens_h / 2, "投票/平均",
@@ -228,7 +221,7 @@ def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
     out = FancyBboxPatch(
         (out_cx - out_w / 2, out_cy - out_h / 2), out_w, out_h,
         boxstyle="round,pad=0.15,rounding_size=0.8",
-        facecolor=C_DATA_FILL, edgecolor=C_DATA_EDGE, lw=1.8, zorder=2,
+        facecolor=C_FILL, edgecolor=C_EDGE, lw=1.8, zorder=2,
     )
     ax.add_patch(out)
     ax.text(out_cx, out_cy, "最终预测结果", ha="center", va="center",

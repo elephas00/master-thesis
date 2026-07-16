@@ -1692,7 +1692,14 @@ MB2 各轮 TP 仅 1--7 块：R1 以 $d=0$ 为主（6/7 满足 $d\le 1$），含 
 
 在最优配置下，三种模型经 LP/MP/UP 投票融合后，测试集混淆矩阵均为 $TN=51$、$TP=1$、$FP=0$、$FN=0$，弱块召回率为 100\% 且无强块被误判为弱块。取 $PE_{\text{base}} = 8500$、$PE_{\text{weak}} = 7500$、$PE_{\text{strong}} = 10000$，则 $W_{\text{base}} = 442{,}000$，$W_{\text{pred}} = 517{,}500$，由式~(\ref{eq:rimp})得 DefaultRead 集成配置下 $R_{\mathrm{imp}} \approx 17.08\%$。
 
-不同读模式与页类型分区建模下的 $R_{\mathrm{imp}}$ 如表~\ref{tab:read-mode-best-default}所示。
+不同读模式与页类型分区建模下的 $R_{\mathrm{imp}}$ 如表~\ref{tab:read-mode-best-default}、图~\ref{fig:chap4-rimp-model-readtype}所示。
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\linewidth]{figure/chap4-rimp-by-model-readtype.pdf}
+    \caption{不同读模式与页类型下的写入量提升率}
+    \label{fig:chap4-rimp-model-readtype}
+\end{figure}
 
 \begin{table}[htbp]
     \centering
@@ -1727,6 +1734,15 @@ MB2 各轮 TP 仅 1--7 块：R1 以 $d=0$ 为主（6/7 满足 $d\le 1$），含 
 
     \item 有限 Wordline 采样方案。全量 Wordline 遍历需对块内逐字线读取，采集开销与块容量成正比；控制器更可行的做法是在空间上抽取代表性字线窗口。该方案将 Wordline 范围由全量逐步收缩至 0--0、0--49 等子区间，考察局部采样能否代表块级 FBC 分布。各字线采样范围下的 $R_{\mathrm{imp}}$ 如表~\ref{tab:partial-wl-results} 所示。
 \end{enumerate}
+
+三类轻量化设定下 BestRead 与 DefaultRead 的 $R_{\mathrm{imp}}$ 变化趋势汇总于图~\ref{fig:chap4-lightweight-ablation}；对应数值见表~\ref{tab:partial-value-results}--\ref{tab:partial-wl-results}。
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\linewidth]{figure/chap4-lightweight-ablation.pdf}
+    \caption{轻量化采集消融}
+    \label{fig:chap4-lightweight-ablation}
+\end{figure}
 
 \begin{table}[htbp]
     \centering
