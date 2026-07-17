@@ -36,6 +36,8 @@ def process(
     text: str,
     *,
     fontsize: float = FONT_SIZE,
+    hatch: str = "",
+    linewidth: float = LINE_WIDTH,
 ) -> None:
     """绘制直角矩形处理节点。"""
     x, y = center
@@ -46,7 +48,8 @@ def process(
         boxstyle="square,pad=0",
         facecolor=PAPER,
         edgecolor=INK,
-        linewidth=LINE_WIDTH,
+        linewidth=linewidth,
+        hatch=hatch or None,
         zorder=2,
     )
     ax.add_patch(patch)
@@ -60,6 +63,39 @@ def process(
         color=INK,
         linespacing=1.25,
         zorder=3,
+    )
+
+
+def parallelogram(
+    ax: Axes,
+    center: tuple[float, float],
+    width: float,
+    height: float,
+    text: str,
+    *,
+    fontsize: float = FONT_SIZE,
+    skew: float = 0.22,
+) -> None:
+    """绘制平行四边形数据节点。"""
+    x, y = center
+    s = skew * height
+    vertices = [
+        (x - width / 2 + s, y - height / 2),
+        (x + width / 2 + s, y - height / 2),
+        (x + width / 2 - s, y + height / 2),
+        (x - width / 2 - s, y + height / 2),
+    ]
+    ax.add_patch(Polygon(
+        vertices,
+        closed=True,
+        facecolor=PAPER,
+        edgecolor=INK,
+        linewidth=LINE_WIDTH,
+        zorder=2,
+    ))
+    ax.text(
+        x, y, text, ha="center", va="center",
+        fontsize=fontsize, color=INK, linespacing=1.25, zorder=3,
     )
 
 
@@ -133,6 +169,8 @@ def arrow(
     ax: Axes,
     start: tuple[float, float],
     end: tuple[float, float],
+    *,
+    linestyle: str = "solid",
 ) -> None:
     """绘制直线单向箭头。"""
     ax.annotate(
@@ -143,6 +181,7 @@ def arrow(
             "arrowstyle": "-|>",
             "color": INK,
             "linewidth": LINE_WIDTH,
+            "linestyle": linestyle,
             "mutation_scale": ARROW_SCALE,
             "shrinkA": 0,
             "shrinkB": 0,
@@ -151,17 +190,39 @@ def arrow(
     )
 
 
+def dashed_arrow(
+    ax: Axes,
+    start: tuple[float, float],
+    end: tuple[float, float],
+) -> None:
+    """绘制虚线单向箭头。"""
+    arrow(ax, start, end, linestyle=(0, (4, 3)))
+
+
 def routed_arrow(
     ax: Axes,
     points: Sequence[tuple[float, float]],
+    *,
+    linestyle: str | tuple = "solid",
 ) -> None:
     """按折线路径绘制单向箭头。"""
     if len(points) < 2:
         raise ValueError("routed_arrow 至少需要两个点")
     if len(points) > 2:
         xs, ys = zip(*points[:-1])
-        ax.plot(xs, ys, color=INK, linewidth=LINE_WIDTH, zorder=1)
-    arrow(ax, points[-2], points[-1])
+        ax.plot(
+            xs, ys, color=INK, linewidth=LINE_WIDTH,
+            linestyle=linestyle, zorder=1,
+        )
+    arrow(ax, points[-2], points[-1], linestyle=linestyle)
+
+
+def routed_dashed_arrow(
+    ax: Axes,
+    points: Sequence[tuple[float, float]],
+) -> None:
+    """按折线路径绘制虚线单向箭头。"""
+    routed_arrow(ax, points, linestyle=(0, (4, 3)))
 
 
 def edge_label(
