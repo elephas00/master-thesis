@@ -3,7 +3,7 @@
 生成 figure/chap4_pe_comparison.pdf（正文 graphicspath=figure/）。
 
 用法（项目根目录）:
-    PYTHONPATH=figure_codes python3 figure_codes/chap4_bar_chart.py
+    PYTHONPATH=figure_codes python3 figure_codes/chap4_program_erase_comparision.py
 """
 
 from __future__ import annotations
@@ -24,7 +24,7 @@ from thesis_style import (
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 FIGURE_DIR = PROJECT_ROOT / "figure"
-OUT_PDF = FIGURE_DIR / "chap4_pe_comparison.pdf"
+OUT_PDF = FIGURE_DIR / "chap4-program-erase-comparison.pdf"
 
 apply_rc()
 
