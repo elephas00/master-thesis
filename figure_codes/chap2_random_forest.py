@@ -1,9 +1,9 @@
 """第二章：随机森林示意图
 
 生成：
-    figure/chap2-random-forest.pdf
+    figure/generated/chap2-random-forest.pdf
 
-正文引用：figure/chap2-random-forest.pdf
+正文引用：figure/generated/chap2-random-forest.pdf
 
 用法（项目根目录）:
     python3 figure_codes/chap2_random_forest.py
@@ -14,6 +14,8 @@ from __future__ import annotations
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+
+from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
 from matplotlib.patches import (
     Circle,
     Ellipse,
@@ -24,7 +26,6 @@ from matplotlib.patches import (
 from matplotlib.lines import Line2D
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-FIGURE_DIR = PROJECT_ROOT / "figure"
 OUT_PDF = FIGURE_DIR / "chap2-random-forest.pdf"
 
 plt.rcParams.update({
@@ -232,6 +233,7 @@ def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
 
 
 def main() -> None:
+    ensure_output_dirs()
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
     fig = plot()
     fig.savefig(OUT_PDF, bbox_inches="tight", facecolor="white",

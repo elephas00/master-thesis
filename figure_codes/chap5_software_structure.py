@@ -2,7 +2,7 @@
 """第五章：智慧 SSD 运维软件总体架构（四层）。
 
 用布局参数生成 draw.io XML，并可选导出 PDF。
-对应 figure/chap5-software-structure.pdf。
+对应 figure/generated/chap5-software-structure.pdf。
 
 用法（项目根目录）:
     python3 figure_codes/chap5_software_structure.py
@@ -14,9 +14,10 @@ import subprocess
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-OUT_XML = Path(__file__).resolve().parent / "chap5-software-structure.xml"
-OUT_PDF = ROOT / "figure" / "chap5-software-structure.pdf"
+from figure_paths import BUILD_DIR, GENERATED_DIR, PROJECT_ROOT as ROOT, ensure_output_dirs
+
+OUT_XML = BUILD_DIR / "chap5-software-structure.xml"
+OUT_PDF = GENERATED_DIR / "chap5-software-structure.pdf"
 
 # 黑白印刷：外层虚线框，内层实线白底
 LAYER = (
@@ -199,6 +200,7 @@ def export_pdf(xml_path: Path, pdf_path: Path) -> bool:
 
 
 def main() -> None:
+    ensure_output_dirs()
     xml = build().to_xml()
     OUT_XML.write_text(xml, encoding="utf-8")
     print(f"wrote {OUT_XML.relative_to(ROOT)}")

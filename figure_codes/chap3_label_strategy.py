@@ -1,13 +1,18 @@
 """第三章：五种标记策略对比示意
 
-生成 figure/chap3-label-strategy.pdf。
+生成 figure/generated/chap3-label-strategy.pdf。
 
 横轴为示意天数（非真实日历），仅保持相对位置：
 近端 d=1,2,3 更易辨认，远端首跳压缩。
 
+样式：thesis_style 仅统一字体/字号；语义色仍对齐架构图
+（有效=绿、无效=红+hatch、首跳=蓝），不用柱图色序。
+
 用法（项目根目录）:
     python figure_codes/chap3_label_strategy.py
 """
+
+from __future__ import annotations
 
 from pathlib import Path
 
@@ -15,17 +20,13 @@ import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-FIGURE_DIR = PROJECT_ROOT / "figure"
+from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
+from thesis_style import FONT, apply_rc
 
-plt.rcParams.update({
-    "font.sans-serif": ["Arial Unicode MS", "SimHei", "DejaVu Sans"],
-    "axes.unicode_minus": False,
-    "figure.dpi": 120,
-    "font.size": 11,
-    "pdf.fonttype": 42,
-    "ps.fonttype": 42,
-})
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+OUTPUT_PDF = FIGURE_DIR / "chap3-label-strategy.pdf"
+
+apply_rc()
 
 # ---------- 示意参数（线性坐标，等比缩小远端） ----------
 # 对应关系：W≈30日窗, K_SHORT=3, 窗外首跳≈35, 较早首跳≈15
@@ -66,7 +67,6 @@ COLORS = {
 }
 
 BAR_H = 0.13
-OUTPUT_PDF = FIGURE_DIR / "chap3-label-strategy.pdf"
 
 
 def _rect(ax, d_left, d_right, y, h, **kwargs):
@@ -195,10 +195,10 @@ def plot_label_strategy(disks=DISKS, strategies=STRATEGIES, w=W, record_left=REC
         ax.set_xlim(plot_left, -0.5)
         ax.set_ylim(0, 1)
         ax.set_yticks([])
-        ax.set_title(title, fontsize=9.5, pad=10)
+        ax.set_title(title, fontsize=FONT["label"], pad=10)
         for spine in ("left", "top", "right"):
             ax.spines[spine].set_visible(False)
-        ax.spines["bottom"].set_color("#BDBDBD")
+        ax.spines["bottom"].set_color(COLORS["track_edge"])
 
         for y, (_, d_jump) in zip(ys, disks):
             _draw_record(ax, y, record_left, w)
@@ -215,7 +215,9 @@ def plot_label_strategy(disks=DISKS, strategies=STRATEGIES, w=W, record_left=REC
         ax.axvline(0, color=COLORS["fail"], lw=1.6, zorder=5)
         ax.axvline(w, color=COLORS["warn_line"], ls="--", lw=1.2, alpha=0.85, zorder=6)
         if key != "fix_day":
-            ax.axvline(K_SHORT, color="#BDBDBD", ls=":", lw=0.7, zorder=0, alpha=0.7)
+            ax.axvline(
+                K_SHORT, color=COLORS["track_edge"], ls=":", lw=0.7, zorder=0, alpha=0.7,
+            )
 
         if c == 0:
             for y, (disk_label, _) in zip(ys, disks):
@@ -223,7 +225,7 @@ def plot_label_strategy(disks=DISKS, strategies=STRATEGIES, w=W, record_left=REC
                     -0.06, y, disk_label,
                     transform=ax.transAxes,
                     ha="right", va="center",
-                    fontsize=8.0, color="#424242",
+                    fontsize=FONT["annot"], color=COLORS["fail"],
                 )
 
     # fig.suptitle(
@@ -265,7 +267,7 @@ def plot_label_strategy(disks=DISKS, strategies=STRATEGIES, w=W, record_left=REC
     ]
     fig.legend(
         handles=legend_handles, loc="upper center", ncol=5,
-        bbox_to_anchor=(0.5, 1.02), frameon=False, fontsize=8.5,
+        bbox_to_anchor=(0.5, 1.02), frameon=False, fontsize=FONT["legend"],
         handlelength=1.0, handletextpad=0.35, columnspacing=0.9,
     )
 
@@ -273,7 +275,8 @@ def plot_label_strategy(disks=DISKS, strategies=STRATEGIES, w=W, record_left=REC
     return fig
 
 
-def main():
+def main() -> None:
+    ensure_output_dirs()
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
     fig = plot_label_strategy()
     fig.savefig(OUTPUT_PDF, bbox_inches="tight", facecolor="white")

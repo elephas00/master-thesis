@@ -1,6 +1,6 @@
 """第二章：NAND 闪存分层组织结构
 
-生成 figure/chap2-ssd-structure.pdf。
+生成 figure/generated/chap2-ssd-structure.pdf。
 展示 LUN → Plane → Block → Page 层级关系，
 以及底部的页缓存与闪存缓存。
 
@@ -13,10 +13,11 @@ from __future__ import annotations
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+
+from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
 from matplotlib.patches import FancyBboxPatch
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-FIGURE_DIR = PROJECT_ROOT / "figure"
 OUT_PDF = FIGURE_DIR / "chap2-ssd-structure.pdf"
 
 plt.rcParams.update({
@@ -136,6 +137,7 @@ def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
 
 
 def main() -> None:
+    ensure_output_dirs()
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
     fig = plot()
     fig.savefig(OUT_PDF, bbox_inches="tight", facecolor="white", pad_inches=0.06)

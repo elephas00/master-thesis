@@ -1,7 +1,7 @@
 """第二章：闪存擦写原理（浮栅晶体管）
 
 1:1 复刻 figure/SSD读写原理.png，生成更清晰的矢量图：
-    figure/chap2-program-erase-principle.pdf
+    figure/generated/chap2-program-erase-principle.pdf
 
 用法（项目根目录）:
     python3 figure_codes/chap2_program_erase_principle.py
@@ -12,12 +12,13 @@ from __future__ import annotations
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+
+from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
 import matplotlib.path as mpath
 from matplotlib.patches import Circle, PathPatch, Polygon, Rectangle
 import numpy as np
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-FIGURE_DIR = PROJECT_ROOT / "figure"
 OUT_PDF = FIGURE_DIR / "chap2-program-erase-principle.pdf"
 
 plt.rcParams.update({
@@ -305,6 +306,7 @@ def plot() -> plt.Figure:
 
 
 def main() -> None:
+    ensure_output_dirs()
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
     fig = plot()
     fig.savefig(OUT_PDF, bbox_inches="tight", facecolor="white", pad_inches=0.04)

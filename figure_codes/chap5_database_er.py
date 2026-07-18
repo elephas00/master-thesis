@@ -13,9 +13,10 @@ import subprocess
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-OUT_XML = Path(__file__).resolve().parent / "chap5-database-er.xml"
-OUT_PDF = ROOT / "figure" / "chap5-database-er.pdf"
+from figure_paths import BUILD_DIR, GENERATED_DIR, PROJECT_ROOT as ROOT, ensure_output_dirs
+
+OUT_XML = BUILD_DIR / "chap5-database-er.xml"
+OUT_PDF = GENERATED_DIR / "chap5-database-er.pdf"
 
 ENTITY = (
     "rounded=0;whiteSpace=wrap;html=1;align=center;"
@@ -277,6 +278,7 @@ def export_pdf(xml_path: Path, pdf_path: Path) -> bool:
 
 
 def main() -> None:
+    ensure_output_dirs()
     xml = build().to_xml()
     OUT_XML.write_text(xml, encoding="utf-8")
     print(f"wrote {OUT_XML.relative_to(ROOT)}")

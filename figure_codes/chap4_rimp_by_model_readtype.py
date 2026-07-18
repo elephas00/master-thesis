@@ -1,6 +1,6 @@
 """第四章：不同读模式 × 模型 × 页类型的写入量提升率
 
-生成 figure/chap4-rimp-by-model-readtype.pdf。
+生成 figure/generated/chap4-rimp-by-model-readtype.pdf。
 
 方案 C：1×2 折线；横轴 LP → MP → UP → 集成，三条线=模型。
 
@@ -15,10 +15,10 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
+from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
 from thesis_style import C_GRID, C_ZERO, FONT, apply_rc, series_style
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-FIGURE_DIR = PROJECT_ROOT / "figure"
 OUT_PDF = FIGURE_DIR / "chap4-rimp-by-model-readtype.pdf"
 
 apply_rc()
@@ -85,6 +85,7 @@ def plot(*, save_path: Path = OUT_PDF) -> plt.Figure:
 
 
 def main() -> None:
+    ensure_output_dirs()
     fig = plot()
     plt.close(fig)
     print(f"saved: {OUT_PDF}")

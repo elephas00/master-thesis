@@ -1,6 +1,6 @@
 """第三章：日历级缺失补全/剔除示意
 
-生成 figure/chap3-temporal-missing-schematic.pdf。
+生成 figure/generated/chap3-temporal-missing-schematic.pdf。
 
 三行子图分别示意轻度、中度、重度缺失下 40 日历日内的
 有日志 / 待补全 / 整盘删除 三种状态（非真实盘数据）。
@@ -14,13 +14,13 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
+from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
 from thesis_style import (
     BAR_LW, C_EDGE, C_SPINE_MUTED, FONT,
     apply_rc, bar_key, bar_style, legend_swatch,
 )
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-FIGURE_DIR = PROJECT_ROOT / "figure"
 OUTPUT_PDF = FIGURE_DIR / "chap3-temporal-missing-schematic.pdf"
 
 apply_rc()
@@ -120,6 +120,7 @@ def plot_timeline_schematic(output: Path = OUTPUT_PDF) -> plt.Figure:
 
 
 def main():
+    ensure_output_dirs()
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
     fig = plot_timeline_schematic()
     plt.close(fig)

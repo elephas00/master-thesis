@@ -1,6 +1,6 @@
 """第五章：预警生成流程（黑白印刷版）。
 
-生成 figure/chap5-warning-gen-flow.pdf。
+生成 figure/generated/chap5-warning-gen-flow.pdf。
 
 用法（项目根目录）:
     python3 figure_codes/chap5_warning_gen_flow.py
@@ -12,6 +12,7 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 
+from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
 from flowchart_style import (
     apply_flowchart_rc,
     arrow,
@@ -23,7 +24,6 @@ from flowchart_style import (
 )
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-FIGURE_DIR = PROJECT_ROOT / "figure"
 OUT_PDF = FIGURE_DIR / "chap5-warning-gen-flow.pdf"
 
 
@@ -67,6 +67,7 @@ def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
 
 
 def main() -> None:
+    ensure_output_dirs()
     fig = plot()
     plt.close(fig)
     print(f"saved: {OUT_PDF}")

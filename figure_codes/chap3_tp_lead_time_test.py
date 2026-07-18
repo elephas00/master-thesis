@@ -1,6 +1,6 @@
 """测试集 TP 提前预警天数分布（分组柱图）
 
-生成 figure/chap3-tp-lead-time-test.pdf。
+生成 figure/generated/chap3-tp-lead-time-test.pdf。
 
 协议与表 3.11 一致：Attention 集成；MB1 取 W=1,k=3，MB2 取 W=2,k=2；
 jump_inter + Lag + r_k|Δ|；阈值 0.5。数据已固化，无需读取实验 CSV 或故障标签。
@@ -17,10 +17,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.patches import Patch
 
+from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
 from thesis_style import FONT, ROUND_STYLES, BAR_LW, C_LEGEND_FRAME, apply_rc
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-FIGURE_DIR = PROJECT_ROOT / "figure"
 OUTPUT_PDF = FIGURE_DIR / "chap3-tp-lead-time-test.pdf"
 
 apply_rc()
@@ -166,6 +166,7 @@ def plot_grouped_bars(
 
 
 def main() -> None:
+    ensure_output_dirs()
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
     fig = plot_grouped_bars(save_path=OUTPUT_PDF)
     plt.close(fig)

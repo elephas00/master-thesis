@@ -12,9 +12,10 @@ import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-OUT_XML = Path(__file__).resolve().parent / "chap5-usecase.xml"
-OUT_PDF = ROOT / "figure" / "chap5-usecase.pdf"
+from figure_paths import BUILD_DIR, GENERATED_DIR, PROJECT_ROOT as ROOT, ensure_output_dirs
+
+OUT_XML = BUILD_DIR / "chap5-usecase.xml"
+OUT_PDF = GENERATED_DIR / "chap5-usecase.pdf"
 
 
 @dataclass(frozen=True)
@@ -377,6 +378,7 @@ def export_pdf(xml_path: Path, pdf_path: Path) -> bool:
 
 
 def main() -> None:
+    ensure_output_dirs()
     diagram = _build_diagram()
     xml = build_xml(diagram)
     OUT_XML.write_text(xml, encoding="utf-8")

@@ -1,6 +1,6 @@
 """$W$–$k$ 网格搜索热力图（方案 A2）
 
-生成 figure/chap3-wk-grid-heatmap-A.pdf。
+生成 figure/generated/chap3-wk-grid-heatmap-A.pdf。
 
 对应 notebook `codes/eda/notebooks/eda_wk_grid_heatmap.ipynb` §A2：
 - `cmap=CMAP_HEAT`（饱和蓝阶，与 thesis_style 一致）
@@ -21,10 +21,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.patches import Rectangle
 
+from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
 from thesis_style import CMAP_HEAT, apply_rc
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-FIGURE_DIR = PROJECT_ROOT / "figure"
 OUT_PDF = FIGURE_DIR / "chap3-wk-grid-heatmap-A.pdf"
 
 apply_rc()
@@ -213,6 +213,7 @@ def plot_heatmap(*, save_path_pdf: Path | None = None) -> plt.Figure:
 
 
 def main() -> None:
+    ensure_output_dirs()
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
     fig = plot_heatmap(save_path_pdf=OUT_PDF)
     plt.close(fig)

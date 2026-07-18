@@ -1,6 +1,6 @@
 """多方法 TP 提前预警天数热力图（方案 E）
 
-生成 figure/chap3-tp-lead-method-E-heatmap.pdf。
+生成 figure/generated/chap3-tp-lead-method-E-heatmap.pdf。
 
 列：$d=0..7$ 逐日 + $d=8$–$30$ 合并；格内为 TP 盘数，底色为占该方法合计 TP 的比例。
 数据已固化，来源 eda/run/tp_lead_time_test_*_summary.json（2026-07-10）。
@@ -16,10 +16,10 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
+from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
 from thesis_style import CMAP_HEAT, apply_rc
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-FIGURE_DIR = PROJECT_ROOT / "figure"
 OUT_PDF = FIGURE_DIR / "chap3-tp-lead-method-E-heatmap.pdf"
 
 apply_rc()
@@ -142,6 +142,7 @@ def plot_heatmap(*, save_path_pdf: Path | None = None) -> plt.Figure:
 
 
 def main() -> None:
+    ensure_output_dirs()
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
     fig = plot_heatmap(save_path_pdf=OUT_PDF)
     plt.close(fig)

@@ -1,6 +1,6 @@
 """第三章：B 组首跳距故障日 PMF（含静默盘）
 
-生成 figure/chap3-first-jump-pmf.pdf。
+生成 figure/generated/chap3-first-jump-pmf.pdf。
 
 数据固化自 codes/eda/notebooks/eda_first_jump_cdf.ipynb
 （源：eda/run/first_jump_detail_*.parquet / first_jump_cdf_points.csv；
@@ -18,10 +18,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.ticker import PercentFormatter
 
+from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
 from thesis_style import BAR_LW, C_ZERO, FONT, apply_rc, bar_key, bar_style, legend_swatch
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-FIGURE_DIR = PROJECT_ROOT / "figure"
 OUTPUT_PDF = FIGURE_DIR / "chap3-first-jump-pmf.pdf"
 
 apply_rc()
@@ -102,6 +102,7 @@ def plot(*, save_path: Path = OUTPUT_PDF) -> plt.Figure:
 
 
 def main() -> None:
+    ensure_output_dirs()
     fig = plot()
     plt.close(fig)
     print(f"saved: {OUTPUT_PDF}")

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """第三章：本章方法总体流程（draw.io XML → PDF）。
 
-对应 figure/chap3-pipeline.pdf。
+对应 figure/generated/chap3-pipeline.pdf。
 
 用法（项目根目录）:
     python3 figure_codes/chap3_pipeline.py
@@ -13,9 +13,10 @@ import subprocess
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-OUT_XML = Path(__file__).resolve().parent / "chap3-pipeline.xml"
-OUT_PDF = ROOT / "figure" / "chap3-pipeline.pdf"
+from figure_paths import BUILD_DIR, GENERATED_DIR, PROJECT_ROOT as ROOT, ensure_output_dirs
+
+OUT_XML = BUILD_DIR / "chap3-pipeline.xml"
+OUT_PDF = GENERATED_DIR / "chap3-pipeline.pdf"
 
 BG = (
     "rounded=1;whiteSpace=wrap;html=1;fillColor=#F8FBFF;"
@@ -289,6 +290,7 @@ def export_pdf(xml_path: Path, pdf_path: Path) -> bool:
 
 
 def main() -> None:
+    ensure_output_dirs()
     xml = build().to_xml()
     OUT_XML.write_text(xml, encoding="utf-8")
     print(f"wrote {OUT_XML.relative_to(ROOT)}")

@@ -1,6 +1,6 @@
 """第三章：日历缺失分布
 
-生成 figure/chap3-temporal-missing-distribution.pdf。
+生成 figure/generated/chap3-temporal-missing-distribution.pdf。
 
 用法（项目根目录）:
     python3 figure_codes/chap3_temporal_missing_distribution.py
@@ -13,10 +13,10 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
+from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
 from thesis_style import BAR_LW, C_EDGE, C_GRID, FONT, PAIR_MB, PAIR_MB_HATCH, apply_rc
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-FIGURE_DIR = PROJECT_ROOT / "figure"
 OUTPUT_PDF = FIGURE_DIR / "chap3-temporal-missing-distribution.pdf"
 
 apply_rc()
@@ -103,6 +103,7 @@ def plot(*, save_path: Path = OUTPUT_PDF) -> plt.Figure:
 
 
 def main() -> None:
+    ensure_output_dirs()
     fig = plot()
     plt.close(fig)
     print(f"saved: {OUTPUT_PDF}")

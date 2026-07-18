@@ -1,6 +1,6 @@
 """第四章：轻量化采集消融（读取次数 / 磨损档位 / 字线采样）
 
-生成 figure/chap4-lightweight-ablation.pdf。
+生成 figure/generated/chap4-lightweight-ablation.pdf。
 
 用法（项目根目录）:
     python3 figure_codes/chap4_lightweight_ablation.py
@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.lines import Line2D
 
+from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
 from thesis_style import (
     C_GRID,
     C_PRIMARY,
@@ -26,7 +27,6 @@ from thesis_style import (
 )
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-FIGURE_DIR = PROJECT_ROOT / "figure"
 OUT_PDF = FIGURE_DIR / "chap4-lightweight-ablation.pdf"
 
 apply_rc()
@@ -97,6 +97,7 @@ def plot(*, save_path: Path = OUT_PDF) -> plt.Figure:
 
 
 def main() -> None:
+    ensure_output_dirs()
     fig = plot()
     plt.close(fig)
     print(f"saved: {OUT_PDF}")

@@ -1,7 +1,7 @@
 """第三章：盘级基线对比 2×4 分组柱图（方案 4）
 
 对应 notebook `codes/eda/notebooks/eda_baseline_bar_chart.ipynb` §4。
-生成 figure/chap3-baseline-bar-grid.pdf。
+生成 figure/generated/chap3-baseline-bar-grid.pdf。
 
 用法（项目根目录）:
     python figure_codes/chap3_baseline_bar_grid.py
@@ -15,10 +15,10 @@ import pandas as pd
 from matplotlib.patches import Patch
 from matplotlib.transforms import blended_transform_factory
 
+from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
 from thesis_style import METHOD_COLORS, METHOD_HATCH, C_EDGE, C_ZERO, C_LEGEND_FRAME, BAR_LW, apply_rc
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-FIGURE_DIR = PROJECT_ROOT / "figure"
 FIGURE_DIR.mkdir(parents=True, exist_ok=True)
 
 apply_rc()
@@ -52,6 +52,7 @@ df["method"] = pd.Categorical(df["method"], categories=METHODS, ordered=True)
 df = df.sort_values(["model", "method"]).reset_index(drop=True)
 
 def main():
+    ensure_output_dirs()
     OUT_GRID_PDF = FIGURE_DIR / "chap3-baseline-bar-grid.pdf"
 
     METHOD_HATCHES = METHOD_HATCH

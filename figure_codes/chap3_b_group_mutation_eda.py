@@ -2,8 +2,8 @@
 
 使用 figure_codes/chap3_b_group_mutation_eda_data.json 中的冻结观测，
 生成：
-    figure/chap3-b-group-mutation-eda-mb1.pdf
-    figure/chap3-b-group-mutation-eda-mb2.pdf
+    figure/generated/chap3-b-group-mutation-eda-mb1.pdf
+    figure/generated/chap3-b-group-mutation-eda-mb2.pdf
 
 数据快照来源：codes/eda/scripts/plot_b_group_mutation_combined.py
 （MB1 2019-06 六块盘；MB2 2018-11 六块盘；仅 is_imputed=False 原始观测日）。
@@ -21,12 +21,12 @@ from pathlib import Path
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 
+from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
 from thesis_style import FONT, apply_rc, line_style
 
 HERE = Path(__file__).resolve().parent
 PROJECT_ROOT = HERE.parent
 DATA_PATH = HERE / "chap3_b_group_mutation_eda_data.json"
-FIGURE_DIR = PROJECT_ROOT / "figure"
 
 ATTR_LABEL = {
     "r_5": "重映射扇区计数",
@@ -120,6 +120,7 @@ def plot_model(model: str, bundle: dict) -> Path:
 
 
 def main() -> None:
+    ensure_output_dirs()
     apply_rc()
     data = json.loads(DATA_PATH.read_text(encoding="utf-8"))
     for model in ("MB1", "MB2"):

@@ -1,8 +1,10 @@
 """学位论文统一绘图样式（第三、四章定量图共用）
 
-柱状图字典 BAR_STYLE 与折线图字典 LINE_STYLE 分开。
-柱图优先序：白底黑边为第 1 优先（印刷友好），其后为对照色。
-需要 N 个系列时按 BAR_PRIORITY 取前 N；折线跳过白色（见 LINE_STYLE）。
+柱状图与折线图使用**独立色序**：
+  - 柱图 COLORS_BAR / BAR_STYLE：白底黑边为第 1 优先（印刷友好）
+  - 折线 COLORS_LINE / LINE_STYLE：黑为第 1 优先（主系列），不含白色
+
+需要 N 个系列时分别按 BAR_PRIORITY / LINE_PRIORITY 取前 N。
 
 多子图约定:
   - 每个子图各自维护图例
@@ -15,43 +17,8 @@ from __future__ import annotations
 from typing import Any
 
 # ---------------------------------------------------------------------------
-# 色序（柱图 b1..b6 同下标；白为第 1 优先）
+# 墨色与版式常量（轴线/文字；非数据系列色）
 # ---------------------------------------------------------------------------
-COLORS_PRIORITY: list[str] = [
-    "#FFFFFF",  # 1 白底 — 优先（黑边勾勒，印刷清晰）
-    "#1E3A5F",  # 2 深蓝灰 — 第一对照
-    "#94A3B8",  # 3 灰蓝
-    "#64748B",  # 4 石板灰
-    "#0F766E",  # 5 青绿
-    "#B45309",  # 6 琥珀
-]
-
-# 柱图底纹（与色序同下标；白、深蓝灰均无底纹）
-HATCH_PRIORITY: list[str] = [
-    "",         # 1 白
-    "",         # 2 深蓝灰 — 无底纹
-    "///",      # 3 灰蓝
-    "\\\\\\",   # 4 石板灰
-    "xx",       # 5 青绿
-    "..",       # 6 琥珀
-]
-
-# 折线线型 / 标记
-LINESTYLE_PRIORITY: list[str] = [
-    "-",
-    "--",
-    "-.",
-    ":",
-    (0, (3, 1, 1, 1)),
-    (0, (5, 2)),
-]
-MARKER_PRIORITY: list[str] = ["o", "s", "^", "D", "v", "P"]
-
-C_PRIMARY = COLORS_PRIORITY[0]
-C_SECONDARY = COLORS_PRIORITY[1]
-C_TERTIARY = COLORS_PRIORITY[2]
-C_QUATERNARY = COLORS_PRIORITY[3]
-
 C_INK = "#111111"
 C_ZERO = "#444444"
 C_GRID = "#D0D0D0"
@@ -62,43 +29,90 @@ BAR_LW = 0.85
 C_LEGEND_FRAME = "#CBD5E1"
 C_SPINE_MUTED = "#BDBDBD"
 
+# ---------------------------------------------------------------------------
+# 柱图色序（b1..b6；白 = 第 1 优先）
+# Okabe–Ito 改编：第 2 位原蓝改为灰，印刷对照更稳
+# ---------------------------------------------------------------------------
+COLORS_BAR: list[str] = [
+    "#FFFFFF",  # 1 白底 — 优先（黑边勾勒，印刷清晰）
+    "#5D6D7E",  # 2 灰（替 Okabe 蓝，作第一对照）
+    "#E69F00",  # 3 琥珀
+    "#009E73",  # 4 绿蓝
+    "#CC79A7",  # 5 紫红
+    "#56B4E9",  # 6 天蓝
+]
 
-def _is_white(c: str) -> bool:
-    return c.strip().upper() in {"#FFFFFF", "#FFF", "WHITE"}
-
-
-# 折线用实色（跳过白）
-COLORS_FILL: list[str] = [c for c in COLORS_PRIORITY if not _is_white(c)]
+HATCH_BAR: list[str] = [
+    "",         # 1 白
+    "",         # 2 灰 — 无底纹
+    "///",      # 3 琥珀
+    "\\\\\\",   # 4 绿蓝
+    "xx",       # 5 紫红
+    "..",       # 6 天蓝
+]
 
 # ---------------------------------------------------------------------------
-# 柱状图字典 b1..b6（白 = b1 = 第 1 优先）
+# 折线色序（l1..l6；黑 = 第 1 优先，与柱图独立）
+# ---------------------------------------------------------------------------
+COLORS_LINE: list[str] = [
+    C_INK,      # 1 黑 — 主系列
+    "#1E3A5F",  # 2 深蓝灰
+    "#64748B",  # 3 石板灰
+    "#0072B2",  # 4 标准蓝
+    "#8B7355",  # 5 低饱和褐
+    "#5B8FA8",  # 6 青灰（最浅）
+]
+
+LINESTYLE_PRIORITY: list[str] = [
+    "-",
+    "--",
+    "-.",
+    ":",
+    (0, (3, 1, 1, 1)),
+    (0, (5, 2)),
+]
+MARKER_PRIORITY: list[str] = ["o", "s", "^", "D", "v", "P"]
+
+# 兼容旧名（柱图）
+COLORS_PRIORITY = COLORS_BAR
+HATCH_PRIORITY = HATCH_BAR
+# 兼容旧名（折线实色；不再从柱图去白派生）
+COLORS_FILL = COLORS_LINE
+
+C_PRIMARY = COLORS_BAR[0]
+C_SECONDARY = COLORS_BAR[1]
+C_TERTIARY = COLORS_BAR[2]
+C_QUATERNARY = COLORS_BAR[3]
+
+
+# ---------------------------------------------------------------------------
+# 柱状图字典 b1..b6
 # ---------------------------------------------------------------------------
 BAR_STYLE: dict[str, dict[str, str]] = {
     f"b{i + 1}": {
-        "color": COLORS_PRIORITY[i],
-        "hatch": HATCH_PRIORITY[i],
+        "color": COLORS_BAR[i],
+        "hatch": HATCH_BAR[i],
         "edge": C_EDGE,
     }
-    for i in range(6)
+    for i in range(len(COLORS_BAR))
 }
 
 LEGEND_STYLE = BAR_STYLE
-
-# 柱图优先序 = b1 → b6（与色序一致）
-BAR_PRIORITY: list[str] = [f"b{i}" for i in range(1, 7)]
+BAR_PRIORITY: list[str] = [f"b{i}" for i in range(1, len(COLORS_BAR) + 1)]
 
 # ---------------------------------------------------------------------------
-# 折线图字典（色 + 线型 + 标记；跳过白色，避免白底上看不见）
+# 折线图字典 l1..lN（色 + 线型 + 标记）
 # ---------------------------------------------------------------------------
-_n_line = min(6, len(COLORS_FILL), len(LINESTYLE_PRIORITY), len(MARKER_PRIORITY))
+_n_line = min(len(COLORS_LINE), len(LINESTYLE_PRIORITY), len(MARKER_PRIORITY))
 LINE_STYLE: dict[str, dict[str, Any]] = {
     f"l{i + 1}": {
-        "color": COLORS_FILL[i],
+        "color": COLORS_LINE[i],
         "ls": LINESTYLE_PRIORITY[i],
         "marker": MARKER_PRIORITY[i],
     }
     for i in range(_n_line)
 }
+LINE_PRIORITY: list[str] = [f"l{i}" for i in range(1, _n_line + 1)]
 
 
 def bar_priority_keys() -> list[str]:
@@ -116,17 +130,27 @@ def bar_style(i: int) -> dict[str, str]:
     return dict(BAR_STYLE[bar_key(i)])
 
 
+def line_priority_keys() -> list[str]:
+    """折线优先序键列表。"""
+    return list(LINE_PRIORITY)
+
+
+def line_key(i: int) -> str:
+    keys = line_priority_keys()
+    return keys[i % len(keys)]
+
+
 # ---------------------------------------------------------------------------
-# 语义别名（柱图一律跟 BAR_PRIORITY 全序，不跳过白底）
+# 语义别名
 # ---------------------------------------------------------------------------
 _pair0, _pair1 = bar_style(0), bar_style(1)
 PAIR_MB = {"MB1": _pair0["color"], "MB2": _pair1["color"]}
 PAIR_MB_HATCH = {"MB1": _pair0["hatch"], "MB2": _pair1["hatch"]}
 
-# 读模式：折线字典前两档（勿用 COLORS_PRIORITY 硬下标，白色会进 DefaultRead）
+# 读模式：折线字典前两档（黑 / 深蓝灰）
 _ls0, _ls1 = LINE_STYLE["l1"], LINE_STYLE["l2"]
 PAIR_READ = {"DefaultRead": _ls0["color"], "BestRead": _ls1["color"]}
-PAIR_READ_HATCH = {"DefaultRead": HATCH_PRIORITY[0], "BestRead": HATCH_PRIORITY[1]}
+PAIR_READ_HATCH = {"DefaultRead": HATCH_BAR[0], "BestRead": HATCH_BAR[1]}
 PAIR_READ_LS = {"DefaultRead": _ls0["ls"], "BestRead": _ls1["ls"]}
 PAIR_READ_MK = {"DefaultRead": _ls0["marker"], "BestRead": _ls1["marker"]}
 
@@ -171,16 +195,14 @@ FONT = {
 
 
 def line_style(i: int) -> dict[str, Any]:
-    """折线第 i 个系列（0-based）→ l1..lN（跳过白色）。"""
-    n = len(LINE_STYLE)
-    st = LINE_STYLE[f"l{(i % n) + 1}"]
-    return dict(st)
+    """折线第 i 个系列（0-based）→ l1..lN（独立色序，含黑）。"""
+    return dict(LINE_STYLE[line_key(i)])
 
 
 def series_style(i: int) -> dict[str, Any]:
-    """兼容别名：等同 line_style（折线/散点）。"""
+    """兼容别名：等同 line_style（折线/散点）；附带 hatch/edge 供偶发复用。"""
     st = line_style(i)
-    st["hatch"] = HATCH_PRIORITY[i % len(HATCH_PRIORITY)]
+    st["hatch"] = HATCH_BAR[i % len(HATCH_BAR)]
     st["edge"] = C_EDGE
     return st
 

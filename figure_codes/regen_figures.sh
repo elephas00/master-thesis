@@ -86,4 +86,4 @@ if [[ "$fail" -ne 0 ]]; then
   fi
   exit 1
 fi
-echo "全部完成。输出在 figure/"
+echo "全部完成。输出在 figure/generated/（XML 在 figure_codes/_build/）"

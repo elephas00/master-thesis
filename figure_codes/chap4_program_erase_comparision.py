@@ -1,6 +1,6 @@
 """第四章：固定阈值 vs 理想策略 PE 对比（水平柱）
 
-生成 figure/chap4_pe_comparison.pdf（正文 graphicspath=figure/）。
+生成 figure/generated/chap4_pe_comparison.pdf（输出目录 figure/generated/）。
 
 用法（项目根目录）:
     PYTHONPATH=figure_codes python3 figure_codes/chap4_program_erase_comparision.py
@@ -12,6 +12,7 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 
+from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
 from thesis_style import (
     BAR_LW,
     C_EDGE,
@@ -23,7 +24,6 @@ from thesis_style import (
 )
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-FIGURE_DIR = PROJECT_ROOT / "figure"
 OUT_PDF = FIGURE_DIR / "chap4-program-erase-comparison.pdf"
 
 apply_rc()
@@ -86,6 +86,7 @@ def plot(*, save_path: Path = OUT_PDF) -> plt.Figure:
 
 
 def main() -> None:
+    ensure_output_dirs()
     fig = plot()
     plt.close(fig)
     print(f"saved: {OUT_PDF}")

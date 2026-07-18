@@ -3,7 +3,7 @@
 色调对齐架构图（chap1-framework / chap3-pipeline）Material 语义色；
 形态上保留实心/虚线边差异，灰度打印仍可区分。
 
-生成 figure/chap3-tp-tn-fp-fn.pdf。
+生成 figure/generated/chap3-tp-tn-fp-fn.pdf。
 
 用法（项目根目录）:
     python3 figure_codes/chap3_tp_tn_fp_fn.py
@@ -16,10 +16,10 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle, Rectangle
 
+from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
 from flowchart_style import INK, apply_flowchart_rc
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-FIGURE_DIR = PROJECT_ROOT / "figure"
 OUT_PDF = FIGURE_DIR / "chap3-tp-tn-fp-fn.pdf"
 
 # 与 chap3-tp-tn-fp-fn.xml / 架构图一致；FN 虚线边便于黑白区分
@@ -166,6 +166,7 @@ def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
 
 
 def main() -> None:
+    ensure_output_dirs()
     fig = plot()
     plt.close(fig)
     print(f"saved: {OUT_PDF}")

@@ -11,6 +11,10 @@ diff/*
 *.nlg
 *.nls
 
+### Figure codegen (scheme B): intermediates & generated PDFs ###
+figure_codes/_build/
+figure/generated/
+
 ### Local experiment code and data (not versioned) ###
 codes/
 data/
