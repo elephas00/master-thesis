@@ -16,7 +16,7 @@ from matplotlib.patches import Patch
 from matplotlib.transforms import blended_transform_factory
 
 from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
-from thesis_style import METHOD_COLORS, METHOD_HATCH, C_EDGE, C_ZERO, C_LEGEND_FRAME, BAR_LW, apply_rc
+from thesis_style import METHOD_COLORS, METHOD_HATCH, C_EDGE, C_ZERO, C_LEGEND_FRAME, BAR_LW, FONT, apply_rc
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 FIGURE_DIR.mkdir(parents=True, exist_ok=True)
@@ -116,7 +116,7 @@ def main():
         span = max(yhi - ylo, 1e-9)
         y = ylo + 0.035 * span
         ax.plot([xi, xi], [ylo, ylo + 0.018 * span], color=color, lw=0.9, zorder=4, alpha=0.9)
-        ax.text(xi, y, "0", ha="center", va="bottom", fontsize=6.5,
+        ax.text(xi, y, "0", ha="center", va="bottom", fontsize=FONT["annot"],
                 color=color, zorder=5, alpha=0.95)
 
 
@@ -132,16 +132,16 @@ def main():
             bar_top = min(max(v, ylo), yhi)
             y_text = bar_top + 0.015 * span
             ax.text(xi, y_text, label, ha="center", va="bottom",
-                    fontsize=6.0, rotation=rotation, zorder=5, clip_on=False)
+                    fontsize=FONT["annot"], rotation=rotation, zorder=5, clip_on=False)
             return
         if v > yhi:
             ax.text(xi, yhi - 0.05 * span, label, ha="center", va="top",
-                    fontsize=6.0, rotation=rotation, zorder=4, color=C_ZERO)
+                    fontsize=FONT["annot"], rotation=rotation, zorder=4, color=C_ZERO)
             return
         if v < ylo:
             return
         ax.text(xi, min(v + 0.03 * span, yhi - 0.01 * span), label,
-                ha="center", va="bottom", fontsize=6.0, rotation=rotation, zorder=4)
+                ha="center", va="bottom", fontsize=FONT["annot"], rotation=rotation, zorder=4)
 
 
     def _draw_low_bar(ax, xi, v, raw, color, hatch, bot_lo, bot_hi, fmt, key):
@@ -236,13 +236,13 @@ def main():
             trans = blended_transform_factory(ax_ref.transAxes, fig.transFigure)
             ax_ref.text(
                 -0.28, y_center, label, transform=trans,
-                rotation=90, va="center", ha="center", fontsize=12, fontweight="bold",
+                rotation=90, va="center", ha="center", fontsize=FONT["title"], fontweight="bold",
             )
         else:
             ax = panel_col0["ax"]
             ax.text(
                 -0.28, 0.5, label, transform=ax.transAxes,
-                rotation=90, va="center", ha="center", fontsize=12, fontweight="bold",
+                rotation=90, va="center", ha="center", fontsize=FONT["title"], fontweight="bold",
             )
 
 
@@ -438,7 +438,8 @@ def main():
     ]
     fig.legend(
         handles=legend_handles, loc="lower center", ncol=6,
-        framealpha=0.95, edgecolor=C_LEGEND_FRAME, bbox_to_anchor=(0.5, -0.01), fontsize=9,
+        framealpha=0.95, edgecolor=C_LEGEND_FRAME, bbox_to_anchor=(0.5, -0.01),
+        fontsize=FONT["legend"],
     )
 
     fig.subplots_adjust(left=0.08, right=0.98, top=0.96, bottom=0.14, wspace=0.42, hspace=0.62)

@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
-from thesis_style import CMAP_HEAT, apply_rc
+from thesis_style import CMAP_HEAT, FONT, apply_rc
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OUT_PDF = FIGURE_DIR / "chap3-tp-lead-method-E-heatmap.pdf"
@@ -26,7 +26,6 @@ apply_rc()
 plt.rcParams.update({
     "figure.dpi": 120,
     "savefig.dpi": 300,
-    "font.size": 10,
 })
 
 MODELS = ["MB1", "MB2"]
@@ -109,11 +108,11 @@ def plot_heatmap(*, save_path_pdf: Path | None = None) -> plt.Figure:
             for i, method in enumerate(METHODS)
         ]
         ax.set_yticks(range(len(METHODS)))
-        ax.set_yticklabels(row_labels, fontsize=8)
+        ax.set_yticklabels(row_labels, fontsize=FONT["tick"])
         ax.set_xticks(range(len(COL_LABELS)))
-        ax.set_xticklabels(COL_LABELS, fontsize=8)
-        ax.set_xlabel("提前天数 $d$（天）", fontsize=10)
-        ax.set_title(model, fontweight="bold", fontsize=10, pad=6)
+        ax.set_xticklabels(COL_LABELS, fontsize=FONT["tick"])
+        ax.set_xlabel("提前天数 $d$（天）", fontsize=FONT["label"])
+        ax.set_title(model, fontweight="bold", fontsize=FONT["title"], pad=6)
 
         for i in range(len(METHODS)):
             for j in range(len(COL_LABELS)):
@@ -127,13 +126,13 @@ def plot_heatmap(*, save_path_pdf: Path | None = None) -> plt.Figure:
                     str(cnt),
                     ha="center",
                     va="center",
-                    fontsize=8,
+                    fontsize=FONT["annot"],
                     color="white" if share > 0.48 else "#0F172A",
                 )
 
         cbar = fig.colorbar(im, cax=cax)
-        cbar.set_label("TP 占比", fontsize=9)
-        cbar.ax.tick_params(labelsize=7, pad=1)
+        cbar.set_label("TP 占比", fontsize=FONT["legend"])
+        cbar.ax.tick_params(labelsize=FONT["note"], pad=1)
 
     if save_path_pdf is not None:
         fig.savefig(save_path_pdf, bbox_inches="tight", pad_inches=0.02)

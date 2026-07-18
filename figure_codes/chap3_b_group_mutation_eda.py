@@ -6,7 +6,8 @@
     figure/generated/chap3-b-group-mutation-eda-mb2.pdf
 
 数据快照来源：codes/eda/scripts/plot_b_group_mutation_combined.py
-（MB1 2019-06 六块盘；MB2 2018-11 六块盘；仅 is_imputed=False 原始观测日）。
+（MB1 2019-06 六块盘；MB2 2018-11 六块盘；展示窗约 1.5 个月；
+仅 is_imputed=False 原始观测日）。
 
 用法（项目根目录）:
     python figure_codes/chap3_b_group_mutation_eda.py
@@ -51,9 +52,6 @@ def _parse_day(s: str) -> datetime:
 def plot_model(model: str, bundle: dict) -> Path:
     plot_start = _parse_day(bundle["plot_start"])
     plot_end = _parse_day(bundle["plot_end"])
-    date_label = (
-        f"{plot_start.strftime('%Y-%m')} ~ {plot_end.strftime('%Y-%m')}"
-    )
     cols = bundle["cols"]
     disk_ids = bundle["disk_ids"]
     series = bundle["series"]
@@ -65,7 +63,11 @@ def plot_model(model: str, bundle: dict) -> Path:
     for col_idx, col in enumerate(cols):
         ax = axes[col_idx]
         for i, disk_id in enumerate(disk_ids):
-            points = series.get(disk_id, [])
+            points = [
+                p
+                for p in series.get(disk_id, [])
+                if plot_start <= _parse_day(p["ds"]) <= plot_end
+            ]
             if not points:
                 continue
 
@@ -79,10 +81,10 @@ def plot_model(model: str, bundle: dict) -> Path:
                 ds,
                 ys,
                 marker=st["marker"],
-                ms=3.5,
-                lw=1.3,
+                ms=5.0,
+                lw=1.6,
                 ls=st["ls"],
-                alpha=0.9,
+                alpha=0.95,
                 color=st["color"],
             )
             ax.axvline(ft, color="#444444", ls="--", lw=0.9, alpha=0.55)
@@ -91,14 +93,20 @@ def plot_model(model: str, bundle: dict) -> Path:
                 legend_labels.append(f"disk {disk_id} (fail {ft_str})")
 
         ax.set_xlim(plot_start, plot_end)
-        ax.xaxis.set_major_locator(mdates.MonthLocator())
-        ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m"))
+        # 约 1.5 个月窗内 MonthLocator 往往只落 1 个刻度；显式标出起止日
+        month_start = plot_end.replace(day=1)
+        xticks = [plot_start]
+        if plot_start < month_start < plot_end:
+            xticks.append(month_start)
+        xticks.append(plot_end)
+        ax.set_xticks(xticks)
+        ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d"))
         ax.xaxis.set_minor_locator(mdates.WeekdayLocator(byweekday=mdates.MO))
         ax.set_ylabel("读数", fontsize=FONT["label"])
         panel = chr(ord("a") + col_idx)
         ax.set_title(f"({panel}) {col} {ATTR_LABEL[col]}", fontsize=FONT["title"], pad=6)
         ax.grid(True, alpha=0.25)
-        ax.set_xlabel(f"日期（{date_label}）", fontsize=FONT["label"])
+        ax.set_xlabel("日期", fontsize=FONT["label"])
 
     fig.legend(
         legend_handles,
@@ -108,6 +116,9 @@ def plot_model(model: str, bundle: dict) -> Path:
         fontsize=FONT["legend"],
         bbox_to_anchor=(0.5, -0.14),
         frameon=True,
+        handlelength=3.2,
+        handletextpad=0.6,
+        columnspacing=1.2,
     )
     fig.autofmt_xdate(rotation=0, ha="center")
     fig.tight_layout()

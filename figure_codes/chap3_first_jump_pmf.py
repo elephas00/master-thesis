@@ -54,45 +54,63 @@ N_AT_D = {
 
 
 def plot(*, save_path: Path = OUTPUT_PDF) -> plt.Figure:
-    fig, axes = plt.subplots(1, 2, figsize=(16, 3.8))
+    fig, axes = plt.subplots(1, 2, figsize=(10.5, 3.6))
     days = np.arange(0, MAX_D + 1)
+    # 「无跳变」放在 d=30 之后，与日柱之间留空
+    GAP_BEFORE_SILENT = 1.2
 
     for ax, model in zip(axes, MODELS):
         n = META[model]["n_eligible"]
         n_silent = META[model]["n_silent"]
         counts = np.asarray(N_AT_D[model], dtype=float)
-        pmf_all = np.concatenate([[n_silent / n], counts / n])
-        labels_all = ["无跳变"] + [str(int(d)) for d in days]
-        x = np.arange(len(labels_all))
-        colors_bar = [ST_SILENT["color"]] + [ST_JUMP["color"]] * len(days)
-        hatches_bar = [ST_SILENT["hatch"]] + [ST_JUMP["hatch"]] * len(days)
+        pmf_days = counts / n
+        pmf_silent = n_silent / n
+        x_days = np.arange(len(days), dtype=float)
+        x_silent = float(len(days) - 1) + 1.0 + GAP_BEFORE_SILENT
+        colors_days = [ST_JUMP["color"]] * len(days)
+        hatches_days = [ST_JUMP["hatch"]] * len(days)
 
-        bars = ax.bar(
-            x, pmf_all, color=colors_bar, hatch=hatches_bar,
+        bars_days = ax.bar(
+            x_days, pmf_days, color=colors_days, hatch=hatches_days,
             edgecolor=ST_JUMP["edge"], linewidth=BAR_LW, width=0.82,
         )
+        ax.bar(
+            [x_silent], [pmf_silent], color=ST_SILENT["color"],
+            hatch=ST_SILENT["hatch"], edgecolor=ST_JUMP["edge"],
+            linewidth=BAR_LW, width=0.82,
+        )
 
-        ax.set_xticks(x)
-        ax.set_xticklabels(labels_all, rotation=0, ha="center", fontsize=6)
+        # 横轴：d 标 0,5,...,30；「无跳变」在末尾
+        tick_pos = [x_days[int(d)] for d in days if d % 5 == 0] + [x_silent]
+        tick_lab = [str(int(d)) for d in days if d % 5 == 0] + ["无跳变"]
+        ax.set_xticks(tick_pos)
+        ax.set_xticklabels(
+            tick_lab,
+            rotation=0,
+            ha="center",
+            fontsize=FONT["tick"],
+        )
         ax.yaxis.set_major_formatter(PercentFormatter(1.0, decimals=0))
         ax.set_title(f"{model}（$N$={n}）", fontsize=FONT["title"])
         ax.set_ylabel("占故障盘比例", fontsize=FONT["label"])
-        ax.set_ylim(0, max(float(pmf_all.max()) * 1.12, 0.08))
+        y_max = max(float(pmf_days.max()), float(pmf_silent))
+        ax.set_ylim(0, max(y_max * 1.12, 0.08))
         ax.grid(axis="y", alpha=0.25)
         ax.text(
-            0, pmf_all[0] + 0.01, f"{pmf_all[0]:.0%}",
+            x_silent, pmf_silent + 0.01, f"{pmf_silent:.0%}",
             ha="center", fontsize=FONT["annot"], color=C_ZERO,
         )
-        for i, day in enumerate(days, start=1):
-            if day > NEAR_END and pmf_all[i] > 0:
-                bars[i].set_alpha(0.72)
+        for day, bar in zip(days, bars_days):
+            if day > NEAR_END and pmf_days[int(day)] > 0:
+                bar.set_alpha(0.72)
 
+        legend_loc = "upper right" if model == "MB1" else "upper left"
         ax.legend(
             handles=[
-                legend_swatch(KEY_SILENT, "无跳变"),
                 legend_swatch(KEY_JUMP, f"{model} 有跳变"),
+                legend_swatch(KEY_SILENT, "无跳变"),
             ],
-            frameon=False, fontsize=FONT["legend"], loc="upper right",
+            frameon=False, fontsize=FONT["legend"], loc=legend_loc,
         )
 
     fig.tight_layout()

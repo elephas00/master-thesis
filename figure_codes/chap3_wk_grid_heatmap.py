@@ -22,7 +22,7 @@ import numpy as np
 from matplotlib.patches import Rectangle
 
 from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
-from thesis_style import CMAP_HEAT, apply_rc
+from thesis_style import CMAP_HEAT, FONT, apply_rc
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OUT_PDF = FIGURE_DIR / "chap3-wk-grid-heatmap-A.pdf"
@@ -31,7 +31,6 @@ apply_rc()
 plt.rcParams.update({
     "figure.dpi": 120,
     "savefig.dpi": 300,
-    "font.size": 10,
 })
 
 MODELS = ["MB1", "MB2"]
@@ -97,7 +96,7 @@ def _annotate_cells(
                 label += "\n★"
             ax.text(
                 j, i, label,
-                ha="center", va="center", fontsize=8,
+                ha="center", va="center", fontsize=FONT["annot"],
                 color=_text_color(val, vmin, vmax, force_dark=(mute_row0 and i == 0)),
                 fontweight="bold" if is_opt else "normal",
                 zorder=6,
@@ -118,12 +117,12 @@ def _mute_row0(ax, n_cols: int) -> None:
 
 def _style_wk_axes(ax, mat: np.ndarray, k_labels: list[int], *, title: str) -> None:
     ax.set_xticks(range(len(k_labels)))
-    ax.set_xticklabels([f"$k={k}$" for k in k_labels])
+    ax.set_xticklabels([f"$k={k}$" for k in k_labels], fontsize=FONT["tick"])
     ax.set_yticks(range(mat.shape[0]))
-    ax.set_yticklabels([f"$W={w}$" for w in range(mat.shape[0])])
+    ax.set_yticklabels([f"$W={w}$" for w in range(mat.shape[0])], fontsize=FONT["tick"])
     ax.set_xlabel("")
     ax.set_ylabel("")
-    ax.set_title(title, fontweight="bold", pad=8)
+    ax.set_title(title, fontweight="bold", fontsize=FONT["title"], pad=8)
 
 
 def plot_wk_panel(
@@ -203,8 +202,8 @@ def plot_heatmap(*, save_path_pdf: Path | None = None) -> plt.Figure:
             mute_row0=True,
         )
         cbar = fig.colorbar(im, cax=cax)
-        cbar.ax.set_title(r"$F_{0.5}$", fontsize=9, pad=3)
-        cbar.ax.tick_params(labelsize=7, pad=1)
+        cbar.ax.set_title(r"$F_{0.5}$", fontsize=FONT["legend"], pad=3)
+        cbar.ax.tick_params(labelsize=FONT["note"], pad=1)
 
     if save_path_pdf is not None:
         fig.savefig(save_path_pdf, bbox_inches="tight", pad_inches=0.02)
