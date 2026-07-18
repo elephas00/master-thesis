@@ -51,14 +51,16 @@ STRATEGIES = [
     ("mix", "混合（本文）"),
 ]
 
+# 对齐架构图 Material 语义色（有效=绿成功，无效=红误标+hatch，首跳=蓝）
 COLORS = {
-    "correct": "#70AD47",
-    "wrong_fc": "#FFCDD2",
-    "wrong_ec": "#E57373",
-    "record_hist": "#ECECEC",
+    "correct": "#4CAF50",
+    "correct_ec": "#2E7D32",
+    "wrong_fc": "#FFEBEE",
+    "wrong_ec": "#E53935",
+    "record_hist": "#EEEEEE",
     "record_win": "#F5F5F5",
-    "track_edge": "#D0D0D0",
-    "fail": "#37474F",
+    "track_edge": "#BDBDBD",
+    "fail": "#424242",
     "warn_line": "#78909C",
     "jump_mk": "#1565C0",
 }
@@ -143,7 +145,7 @@ def _draw_labels(ax, y, strategy, d_jump, h=BAR_H, k_short=K_SHORT):
         _rect(
             ax, _display_valid_left(valid_left, k_short), 0, y, h,
             facecolor=COLORS["correct"],
-            edgecolor="#548235",
+            edgecolor=COLORS["correct_ec"],
             linewidth=0.5,
             zorder=3,
         )
@@ -243,7 +245,7 @@ def plot_label_strategy(disks=DISKS, strategies=STRATEGIES, w=W, record_left=REC
             label="观测记录",
         ),
         mpatches.Patch(
-            facecolor=COLORS["correct"], edgecolor="#548235",
+            facecolor=COLORS["correct"], edgecolor=COLORS["correct_ec"],
             label="有效标注",
         ),
         mpatches.Patch(

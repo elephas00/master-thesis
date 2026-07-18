@@ -44,9 +44,11 @@ SCRIPTS=(
   chap4_ensemble_voting_flow.py
 
   # 第五章
+  chap5_software_structure.py
   chap5_warning_gen_flow.py
   chap5_warning_handle_flow.py
   chap5_usecase.py
+  chap5_database_er.py
 )
 
 echo "cwd: $ROOT"
