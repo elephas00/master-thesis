@@ -35,7 +35,7 @@ COUNTS = {
 def plot(*, save_path: Path = OUTPUT_PDF) -> plt.Figure:
     x = range(len(MONTHS))
     width = 0.38
-    fig, ax = plt.subplots(figsize=(10, 4.5))
+    fig, ax = plt.subplots(figsize=(10, 3.8))
 
     for model, offset in zip(("MB1", "MB2"), (-width / 2, width / 2)):
         ax.bar(

@@ -62,7 +62,7 @@ def _bar_pair(ax, x, models, values_fn) -> None:
 
 def plot(*, save_path: Path = OUTPUT_PDF) -> plt.Figure:
     models = ["MB1", "MB2"]
-    fig, axes = plt.subplots(1, 3, figsize=(12.5, 4.2))
+    fig, axes = plt.subplots(1, 3, figsize=(12.5, 3.6))
 
     ax = axes[0]
     x = np.arange(len(MAX_GAP_LABELS))

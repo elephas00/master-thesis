@@ -93,7 +93,7 @@ def plot(*, save_path: Path = OUT_PDF) -> plt.Figure:
         },
     ]
 
-    fig, axes = plt.subplots(3, 1, figsize=(9.5, 7.2), sharex=True)
+    fig, axes = plt.subplots(3, 1, figsize=(9.5, 6.0), sharex=True)
     for i, (ax, cfg) in enumerate(zip(axes, panels)):
         _panel(
             ax, cfg["mus"], cfg["codes"], cfg["title"],

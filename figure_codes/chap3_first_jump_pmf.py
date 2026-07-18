@@ -54,7 +54,7 @@ N_AT_D = {
 
 
 def plot(*, save_path: Path = OUTPUT_PDF) -> plt.Figure:
-    fig, axes = plt.subplots(1, 2, figsize=(16, 4.6))
+    fig, axes = plt.subplots(1, 2, figsize=(16, 3.8))
     days = np.arange(0, MAX_D + 1)
 
     for ax, model in zip(axes, MODELS):

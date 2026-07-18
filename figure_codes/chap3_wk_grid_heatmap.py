@@ -164,7 +164,7 @@ def plot_wk_panel(
 
 def plot_heatmap(*, save_path_pdf: Path | None = None) -> plt.Figure:
     # 按相同方格边长定位；两图紧挨并排（正常子图间距）
-    cell = 0.56
+    cell = 0.48
     n_rows = 4
     n_cols = [len(K_LABELS[m]) for m in MODELS]
     y_label = 0.46

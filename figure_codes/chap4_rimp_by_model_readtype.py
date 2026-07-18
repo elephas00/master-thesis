@@ -69,7 +69,7 @@ def _draw_panel(ax, read_type: str, *, show_ylabel: bool, show_legend: bool) -> 
 
 
 def plot(*, save_path: Path = OUT_PDF) -> plt.Figure:
-    fig, axes = plt.subplots(1, 2, figsize=(10.5, 3.8), sharey=True)
+    fig, axes = plt.subplots(1, 2, figsize=(10.5, 3.3), sharey=True)
 
     _draw_panel(axes[0], "BestRead", show_ylabel=True, show_legend=True)
     _draw_panel(axes[1], "DefaultRead", show_ylabel=False, show_legend=True)

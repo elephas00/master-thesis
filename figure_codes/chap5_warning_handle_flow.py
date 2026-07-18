@@ -36,40 +36,40 @@ LW = (2.3, 2.5, 2.5, 2.3)
 
 def _lane(ax, x: float, w: float, title: str) -> None:
     ax.add_patch(FancyBboxPatch(
-        (x - w / 2, 0.3), w, 6.5,
+        (x - w / 2, 0.3), w, 5.55,
         boxstyle="square,pad=0",
         facecolor=PAPER, edgecolor=INK, linewidth=LINE_WIDTH, zorder=0,
     ))
     ax.add_patch(FancyBboxPatch(
-        (x - w / 2, 6.2), w, 0.6,
+        (x - w / 2, 5.25), w, 0.6,
         boxstyle="square,pad=0",
         facecolor="#F2F2F2", edgecolor=INK, linewidth=LINE_WIDTH, zorder=1,
     ))
     ax.text(
-        x, 6.5, title, ha="center", va="center",
+        x, 5.55, title, ha="center", va="center",
         fontsize=10.5, color=INK, fontweight="bold", zorder=2,
     )
 
 
 def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
     apply_flowchart_rc()
-    fig, ax = plt.subplots(figsize=(10.0, 6.0))
+    fig, ax = plt.subplots(figsize=(10.0, 5.1))
     ax.set_xlim(0.05, 10.3)
-    ax.set_ylim(0.1, 7.0)
+    ax.set_ylim(0.1, 6.0)
     ax.axis("off")
 
     for x, w, title in zip(LX, LW, LANES):
         _lane(ax, x, w, title)
 
-    u1 = (LX[0], 5.45)
-    f2 = (LX[1], 4.55)
-    b2 = (LX[2], 4.55)
-    u3 = (LX[0], 3.35)
-    f4 = (LX[1], 2.4)
-    b4 = (LX[2], 2.4)
-    d5 = (LX[3], 2.2)
-    b6 = (LX[2], 0.95)
-    f6 = (LX[1], 0.95)
+    u1 = (LX[0], 4.75)
+    f2 = (LX[1], 4.0)
+    b2 = (LX[2], 4.0)
+    u3 = (LX[0], 3.0)
+    f4 = (LX[1], 2.05)
+    b4 = (LX[2], 2.05)
+    d5 = (LX[3], 1.9)
+    b6 = (LX[2], 0.75)
+    f6 = (LX[1], 0.75)
 
     process(ax, u1, 1.9, 0.75, "① 查看预警\n列表与详情", fontsize=8.8)
     process(ax, f2, 2.0, 0.7, "② 请求预警\n详情接口", fontsize=8.8)
@@ -84,8 +84,8 @@ def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
     # ① → ②
     routed_arrow(ax, [
         (u1[0] + 0.95, u1[1] - 0.375),
-        (u1[0] + 0.95, 4.95),
-        (f2[0] - 1.0, 4.95),
+        (u1[0] + 0.95, 4.45),
+        (f2[0] - 1.0, 4.45),
         (f2[0] - 1.0, f2[1] + 0.35),
     ])
     # ② → 后端
@@ -95,15 +95,15 @@ def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
     # ② ⇢ ③
     routed_dashed_arrow(ax, [
         (f2[0] - 0.55, f2[1] - 0.35),
-        (f2[0] - 0.55, 3.9),
-        (u3[0] + 0.95, 3.9),
+        (f2[0] - 0.55, 3.55),
+        (u3[0] + 0.95, 3.55),
         (u3[0] + 0.95, u3[1] + 0.4),
     ])
     # ③ → ④
     routed_arrow(ax, [
         (u3[0] + 0.95, u3[1] - 0.4),
-        (u3[0] + 0.95, 2.85),
-        (f4[0] - 1.0, 2.85),
+        (u3[0] + 0.95, 2.55),
+        (f4[0] - 1.0, 2.55),
         (f4[0] - 1.0, f4[1] + 0.35),
     ])
     # ④ → ⑤
@@ -113,8 +113,8 @@ def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
     # DB ⇢ 返回处置结果
     routed_dashed_arrow(ax, [
         (d5[0], d5[1] - 0.475),
-        (d5[0], 1.45),
-        (b6[0] + 1.0, 1.45),
+        (d5[0], 1.25),
+        (b6[0] + 1.0, 1.25),
         (b6[0] + 1.0, b6[1] + 0.35),
     ])
     # 返回 ⇢ ⑥

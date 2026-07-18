@@ -74,7 +74,7 @@ def _draw_panel(ax, xs, data, title: str, *, show_legend: bool = False) -> None:
 
 
 def plot(*, save_path: Path = OUT_PDF) -> plt.Figure:
-    fig, axes = plt.subplots(1, 3, figsize=(12.0, 3.6), sharey=True)
+    fig, axes = plt.subplots(1, 3, figsize=(12.0, 3.2), sharey=True)
 
     _draw_panel(axes[0], VALUE_X, VALUE, "(a) 读取次数", show_legend=True)
     _draw_panel(axes[1], LEVEL_X, LEVEL, "(b) 磨损档位", show_legend=True)

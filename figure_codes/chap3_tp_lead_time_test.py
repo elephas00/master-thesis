@@ -94,7 +94,7 @@ def plot_grouped_bars(
     tail_day_threshold: int = 2,
     save_path: Path | None = None,
 ) -> plt.Figure:
-    fig, axes = plt.subplots(1, 2, figsize=(12.0, 4.6), sharex=True)
+    fig, axes = plt.subplots(1, 2, figsize=(12.0, 3.9), sharex=True)
 
     for ax, model in zip(axes, MODELS):
         cluster_peak = 0.0
