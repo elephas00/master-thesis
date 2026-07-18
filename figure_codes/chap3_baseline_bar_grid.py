@@ -16,7 +16,10 @@ from matplotlib.patches import Patch
 from matplotlib.transforms import blended_transform_factory
 
 from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
-from thesis_style import METHOD_COLORS, METHOD_HATCH, C_EDGE, C_ZERO, C_LEGEND_FRAME, BAR_LW, FONT, apply_rc
+from thesis_style import (
+    METHOD_COLORS, METHOD_HATCH, C_EDGE, C_ZERO, BAR_LW, FONT,
+    apply_rc, fig_shared_legend,
+)
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 FIGURE_DIR.mkdir(parents=True, exist_ok=True)
@@ -447,18 +450,13 @@ def main():
     _draw_row_label(row_panels[0][0], "MB1")
     _draw_row_label(row_panels[1][0], "MB2")
 
-    # 布局定稿后再放图例，保证仍居中；左侧仅补「图例」文字
-    leg = fig.legend(
-        handles=legend_handles, loc="lower center", ncol=6,
-        framealpha=0.95, edgecolor=C_LEGEND_FRAME, bbox_to_anchor=(0.5, 0.01),
-        fontsize=FONT["legend"],
-    )
-    fig.canvas.draw()
-    bb = leg.get_window_extent(fig.canvas.get_renderer()).transformed(fig.transFigure.inverted())
-    fig.text(
-        bb.x0 - 0.008, (bb.y0 + bb.y1) / 2, "图例",
-        transform=fig.transFigure, ha="right", va="center",
-        fontsize=FONT["legend"], fontweight="bold",
+    # 布局定稿后再放共享图例（统一样式 +「图例」整体居中）
+    fig_shared_legend(
+        fig,
+        handles=legend_handles,
+        loc="lower center",
+        bbox_to_anchor=(0.5, 0.01),
+        ncol=6,
     )
 
     # fig.savefig(OUT_GRID, bbox_inches="tight")

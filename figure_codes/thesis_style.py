@@ -10,6 +10,7 @@
   - 每个子图各自维护图例
   - 跨子图语义相同的系列共用同一 swatch
   - 分栏展示可用同一主系列，不必为区分面板另占色位
+  - Figure 级共享图例用 fig_shared_legend（统一边框 +「图例」标题 + 整体居中）
 """
 
 from __future__ import annotations
@@ -53,14 +54,15 @@ HATCH_BAR: list[str] = [
 
 # ---------------------------------------------------------------------------
 # 折线色序（l1..l6；黑 = 第 1 优先，与柱图独立）
+# Okabe–Ito 改编：黑优先，去掉白/黄（细线白底不可读）
 # ---------------------------------------------------------------------------
 COLORS_LINE: list[str] = [
     C_INK,      # 1 黑 — 主系列
-    "#1E3A5F",  # 2 深蓝灰
-    "#64748B",  # 3 石板灰
-    "#0072B2",  # 4 标准蓝
-    "#8B7355",  # 5 低饱和褐
-    "#5B8FA8",  # 6 青灰（最浅）
+    "#E69F00",  # 2 琥珀
+    "#0072B2",  # 3 蓝
+    "#009E73",  # 4 绿蓝
+    "#D55E00",  # 5 朱红
+    "#CC79A7",  # 6 紫红
 ]
 
 LINESTYLE_PRIORITY: list[str] = [
@@ -257,3 +259,81 @@ def apply_rc() -> None:
         "ytick.labelsize": FONT["tick"],
         "legend.fontsize": FONT["legend"],
     })
+
+
+def fig_legend_title(
+    fig,
+    leg,
+    *,
+    title: str = "图例",
+    gap: float = 0.008,
+    fontsize: float | None = None,
+    fontweight: str = "bold",
+    center_x: float = 0.5,
+    anchor_xy: tuple[float, float],
+) -> None:
+    """在 fig.legend 左侧加标题，并将「标题 + 图例」整体水平居中。
+
+    ``anchor_xy`` 为创建时传给 ``fig.legend(..., bbox_to_anchor=...)`` 的坐标；
+    本函数会按整体宽度将其右移/左移，使标题不把视觉中心拉偏。
+    """
+    if fontsize is None:
+        fontsize = FONT["legend"]
+    fig.canvas.draw()
+    renderer = fig.canvas.get_renderer()
+    inv = fig.transFigure.inverted()
+    lbb = leg.get_window_extent(renderer).transformed(inv)
+    mid_y = (lbb.y0 + lbb.y1) / 2
+    txt = fig.text(
+        lbb.x0 - gap, mid_y, title,
+        transform=fig.transFigure, ha="right", va="center",
+        fontsize=fontsize, fontweight=fontweight,
+    )
+    fig.canvas.draw()
+    tbb = txt.get_window_extent(renderer).transformed(inv)
+    lbb = leg.get_window_extent(renderer).transformed(inv)
+    dx = center_x - 0.5 * (tbb.x0 + lbb.x1)
+    ax, ay = anchor_xy
+    # 必须显式用 figure 坐标；默认会落到 axes.transAxes，图例被裁切只剩标题
+    leg.set_bbox_to_anchor((ax + dx, ay), transform=fig.transFigure)
+    txt.set_position((lbb.x0 - gap + dx, mid_y))
+
+
+def fig_shared_legend(
+    fig,
+    handles=None,
+    labels=None,
+    *,
+    loc: str,
+    bbox_to_anchor: tuple[float, float],
+    ncol: int = 1,
+    title: str = "图例",
+    **kwargs: Any,
+):
+    """Figure 级共享图例：统一浅灰细边框 + 左侧「图例」+ 整体居中。
+
+    顶/底位置由 ``loc`` / ``bbox_to_anchor`` 按版面决定；色块与文案仍由调用方提供。
+    ``handlelength`` 等可按系列类型覆盖。
+    """
+    kw: dict[str, Any] = {
+        "frameon": True,
+        "framealpha": 0.95,
+        "edgecolor": C_LEGEND_FRAME,
+        "fancybox": False,
+        "borderpad": 0.4,
+        "handletextpad": 0.5,
+        "columnspacing": 1.0,
+        "fontsize": FONT["legend"],
+        "loc": loc,
+        "bbox_to_anchor": bbox_to_anchor,
+        "ncol": ncol,
+    }
+    kw.update(kwargs)
+    if handles is not None and labels is not None:
+        leg = fig.legend(handles, labels, **kw)
+    elif handles is not None:
+        leg = fig.legend(handles=handles, **kw)
+    else:
+        leg = fig.legend(**kw)
+    fig_legend_title(fig, leg, title=title, anchor_xy=bbox_to_anchor)
+    return leg

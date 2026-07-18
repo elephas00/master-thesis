@@ -21,7 +21,7 @@ import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 
 from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
-from thesis_style import FONT, apply_rc
+from thesis_style import FONT, apply_rc, fig_shared_legend
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OUTPUT_PDF = FIGURE_DIR / "chap3-label-strategy.pdf"
@@ -265,13 +265,17 @@ def plot_label_strategy(disks=DISKS, strategies=STRATEGIES, w=W, record_left=REC
             markersize=6, markeredgewidth=0, linestyle="None",
         ),
     ]
-    fig.legend(
-        handles=legend_handles, loc="upper center", ncol=5,
-        bbox_to_anchor=(0.5, 1.02), frameon=False, fontsize=FONT["legend"],
-        handlelength=1.0, handletextpad=0.35, columnspacing=0.9,
-    )
-
     fig.subplots_adjust(left=0.15, right=0.99, top=0.84, bottom=0.18, wspace=0.32)
+    fig_shared_legend(
+        fig,
+        handles=legend_handles,
+        loc="upper center",
+        bbox_to_anchor=(0.5, 1.02),
+        ncol=5,
+        handlelength=1.0,
+        handletextpad=0.35,
+        columnspacing=0.9,
+    )
     return fig
 
 

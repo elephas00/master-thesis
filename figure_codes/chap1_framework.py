@@ -348,37 +348,39 @@ def build() -> Diagram:
     d.edge("e-ch3-ch5", "ch3-out", "ch5-main", style=EDGE_CH3_CH5, value="盘级预警服务")
     d.edge("e-ch4-ch5", "ch4-out", "ch5-main", style=EDGE_DASH_GREEN, value="策略可扩展")
 
-    # legend
+    # legend：「图例」+条目整体在底栏内水平居中
+    # 内容簇原左缘 266、右缘 1158（宽 892）；栏 120+1160，居中后左缘 254
+    _lg = -12
     d.box(
         "legend-box", "", 120, 830, 1160, 58,
         style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#E0E0E0;strokeWidth=1;",
     )
-    d.box("legend-title", "图例", 266, 844, 48, 28, style=TEXT + f"fontStyle=1;fontSize={FS_ANNOT};align=center;")
+    d.box("legend-title", "图例", 266 + _lg, 844, 48, 28, style=TEXT + f"fontStyle=1;fontSize={FS_ANNOT};align=center;")
     d.box(
-        "lg-ch3", "", 326, 850, 28, 18,
+        "lg-ch3", "", 326 + _lg, 850, 28, 18,
         style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1565C0;",
     )
-    d.box("lg-ch3t", "第三章方法模块", 358, 844, 120, 28, style=TEXT + f"fontSize={FS_LEGEND_SM};")
+    d.box("lg-ch3t", "第三章方法模块", 358 + _lg, 844, 120, 28, style=TEXT + f"fontSize={FS_LEGEND_SM};")
     d.box(
-        "lg-label", "", 494, 850, 28, 18,
+        "lg-label", "", 494 + _lg, 850, 28, 18,
         style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#E65100;",
     )
-    d.box("lg-labelt", "混合标注", 526, 844, 72, 28, style=TEXT + f"fontSize={FS_LEGEND_SM};")
+    d.box("lg-labelt", "混合标注", 526 + _lg, 844, 72, 28, style=TEXT + f"fontSize={FS_LEGEND_SM};")
     d.box(
-        "lg-ch4", "", 614, 850, 28, 18,
+        "lg-ch4", "", 614 + _lg, 850, 28, 18,
         style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DCEDC8;strokeColor=#558B2F;",
     )
-    d.box("lg-ch4t", "第四章方法模块", 646, 844, 120, 28, style=TEXT + f"fontSize={FS_LEGEND_SM};")
+    d.box("lg-ch4t", "第四章方法模块", 646 + _lg, 844, 120, 28, style=TEXT + f"fontSize={FS_LEGEND_SM};")
     d.box(
-        "lg-ch5", "", 782, 850, 28, 18,
+        "lg-ch5", "", 782 + _lg, 850, 28, 18,
         style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#BA68C8;",
     )
-    d.box("lg-ch5t", "第五章工程落地", 814, 844, 110, 28, style=TEXT + f"fontSize={FS_LEGEND_SM};")
+    d.box("lg-ch5t", "第五章工程落地", 814 + _lg, 844, 110, 28, style=TEXT + f"fontSize={FS_LEGEND_SM};")
     d.free_edge(
-        "lg-dash", 940, 859, 990, 859,
+        "lg-dash", 940 + _lg, 859, 990 + _lg, 859,
         style="endArrow=blockThin;html=1;strokeWidth=1.5;strokeColor=#2E7D32;dashed=1;dashPattern=8 4;",
     )
-    d.box("lg-dasht", "虚线：策略可扩展衔接", 998, 844, 160, 28, style=TEXT + f"fontSize={FS_LEGEND_SM};")
+    d.box("lg-dasht", "虚线：策略可扩展衔接", 998 + _lg, 844, 160, 28, style=TEXT + f"fontSize={FS_LEGEND_SM};")
     return d
 
 

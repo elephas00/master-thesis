@@ -23,7 +23,7 @@ import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 
 from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
-from thesis_style import FONT, apply_rc, line_style
+from thesis_style import FONT, apply_rc, fig_shared_legend, line_style
 
 HERE = Path(__file__).resolve().parent
 PROJECT_ROOT = HERE.parent
@@ -108,20 +108,19 @@ def plot_model(model: str, bundle: dict) -> Path:
         ax.grid(True, alpha=0.25)
         ax.set_xlabel("日期", fontsize=FONT["label"])
 
-    fig.legend(
+    fig.autofmt_xdate(rotation=0, ha="center")
+    fig.tight_layout()
+    fig_shared_legend(
+        fig,
         legend_handles,
         legend_labels,
         loc="lower center",
-        ncol=3,
-        fontsize=FONT["legend"],
         bbox_to_anchor=(0.5, -0.14),
-        frameon=True,
+        ncol=3,
         handlelength=3.2,
         handletextpad=0.6,
         columnspacing=1.2,
     )
-    fig.autofmt_xdate(rotation=0, ha="center")
-    fig.tight_layout()
 
     output = OUTPUTS[model]
     output.parent.mkdir(parents=True, exist_ok=True)

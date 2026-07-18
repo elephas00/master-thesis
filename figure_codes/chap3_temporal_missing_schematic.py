@@ -17,7 +17,7 @@ import numpy as np
 from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
 from thesis_style import (
     BAR_LW, C_EDGE, C_SPINE_MUTED, FONT,
-    apply_rc, bar_key, bar_style, legend_swatch,
+    apply_rc, bar_key, bar_style, fig_shared_legend, legend_swatch,
 )
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -96,17 +96,16 @@ def plot_timeline_schematic(output: Path = OUTPUT_PDF) -> plt.Figure:
             spine.set_linewidth(0.8)
             spine.set_color(spine_color)
 
-    fig.legend(
+    fig_shared_legend(
+        fig,
         handles=[
             legend_swatch(KEY_OBS, "有日志"),
             legend_swatch(KEY_IMPUTE, "缺失（待补全）"),
             legend_swatch(KEY_REMOVE, "缺失（删除）"),
         ],
         loc="upper center",
-        frameon=False,
-        fontsize=FONT["legend"],
-        ncol=3,
         bbox_to_anchor=(0.5, 1.0),
+        ncol=3,
     )
 
     axes[-1].set_xlabel("日历日 $t$（40 天观测窗）", fontsize=FONT["label"])

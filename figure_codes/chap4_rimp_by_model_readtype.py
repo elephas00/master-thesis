@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
-from thesis_style import C_GRID, C_ZERO, FONT, apply_rc, series_style
+from thesis_style import C_GRID, C_PRIMARY, C_ZERO, FONT, apply_rc, series_style
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OUT_PDF = FIGURE_DIR / "chap4-rimp-by-model-readtype.pdf"
@@ -25,6 +25,7 @@ apply_rc()
 
 MODELS = ["XGBoost", "LightGBM", "随机森林"]
 COLS = ["LP", "MP", "UP", "集成"]
+BASELINE = 17.08
 
 DATA = {
     "BestRead": {
@@ -57,6 +58,7 @@ def _draw_panel(ax, read_type: str, *, show_ylabel: bool, show_legend: bool) -> 
         )
 
     ax.axhline(0, color=C_ZERO, lw=0.9, zorder=2)
+    ax.axhline(BASELINE, color=C_PRIMARY, lw=0.9, ls=":", alpha=0.7, zorder=2)
     ax.set_xticks(x)
     ax.set_xticklabels(COLS)
     ax.set_title(read_type, fontsize=FONT["title"], pad=6)
@@ -77,6 +79,15 @@ def plot(*, save_path: Path = OUT_PDF) -> plt.Figure:
     all_vals = [v for rt in DATA.values() for col in COLS for v in rt[col]]
     ymin, ymax = min(all_vals), max(all_vals)
     axes[0].set_ylim(ymin - 2.5, ymax + 2.5)
+
+    yticks = sorted({*np.round(axes[0].get_yticks(), 2), 0.0, BASELINE})
+    yticks = [t for t in yticks if ymin - 2.5 <= t <= ymax + 2.5]
+    axes[0].set_yticks(yticks)
+    axes[1].text(
+        len(COLS) - 1, BASELINE,
+        "全量基准",
+        ha="right", va="bottom", fontsize=FONT["annot"], color=C_PRIMARY,
+    )
 
     fig.tight_layout()
     save_path.parent.mkdir(parents=True, exist_ok=True)

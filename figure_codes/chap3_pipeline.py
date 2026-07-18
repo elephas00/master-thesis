@@ -239,45 +239,48 @@ def build() -> Diagram:
         points=[(715, 248), (715, 178)],
     )
 
+    # 「图例」+条目整体在底栏内水平居中
+    # 内容簇原左缘 136、右缘 1158（宽 1022）；栏 120+1160，居中后左缘 189
+    _lg = 53
     d.box(
         "legend-box", "", 120, 380, 1160, 62,
         style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#E0E0E0;strokeWidth=1;",
     )
     d.box(
-        "legend-title", "图例", 136, 396, 48, 28,
+        "legend-title", "图例", 136 + _lg, 396, 48, 28,
         style=TEXT + f"fontStyle=1;fontSize={FS_LEGEND_TITLE};align=center;",
     )
     d.box(
-        "lg1", "", 196, 404, 30, 20,
+        "lg1", "", 196 + _lg, 404, 30, 20,
         style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#9E9E9E;",
     )
     d.box(
-        "lg1t", "数据预处理 / 盘级评估", 232, 398, 180, 28,
+        "lg1t", "数据预处理 / 盘级评估", 232 + _lg, 398, 180, 28,
         style=TEXT + f"fontSize={FS_LEGEND_TEXT};",
     )
     d.box(
-        "lg2", "", 430, 404, 30, 20,
+        "lg2", "", 430 + _lg, 404, 30, 20,
         style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1565C0;",
     )
     d.box(
-        "lg2t", "方法模块 ①③（特征与集成）", 466, 398, 210, 28,
+        "lg2t", "方法模块 ①③（特征与集成）", 466 + _lg, 398, 210, 28,
         style=TEXT + f"fontSize={FS_LEGEND_TEXT};",
     )
     d.box(
-        "lg3", "", 700, 404, 30, 20,
+        "lg3", "", 700 + _lg, 404, 30, 20,
         style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#E65100;",
     )
     d.box(
-        "lg3t", "方法模块 ②（混合标注）", 736, 398, 180, 28,
+        "lg3t", "方法模块 ②（混合标注）", 736 + _lg, 398, 180, 28,
         style=TEXT + f"fontSize={FS_LEGEND_TEXT};",
     )
     d.free_edge(
-        "lg4", 940, 414, 990, 414,
+        "lg4", 940 + _lg, 414, 990 + _lg, 414,
         style="endArrow=blockThin;html=1;strokeWidth=1.5;strokeColor=#E65100;"
               "dashed=1;dashPattern=8 4;",
     )
     d.box(
-        "lg4t", "虚线：监督标注支路", 998, 398, 160, 28,
+        "lg4t", "虚线：监督标注支路", 998 + _lg, 398, 160, 28,
         style=TEXT + f"fontSize={FS_LEGEND_TEXT};",
     )
     return d
