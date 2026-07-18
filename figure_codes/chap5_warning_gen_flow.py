@@ -29,10 +29,12 @@ OUT_PDF = FIGURE_DIR / "chap5-warning-gen-flow.pdf"
 
 def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
     apply_flowchart_rc()
-    fig, ax = plt.subplots(figsize=(10.2, 2.25))
+    fig, ax = plt.subplots(figsize=(10.2, 1.95))
     ax.set_xlim(0, 11.5)
-    ax.set_ylim(0.25, 3.1)
+    # 紧贴菱形顶边与「否」支路底边，减少上下留白
+    ax.set_ylim(0.48, 2.78)
     ax.axis("off")
+    fig.subplots_adjust(left=0, right=1, top=1, bottom=0)
 
     y = 2.0
     terminator(ax, (0.6, y), 0.9, 0.58, "开始", fontsize=9.5)
@@ -60,7 +62,7 @@ def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
     edge_label(ax, (7.35, 1.02), "否")
 
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
-    fig.savefig(save_pdf, bbox_inches="tight", pad_inches=0.06, facecolor="white")
+    fig.savefig(save_pdf, bbox_inches="tight", pad_inches=0.02, facecolor="white")
     return fig
 
 

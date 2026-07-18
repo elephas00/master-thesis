@@ -22,42 +22,42 @@ class Layout:
     """画布与列几何：所有“硬编码坐标”的唯一来源。"""
 
     page_w: int = 1200
-    page_h: int = 600
+    page_h: int = 450
 
     boundary_x: int = 70
     boundary_y: int = 10
     boundary_w: int = 1010
-    boundary_h: int = 555
+    boundary_h: int = 420
 
     divider_x: int = 575
-    divider_top: int = 50
-    divider_bot: int = 550
+    divider_top: int = 42
+    divider_bot: int = 410
 
     # 运维用户总线
     bus_x: int = 105
-    bus_top_y: int = 117
-    bus_mid_y: int = 307  # 对齐「管理 SMART 日志」中线
-    bus_bot_y: int = 520
+    bus_top_y: int = 113
+    bus_mid_y: int = 255  # 对齐「管理 SMART 日志」中线
+    bus_bot_y: int = 410
     actor_user_x: int = 20
-    actor_user_y: int = 262
+    actor_user_y: int = 225
     actor_line_x0: int = 50
 
     # 管理侧列
     mgmt_primary_x: int = 150
     mgmt_child_x: int = 390
     primary_w: int = 150
-    primary_h: int = 54
+    primary_h: int = 44
     child_w: int = 130
-    child_h: int = 46
+    child_h: int = 38
     child_w_narrow: int = 120
 
     # 预警侧列
     warn_primary_x: int = 690
     warn_child_x: int = 920
     sched_x: int = 640
-    sched_y: int = 102
+    sched_y: int = 76
     sched_line_x0: int = 670
-    sched_line_y: int = 127
+    sched_line_y: int = 101
     warn_riser_x: int = 660
 
     label_mgmt_x: int = 300
@@ -102,28 +102,28 @@ def _build_diagram() -> Diagram:
         h = L.primary_h if primary else L.child_h
         d.use_cases[uid] = UseCase(uid, title, x, y, w, h, 14 if primary else 13)
 
-    # 管理侧
-    add("uc01", "维护SSD盘资产", L.mgmt_primary_x, 90)
-    add("uc01a", "查询SSD盘列表", L.mgmt_child_x, 35, primary=False)
-    add("uc01b", "新增SSD盘信息", L.mgmt_child_x, 88, primary=False)
-    add("uc01c", "编辑SSD盘信息", L.mgmt_child_x, 141, primary=False)
-    add("uc01d", "删除SSD盘记录", L.mgmt_child_x, 194, primary=False)
-    add("uc02", "管理 SMART 日志", L.mgmt_primary_x, 280)
-    add("uc02a", "按条件检索日志", L.mgmt_child_x, 265, primary=False)
-    add("uc02b", "导入/维护日志", L.mgmt_child_x, 320, primary=False)
-    add("uc05", "维护故障记录", L.mgmt_primary_x, 410)
-    add("uc05a", "查询故障记录", L.mgmt_child_x, 395, primary=False)
-    add("uc05b", "登记故障记录", L.mgmt_child_x, 450, primary=False)
+    # 管理侧（子用例步距 44，组间距约 16）
+    add("uc01", "维护SSD盘资产", L.mgmt_primary_x, 91)
+    add("uc01a", "查询SSD盘列表", L.mgmt_child_x, 28, primary=False)
+    add("uc01b", "新增SSD盘信息", L.mgmt_child_x, 72, primary=False)
+    add("uc01c", "编辑SSD盘信息", L.mgmt_child_x, 116, primary=False)
+    add("uc01d", "删除SSD盘记录", L.mgmt_child_x, 160, primary=False)
+    add("uc02", "管理 SMART 日志", L.mgmt_primary_x, 233)
+    add("uc02a", "按条件检索日志", L.mgmt_child_x, 214, primary=False)
+    add("uc02b", "导入/维护日志", L.mgmt_child_x, 258, primary=False)
+    add("uc05", "维护故障记录", L.mgmt_primary_x, 331)
+    add("uc05a", "查询故障记录", L.mgmt_child_x, 312, primary=False)
+    add("uc05b", "登记故障记录", L.mgmt_child_x, 356, primary=False)
 
-    # 预警侧
-    add("uc03", "生成故障预警", L.warn_primary_x, 100)
-    add("uc03m", "手动触发故障预警", L.warn_primary_x, 200)
-    add("uc03b", "拉取增量日志", L.warn_child_x, 50, primary=False)
-    add("uc03c", "执行模型推理", L.warn_child_x, 105, primary=False)
-    add("uc03d", "写入预警记录", L.warn_child_x, 160, primary=False)
-    add("uc04", "处置预警记录", L.warn_primary_x, 340)
-    add("uc04b", "忽略预警", L.warn_child_x, 310, primary=False, narrow=True)
-    add("uc04a", "确认故障", L.warn_child_x, 375, primary=False, narrow=True)
+    # 预警侧（uc03m 下移，给竖直 <<include>> 留约 55px）
+    add("uc03", "生成故障预警", L.warn_primary_x, 79)
+    add("uc03m", "手动触发故障预警", L.warn_primary_x, 178)
+    add("uc03b", "拉取增量日志", L.warn_child_x, 38, primary=False)
+    add("uc03c", "执行模型推理", L.warn_child_x, 82, primary=False)
+    add("uc03d", "写入预警记录", L.warn_child_x, 126, primary=False)
+    add("uc04", "处置预警记录", L.warn_primary_x, 264)
+    add("uc04b", "忽略预警", L.warn_child_x, 245, primary=False, narrow=True)
+    add("uc04a", "确认故障", L.warn_child_x, 289, primary=False, narrow=True)
 
     d.include_fans = [
         IncludeFan("uc01", ["uc01a", "uc01b", "uc01c", "uc01d"], label_index=1),
@@ -211,7 +211,7 @@ def build_xml(d: Diagram) -> str:
         c = _cell(root, cid, value=text,
                   style=_style("text", html=1, align="center", fontSize=14, fontStyle=1, fontColor="#666666"),
                   vertex=True)
-        _geom(c, x, 26, 70, 22)
+        _geom(c, x, 22, 70, 20)
 
     c = _cell(root, "divider", style=_style(endArrow="none", html=1, strokeColor="#BDBDBD",
                                             dashed=1, dashPattern="6 6"), edge=True)
