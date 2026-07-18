@@ -14,6 +14,7 @@ export PYTHONPATH="${ROOT}/figure_codes${PYTHONPATH:+:$PYTHONPATH}"
 SCRIPTS=(
   # 第一章
   chap1_data_grow_trend.py
+  chap1_framework.py
 
   # 第二章
   chap2_ssd_structure.py
@@ -22,6 +23,8 @@ SCRIPTS=(
   chap2_gbdt_graph.py
 
   # 第三章
+  chap3_pipeline.py
+  chap3_ensemble.py
   chap3_failure_by_month.py
   chap3_temporal_missing_distribution.py
   chap3_temporal_missing_schematic.py
