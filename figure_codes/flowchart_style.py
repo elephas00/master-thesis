@@ -8,11 +8,13 @@ import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.patches import FancyBboxPatch, Polygon
 
+from thesis_style import FONT
+
 INK = "#111111"
 PAPER = "#FFFFFF"
 LINE_WIDTH = 1.0
 ARROW_SCALE = 9
-FONT_SIZE = 10
+FONT_SIZE = FONT["label"]
 
 
 def apply_flowchart_rc() -> None:
@@ -230,7 +232,7 @@ def edge_label(
     position: tuple[float, float],
     text: str,
     *,
-    fontsize: float = 9,
+    fontsize: float = FONT["tick"],
 ) -> None:
     """绘制带白色衬底的分支标签。"""
     ax.text(

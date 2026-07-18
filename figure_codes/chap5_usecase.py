@@ -13,9 +13,17 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from figure_paths import BUILD_DIR, GENERATED_DIR, PROJECT_ROOT as ROOT, ensure_output_dirs
+from thesis_style import drawio_fs
 
 OUT_XML = BUILD_DIR / "chap5-usecase.xml"
 OUT_PDF = GENERATED_DIR / "chap5-usecase.pdf"
+
+_SCALE = 1.4
+FS_BOUNDARY = drawio_fs("title", scale=16 / 11)
+FS_TITLE = drawio_fs("title", scale=_SCALE)
+FS_LABEL = drawio_fs("label", scale=_SCALE)
+FS_TICK = drawio_fs("tick", scale=_SCALE)
+FS_ANNOT = drawio_fs("annot", scale=_SCALE)
 
 
 @dataclass(frozen=True)
@@ -73,7 +81,7 @@ class UseCase:
     y: int
     w: int
     h: int
-    font: int = 14
+    font: int = FS_LABEL
 
 
 @dataclass
@@ -101,7 +109,7 @@ def _build_diagram() -> Diagram:
     def add(uid: str, title: str, x: int, y: int, *, primary: bool = True, narrow: bool = False) -> None:
         w = L.child_w_narrow if narrow else (L.primary_w if primary else L.child_w)
         h = L.primary_h if primary else L.child_h
-        d.use_cases[uid] = UseCase(uid, title, x, y, w, h, 14 if primary else 13)
+        d.use_cases[uid] = UseCase(uid, title, x, y, w, h, FS_LABEL if primary else FS_TICK)
 
     # 管理侧（子用例步距 44，组间距约 16）
     add("uc01", "维护SSD盘资产", L.mgmt_primary_x, 91)
@@ -204,13 +212,13 @@ def build_xml(d: Diagram) -> str:
     c = _cell(root, "boundary", value="智慧 SSD 运维系统",
               style=_style(rounded=0, whiteSpace="wrap", html=1, dashed=1, dashPattern="8 8",
                            strokeWidth=2, verticalAlign="top", align="left",
-                           spacingLeft=12, spacingTop=6, fontStyle=1, fontSize=16),
+                           spacingLeft=12, spacingTop=6, fontStyle=1, fontSize=FS_BOUNDARY),
               vertex=True)
     _geom(c, L.boundary_x, L.boundary_y, L.boundary_w, L.boundary_h)
 
     for cid, text, x in (("label-left", "管理侧", L.label_mgmt_x), ("label-right", "预警侧", L.label_warn_x)):
         c = _cell(root, cid, value=text,
-                  style=_style("text", html=1, align="center", fontSize=14, fontStyle=1, fontColor="#666666"),
+                  style=_style("text", html=1, align="center", fontSize=FS_LABEL, fontStyle=1, fontColor="#666666"),
                   vertex=True)
         _geom(c, x, 22, 70, 20)
 
@@ -221,13 +229,13 @@ def build_xml(d: Diagram) -> str:
     # Actors
     c = _cell(root, "actor-user", value="运维用户",
               style=_style(shape="umlActor", verticalLabelPosition="bottom", verticalAlign="top",
-                           html=1, outlineConnect=0, fontSize=15),
+                           html=1, outlineConnect=0, fontSize=FS_TITLE),
               vertex=True)
     _geom(c, L.actor_user_x, L.actor_user_y, 30, 60)
 
     c = _cell(root, "actor-scheduler", value="定时调度器",
               style=_style(shape="umlActor", verticalLabelPosition="bottom", verticalAlign="top",
-                           html=1, outlineConnect=0, fontSize=14),
+                           html=1, outlineConnect=0, fontSize=FS_LABEL),
               vertex=True)
     _geom(c, L.sched_x, L.sched_y, 30, 50)
 
@@ -299,7 +307,7 @@ def build_xml(d: Diagram) -> str:
             labeled = i == fan.label_index
             style_kw: dict[str, object] = dict(
                 endArrow="open", dashed=1, html=1, rounded=0,
-                exitX=1, exitY=exit_y, entryX=0, entryY=0.5, fontSize=11,
+                exitX=1, exitY=exit_y, entryX=0, entryY=0.5, fontSize=FS_ANNOT,
             )
             if labeled:
                 style_kw["labelBackgroundColor"] = "#FFFFFF"
@@ -311,7 +319,7 @@ def build_xml(d: Diagram) -> str:
 
     for src, tgt, _kind, ports in d.extra_includes:
         style = _style(
-            endArrow="open", dashed=1, html=1, rounded=0, fontSize=11,
+            endArrow="open", dashed=1, html=1, rounded=0, fontSize=FS_ANNOT,
             labelBackgroundColor="#FFFFFF",
             exitX=ports["exitX"], exitY=ports["exitY"],
             entryX=ports["entryX"], entryY=ports["entryY"],
@@ -336,7 +344,7 @@ def build_xml(d: Diagram) -> str:
 
     c = _cell(root, "e-inc-04a-j", value="<<include>>",
               style=_style(endArrow="none", dashed=1, html=1, rounded=0,
-                           exitX=0.5, exitY=1, entryX=0.5, entryY=0.5, fontSize=11,
+                           exitX=0.5, exitY=1, entryX=0.5, entryY=0.5, fontSize=FS_ANNOT,
                            labelBackgroundColor="#FFFFFF"),
               edge=True, source="uc04a", target="j-reg-right")
     _edge_geom(c, points=[(drop_x, mid_y)])

@@ -14,9 +14,19 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from figure_paths import BUILD_DIR, GENERATED_DIR, PROJECT_ROOT as ROOT, ensure_output_dirs
+from thesis_style import drawio_fs
 
 OUT_XML = BUILD_DIR / "chap3-ensemble.xml"
 OUT_PDF = GENERATED_DIR / "chap3-ensemble.pdf"
+
+_SCALE = 5.0
+FS_TITLE = drawio_fs("title", scale=_SCALE)
+FS_LABEL = drawio_fs("label", scale=_SCALE)
+FS_TICK = drawio_fs("tick", scale=_SCALE)
+FS_BOX = drawio_fs("title", scale=60 / 11)
+FS_SWIM = drawio_fs("title", scale=54 / 11)
+FS_BODY = drawio_fs("label", scale=5.1)
+FS_EDGE = drawio_fs("tick", scale=7.0)
 
 TEXT = "text;html=1;strokeColor=none;fillColor=none;"
 
@@ -112,7 +122,7 @@ def build() -> Diagram:
         120, 690, 570, 330,
         style=(
             "rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;"
-            "fontSize=60;arcSize=8;"
+            f"fontSize={FS_BOX};arcSize=8;"
         ),
     )
 
@@ -122,7 +132,7 @@ def build() -> Diagram:
         840, 330, 900, 1096,
         style=(
             "swimlane;html=1;startSize=90;fillColor=#e3f2fd;strokeColor=#1565c0;"
-            "fontStyle=1;fontSize=54;rounded=1;arcSize=6;"
+            f"fontStyle=1;fontSize={FS_SWIM};rounded=1;arcSize=6;"
         ),
     )
     d.box(
@@ -140,7 +150,7 @@ def build() -> Diagram:
         90, 204, 360, 180,
         style=(
             "rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1565c0;"
-            "fontSize=54;"
+            f"fontSize={FS_SWIM};"
         ),
         parent="layer1-box",
     )
@@ -150,7 +160,7 @@ def build() -> Diagram:
         570, 220, 240, 150,
         style=(
             "rounded=1;whiteSpace=wrap;html=1;fillColor=#bbdefb;strokeColor=#1565c0;"
-            "fontSize=51;"
+            f"fontSize={FS_BODY};"
         ),
         parent="layer1-box",
     )
@@ -182,7 +192,7 @@ def build() -> Diagram:
         90, 744, 360, 180,
         style=(
             "rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1565c0;"
-            "fontSize=54;"
+            f"fontSize={FS_SWIM};"
         ),
         parent="layer1-box",
     )
@@ -192,7 +202,7 @@ def build() -> Diagram:
         570, 760, 240, 150,
         style=(
             "rounded=1;whiteSpace=wrap;html=1;fillColor=#bbdefb;strokeColor=#1565c0;"
-            "fontSize=51;"
+            f"fontSize={FS_BODY};"
         ),
         parent="layer1-box",
     )
@@ -214,7 +224,7 @@ def build() -> Diagram:
         1890, 690, 390, 330,
         style=(
             "rounded=1;whiteSpace=wrap;html=1;fillColor=#e8eaf6;strokeColor=#3949ab;"
-            "fontSize=54;"
+            f"fontSize={FS_SWIM};"
         ),
     )
 
@@ -224,7 +234,7 @@ def build() -> Diagram:
         2460, 270, 900, 1170,
         style=(
             "swimlane;startSize=84;fillColor=#fff3e0;strokeColor=#e65100;"
-            "fontStyle=1;fontSize=54;rounded=1;arcSize=6;"
+            f"fontStyle=1;fontSize={FS_SWIM};rounded=1;arcSize=6;"
         ),
     )
     d.box(
@@ -234,7 +244,7 @@ def build() -> Diagram:
         90, 150, 720, 166,
         style=(
             "rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#e65100;"
-            "fontSize=51;"
+            f"fontSize={FS_BODY};"
         ),
         parent="layer2-box",
     )
@@ -246,7 +256,7 @@ def build() -> Diagram:
         90, 390, 720, 166,
         style=(
             "rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#e65100;"
-            "fontSize=51;"
+            f"fontSize={FS_BODY};"
         ),
         parent="layer2-box",
     )
@@ -258,7 +268,7 @@ def build() -> Diagram:
         90, 630, 720, 166,
         style=(
             "rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#e65100;"
-            "fontSize=51;"
+            f"fontSize={FS_BODY};"
         ),
         parent="layer2-box",
     )
@@ -278,7 +288,7 @@ def build() -> Diagram:
         3540, 736, 480, 240,
         style=(
             "rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;"
-            "fontSize=60;arcSize=8;"
+            f"fontSize={FS_BOX};arcSize=8;"
         ),
     )
     d.box(
@@ -290,7 +300,7 @@ def build() -> Diagram:
         2460, 1560, 1020, 210,
         style=(
             "rounded=1;whiteSpace=wrap;html=1;fillColor=#ffebee;strokeColor=#c62828;"
-            "fontSize=51;dashed=1;dashPattern=8 8;"
+            f"fontSize={FS_BODY};dashed=1;dashPattern=8 8;"
         ),
     )
     d.box(
@@ -299,7 +309,7 @@ def build() -> Diagram:
         3540, 1590, 390, 150,
         style=(
             "rounded=1;whiteSpace=wrap;html=1;fillColor=#fce4ec;strokeColor=#c62828;"
-            "fontSize=51;"
+            f"fontSize={FS_BODY};"
         ),
     )
 
@@ -310,7 +320,7 @@ def build() -> Diagram:
     )
     d.box(
         "legend-title", "图例", 156, 1560, 120, 54,
-        style=TEXT + "fontStyle=1;fontSize=51;",
+        style=TEXT + f"fontStyle=1;fontSize={FS_BODY};",
     )
     d.free_edge(
         "legend1-line", 156, 1640, 306, 1640,
@@ -318,7 +328,7 @@ def build() -> Diagram:
     )
     d.box(
         "legend1", "推理数据流", 336, 1614, 330, 60,
-        style=TEXT + "fontSize=45;align=left;",
+        style=TEXT + f"fontSize={FS_TICK};align=left;",
     )
     d.free_edge(
         "legend2-line", 156, 1712, 306, 1712,
@@ -326,7 +336,7 @@ def build() -> Diagram:
     )
     d.box(
         "legend2", "训练 / 损失", 336, 1686, 330, 60,
-        style=TEXT + "fontSize=45;align=left;",
+        style=TEXT + f"fontSize={FS_TICK};align=left;",
     )
 
     # inference edges
@@ -351,7 +361,7 @@ def build() -> Diagram:
         style=(
             "edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;"
             "html=1;strokeWidth=1.5;strokeColor=#999999;dashed=1;"
-            "exitX=1;exitY=0.5;entryX=0;entryY=0.5;fontSize=63;fontColor=#888888;"
+            f"exitX=1;exitY=0.5;entryX=0;entryY=0.5;fontSize={FS_EDGE};fontColor=#888888;"
         ),
         value="⋯",
     )
@@ -439,7 +449,7 @@ def build() -> Diagram:
         "e-focal-back", "focal", "layer2-box",
         style=(
             "edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;"
-            "html=1;strokeWidth=2;strokeColor=#c62828;dashed=1;fontSize=45;"
+            f"html=1;strokeWidth=2;strokeColor=#c62828;dashed=1;fontSize={FS_TICK};"
             "exitX=0.25;exitY=0;entryX=0.5;entryY=1;"
         ),
         value="更新 W<sub>α</sub>, b<sub>α</sub>",

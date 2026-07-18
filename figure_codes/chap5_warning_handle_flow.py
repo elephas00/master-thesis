@@ -25,6 +25,7 @@ from flowchart_style import (
     routed_arrow,
     routed_dashed_arrow,
 )
+from thesis_style import FONT
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OUT_PDF = FIGURE_DIR / "chap5-warning-handle-flow.pdf"
@@ -47,7 +48,7 @@ def _lane(ax, x: float, w: float, title: str, *, y0: float, h: float, head_h: fl
     ))
     ax.text(
         x, y0 + h - head_h / 2, title, ha="center", va="center",
-        fontsize=10.0, color=INK, fontweight="bold", zorder=2,
+        fontsize=FONT["label"], color=INK, fontweight="bold", zorder=2,
     )
 
 
@@ -64,7 +65,7 @@ def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
         _lane(ax, x, w, title, y0=lane_y0, h=lane_h, head_h=head_h)
 
     bh, bh2, bh3 = 0.52, 0.55, 0.70
-    fs, fs2 = 8.2, 7.6
+    fs, fs2 = FONT["annot"], FONT["note"]
     hw1, hw2, hw4 = 0.95, 1.0, 0.95
 
     # 表头底约 3.26；① 顶边留约 0.12 间距

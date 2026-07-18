@@ -21,6 +21,7 @@ from flowchart_style import (
     apply_flowchart_rc,
     process,
 )
+from thesis_style import FONT
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OUT_PDF = FIGURE_DIR / "chap4-blockfilter-grouping.pdf"
@@ -64,7 +65,7 @@ def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
             f"逻辑组 B{r}（BlockFilter $\\mathrm{{mod}}\\ 4={r}$）",
             ha="center",
             va="center",
-            fontsize=11,
+            fontsize=FONT["title"],
             color=INK,
         )
 
@@ -76,7 +77,7 @@ def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
             (x0 + 6.85, y0 + 0.95),
         ]
         for center, label in zip(positions, cells):
-            process(ax, center, 4.2, 1.15, label, fontsize=10.5)
+            process(ax, center, 4.2, 1.15, label, fontsize=FONT["label"])
 
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
     fig.savefig(save_pdf, bbox_inches="tight", pad_inches=0.06, facecolor="white")

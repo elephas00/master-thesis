@@ -157,11 +157,12 @@ def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
     _marker(ax, 4.0, y1, "FP")
     ax.text(4.0, y1 - 0.75, "FP：窗口前预警", ha="center", va="center", fontsize=FONT["tick"])
 
-    _marker(ax, 8.5, y1, "TP")
-    ax.text(8.5, y1 - 0.75, "TP：窗口内预警", ha="center", va="center", fontsize=FONT["tick"])
+    # 窗口内 TP / FN 拉开，避免下方长标签重叠
+    _marker(ax, 7.85, y1, "TP")
+    ax.text(7.85, y1 - 0.75, "TP：窗口内预警", ha="center", va="center", fontsize=FONT["tick"])
 
-    _marker(ax, 9.9, y1, "FN")
-    ax.text(9.9, y1 - 0.75, "FN：全程未预警", ha="center", va="center", fontsize=FONT["tick"])
+    _marker(ax, 10.15, y1, "FN")
+    ax.text(10.15, y1 - 0.75, "FN：全程未预警", ha="center", va="center", fontsize=FONT["tick"])
 
     # ---- 行 2：无故障 TN ----
     y2 = 2.55

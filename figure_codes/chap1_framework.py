@@ -14,9 +14,17 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from figure_paths import BUILD_DIR, GENERATED_DIR, PROJECT_ROOT as ROOT, ensure_output_dirs
+from thesis_style import drawio_fs
 
 OUT_XML = BUILD_DIR / "chap1-framework.xml"
 OUT_PDF = GENERATED_DIR / "chap1-framework.pdf"
+
+_SCALE = 2.0
+FS_TITLE = drawio_fs("title", scale=_SCALE)
+FS_LABEL = drawio_fs("label", scale=_SCALE)
+FS_TICK = drawio_fs("tick", scale=_SCALE)
+FS_ANNOT = drawio_fs("annot", scale=_SCALE)
+FS_LEGEND_SM = drawio_fs("annot", scale=1.75)
 
 TEXT = "text;html=1;strokeColor=none;fillColor=none;fontFamily=Helvetica;"
 EDGE = (
@@ -33,22 +41,22 @@ EDGE_DASH_GRAY = (
 EDGE_DASH_GREEN = (
     "edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;"
     "strokeColor=#2E7D32;endArrow=blockThin;endFill=1;dashed=1;dashPattern=8 4;"
-    "fontSize=14;fontColor=#2E7D32;fontFamily=Helvetica;"
+    f"fontSize={FS_LEGEND_SM};fontColor=#2E7D32;fontFamily=Helvetica;"
 )
 EDGE_CH3_CH5 = (
     "edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;"
     "strokeColor=#1565C0;endArrow=blockThin;endFill=1;"
-    "fontSize=14;fontColor=#1565C0;fontFamily=Helvetica;"
+    f"fontSize={FS_LEGEND_SM};fontColor=#1565C0;fontFamily=Helvetica;"
 )
 PARA = (
     "shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;"
     "html=1;fixedSize=1;fillColor=#EEEEEE;strokeColor=#757575;"
-    "strokeWidth=1.5;fontSize=19;fontFamily=Helvetica;"
+    f"strokeWidth=1.5;fontSize={FS_LABEL};fontFamily=Helvetica;"
 )
 PARA_OUT = (
     "shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;"
     "html=1;fixedSize=1;fillColor=#F5F5F5;strokeColor=#9E9E9E;"
-    "strokeWidth=1.5;fontSize=18;fontFamily=Helvetica;"
+    f"strokeWidth=1.5;fontSize={FS_TICK};fontFamily=Helvetica;"
 )
 
 
@@ -143,7 +151,7 @@ def build() -> Diagram:
         40, 20, 1320, 52,
         style=(
             "rounded=1;whiteSpace=wrap;html=1;fillColor=#ECEFF1;strokeColor=#607D8B;"
-            "strokeWidth=2;fontSize=22;fontFamily=Helvetica;arcSize=8;"
+            f"strokeWidth=2;fontSize={FS_TITLE};fontFamily=Helvetica;arcSize=8;"
         ),
     )
     d.box(
@@ -155,7 +163,7 @@ def build() -> Diagram:
         60, 92, 600, 78,
         style=(
             "rounded=1;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#9E9E9E;"
-            "strokeWidth=1.5;fontSize=20;fontFamily=Helvetica;arcSize=10;"
+            f"strokeWidth=1.5;fontSize={FS_LABEL};fontFamily=Helvetica;arcSize=10;"
         ),
     )
     d.box(
@@ -167,7 +175,7 @@ def build() -> Diagram:
         740, 92, 600, 78,
         style=(
             "rounded=1;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#9E9E9E;"
-            "strokeWidth=1.5;fontSize=20;fontFamily=Helvetica;arcSize=10;"
+            f"strokeWidth=1.5;fontSize={FS_LABEL};fontFamily=Helvetica;arcSize=10;"
         ),
     )
 
@@ -181,7 +189,7 @@ def build() -> Diagram:
     d.box(
         "ch3-label", "第三章 · 盘级故障预测",
         430, 194, 220, 28,
-        style=TEXT + "align=right;verticalAlign=middle;fontStyle=1;fontSize=20;fontColor=#1565C0;",
+        style=TEXT + f"align=right;verticalAlign=middle;fontStyle=1;fontSize={FS_LABEL};fontColor=#1565C0;",
     )
     d.box(
         "ch4-bg", "", 730, 188, 620, 470,
@@ -193,7 +201,7 @@ def build() -> Diagram:
     d.box(
         "ch4-label", "第四章 · 块级寿命提升",
         1110, 194, 220, 28,
-        style=TEXT + "align=right;verticalAlign=middle;fontStyle=1;fontSize=20;fontColor=#2E7D32;",
+        style=TEXT + f"align=right;verticalAlign=middle;fontStyle=1;fontSize={FS_LABEL};fontColor=#2E7D32;",
     )
 
     # ch3 stack
@@ -211,7 +219,7 @@ def build() -> Diagram:
         130, 308, 460, 58,
         style=(
             "rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#78909C;"
-            "strokeWidth=1.5;fontSize=18;fontFamily=Helvetica;arcSize=10;"
+            f"strokeWidth=1.5;fontSize={FS_TICK};fontFamily=Helvetica;arcSize=10;"
         ),
     )
     d.box(
@@ -222,7 +230,7 @@ def build() -> Diagram:
         130, 384, 460, 58,
         style=(
             "rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#E65100;"
-            "strokeWidth=2;fontSize=18;fontFamily=Helvetica;arcSize=10;"
+            f"strokeWidth=2;fontSize={FS_TICK};fontFamily=Helvetica;arcSize=10;"
         ),
     )
     d.box(
@@ -233,7 +241,7 @@ def build() -> Diagram:
         130, 460, 460, 58,
         style=(
             "rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1565C0;"
-            "strokeWidth=2;fontSize=18;fontFamily=Helvetica;arcSize=10;"
+            f"strokeWidth=2;fontSize={FS_TICK};fontFamily=Helvetica;arcSize=10;"
         ),
     )
     d.box(
@@ -244,7 +252,7 @@ def build() -> Diagram:
         130, 530, 460, 68,
         style=(
             "rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1565C0;"
-            "strokeWidth=2;fontSize=18;fontFamily=Helvetica;arcSize=10;"
+            f"strokeWidth=2;fontSize={FS_TICK};fontFamily=Helvetica;arcSize=10;"
         ),
     )
     d.box(
@@ -270,7 +278,7 @@ def build() -> Diagram:
         810, 318, 460, 58,
         style=(
             "rounded=1;whiteSpace=wrap;html=1;fillColor=#DCEDC8;strokeColor=#558B2F;"
-            "strokeWidth=1.5;fontSize=18;fontFamily=Helvetica;arcSize=10;"
+            f"strokeWidth=1.5;fontSize={FS_TICK};fontFamily=Helvetica;arcSize=10;"
         ),
     )
     d.box(
@@ -281,7 +289,7 @@ def build() -> Diagram:
         810, 408, 460, 58,
         style=(
             "rounded=1;whiteSpace=wrap;html=1;fillColor=#DCEDC8;strokeColor=#558B2F;"
-            "strokeWidth=1.5;fontSize=18;fontFamily=Helvetica;arcSize=10;"
+            f"strokeWidth=1.5;fontSize={FS_TICK};fontFamily=Helvetica;arcSize=10;"
         ),
     )
     d.box(
@@ -291,7 +299,7 @@ def build() -> Diagram:
         810, 498, 460, 58,
         style=(
             "rounded=1;whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#2E7D32;"
-            "strokeWidth=2;fontSize=18;fontFamily=Helvetica;arcSize=10;"
+            f"strokeWidth=2;fontSize={FS_TICK};fontFamily=Helvetica;arcSize=10;"
         ),
     )
     d.box(
@@ -312,7 +320,7 @@ def build() -> Diagram:
     d.box(
         "ch5-label", "第五章 · 工程落地",
         136, 716, 160, 24,
-        style=TEXT + "align=left;verticalAlign=middle;fontStyle=1;fontSize=18;fontColor=#7B1FA2;",
+        style=TEXT + f"align=left;verticalAlign=middle;fontStyle=1;fontSize={FS_TICK};fontColor=#7B1FA2;",
     )
     d.box(
         "ch5-main",
@@ -322,7 +330,7 @@ def build() -> Diagram:
         320, 732, 760, 64,
         style=(
             "rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#9C27B0;"
-            "strokeWidth=2;fontSize=20;fontFamily=Helvetica;arcSize=10;"
+            f"strokeWidth=2;fontSize={FS_LABEL};fontFamily=Helvetica;arcSize=10;"
         ),
     )
 
@@ -345,32 +353,32 @@ def build() -> Diagram:
         "legend-box", "", 120, 830, 1160, 58,
         style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#E0E0E0;strokeWidth=1;",
     )
-    d.box("legend-title", "图例", 266, 844, 48, 28, style=TEXT + "fontStyle=1;fontSize=16;align=center;")
+    d.box("legend-title", "图例", 266, 844, 48, 28, style=TEXT + f"fontStyle=1;fontSize={FS_ANNOT};align=center;")
     d.box(
         "lg-ch3", "", 326, 850, 28, 18,
         style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1565C0;",
     )
-    d.box("lg-ch3t", "第三章方法模块", 358, 844, 120, 28, style=TEXT + "fontSize=14;")
+    d.box("lg-ch3t", "第三章方法模块", 358, 844, 120, 28, style=TEXT + f"fontSize={FS_LEGEND_SM};")
     d.box(
         "lg-label", "", 494, 850, 28, 18,
         style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#E65100;",
     )
-    d.box("lg-labelt", "混合标注", 526, 844, 72, 28, style=TEXT + "fontSize=14;")
+    d.box("lg-labelt", "混合标注", 526, 844, 72, 28, style=TEXT + f"fontSize={FS_LEGEND_SM};")
     d.box(
         "lg-ch4", "", 614, 850, 28, 18,
         style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DCEDC8;strokeColor=#558B2F;",
     )
-    d.box("lg-ch4t", "第四章方法模块", 646, 844, 120, 28, style=TEXT + "fontSize=14;")
+    d.box("lg-ch4t", "第四章方法模块", 646, 844, 120, 28, style=TEXT + f"fontSize={FS_LEGEND_SM};")
     d.box(
         "lg-ch5", "", 782, 850, 28, 18,
         style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#BA68C8;",
     )
-    d.box("lg-ch5t", "第五章工程落地", 814, 844, 110, 28, style=TEXT + "fontSize=14;")
+    d.box("lg-ch5t", "第五章工程落地", 814, 844, 110, 28, style=TEXT + f"fontSize={FS_LEGEND_SM};")
     d.free_edge(
         "lg-dash", 940, 859, 990, 859,
         style="endArrow=blockThin;html=1;strokeWidth=1.5;strokeColor=#2E7D32;dashed=1;dashPattern=8 4;",
     )
-    d.box("lg-dasht", "虚线：策略可扩展衔接", 998, 844, 160, 28, style=TEXT + "fontSize=14;")
+    d.box("lg-dasht", "虚线：策略可扩展衔接", 998, 844, 160, 28, style=TEXT + f"fontSize={FS_LEGEND_SM};")
     return d
 
 

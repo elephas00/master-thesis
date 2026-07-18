@@ -14,9 +14,19 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from figure_paths import BUILD_DIR, GENERATED_DIR, PROJECT_ROOT as ROOT, ensure_output_dirs
+from thesis_style import drawio_fs
 
 OUT_XML = BUILD_DIR / "chap3-pipeline.xml"
 OUT_PDF = GENERATED_DIR / "chap3-pipeline.pdf"
+
+_SCALE = 2.0
+FS_TITLE = drawio_fs("title", scale=_SCALE)
+FS_LABEL = drawio_fs("label", scale=_SCALE)
+FS_TICK = drawio_fs("tick", scale=_SCALE)
+FS_HEAD = drawio_fs("title", scale=25 / 11)
+FS_LEGEND_TITLE = drawio_fs("legend", scale=17 / 9)
+FS_LEGEND_TEXT = drawio_fs("legend", scale=15 / 9)
+FS_ANNOT = drawio_fs("annot", scale=1.75)
 
 BG = (
     "rounded=1;whiteSpace=wrap;html=1;fillColor=#F8FBFF;"
@@ -25,28 +35,28 @@ BG = (
 PARA = (
     "shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;"
     "html=1;fixedSize=1;fillColor=#EEEEEE;strokeColor=#757575;"
-    "strokeWidth=1.5;fontSize=22;fontFamily=Helvetica;"
+    f"strokeWidth=1.5;fontSize={FS_TITLE};fontFamily=Helvetica;"
 )
 PARA_OUT = (
     "shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;"
     "html=1;fixedSize=1;fillColor=#F5F5F5;strokeColor=#9E9E9E;"
-    "strokeWidth=1.5;fontSize=20;fontFamily=Helvetica;"
+    f"strokeWidth=1.5;fontSize={FS_LABEL};fontFamily=Helvetica;"
 )
 BOX_GRAY = (
     "rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#9E9E9E;"
-    "strokeWidth=1.5;fontSize=22;fontFamily=Helvetica;arcSize=10;"
+    f"strokeWidth=1.5;fontSize={FS_TITLE};fontFamily=Helvetica;arcSize=10;"
 )
 BOX_BLUE = (
     "rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1565C0;"
-    "strokeWidth=2;fontSize=20;fontFamily=Helvetica;arcSize=10;"
+    f"strokeWidth=2;fontSize={FS_LABEL};fontFamily=Helvetica;arcSize=10;"
 )
 BOX_ORANGE = (
     "rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#E65100;"
-    "strokeWidth=2;fontSize=20;fontFamily=Helvetica;arcSize=10;"
+    f"strokeWidth=2;fontSize={FS_LABEL};fontFamily=Helvetica;arcSize=10;"
 )
 BOX_GREEN = (
     "rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;"
-    "strokeWidth=1.5;fontSize=20;fontFamily=Helvetica;arcSize=10;"
+    f"strokeWidth=1.5;fontSize={FS_LABEL};fontFamily=Helvetica;arcSize=10;"
 )
 EDGE = (
     "edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;"
@@ -59,7 +69,7 @@ EDGE_BLUE = (
 EDGE_DASH = (
     "edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;"
     "html=1;strokeWidth=1.5;strokeColor=#E65100;dashed=1;dashPattern=8 4;"
-    "endArrow=blockThin;endFill=1;fontSize=15;fontColor=#E65100;fontFamily=Helvetica;"
+    f"endArrow=blockThin;endFill=1;fontSize={FS_LEGEND_TEXT};fontColor=#E65100;fontFamily=Helvetica;"
 )
 TEXT = "text;html=1;strokeColor=none;fillColor=none;fontFamily=Helvetica;"
 
@@ -155,7 +165,7 @@ def build() -> Diagram:
     d.box(
         "method-bg-label", "本章方法三模块",
         845, 36, 160, 30,
-        style=TEXT + "align=right;verticalAlign=middle;fontStyle=1;fontSize=25;fontColor=#1565C0;",
+        style=TEXT + f"align=right;verticalAlign=middle;fontStyle=1;fontSize={FS_HEAD};fontColor=#1565C0;",
     )
 
     d.box(
@@ -189,7 +199,7 @@ def build() -> Diagram:
         "align",
         '<font style="font-size:14px;color:#795548">W、k 超参数</font>',
         545, 158, 80, 22,
-        style=TEXT + "align=center;verticalAlign=middle;fontSize=14;",
+        style=TEXT + f"align=center;verticalAlign=middle;fontSize={FS_ANNOT};",
     )
     d.free_edge(
         "align-line", 585, 158, 585, 195,
@@ -235,7 +245,7 @@ def build() -> Diagram:
     )
     d.box(
         "legend-title", "图例", 136, 396, 48, 28,
-        style=TEXT + "fontStyle=1;fontSize=17;align=center;",
+        style=TEXT + f"fontStyle=1;fontSize={FS_LEGEND_TITLE};align=center;",
     )
     d.box(
         "lg1", "", 196, 404, 30, 20,
@@ -243,7 +253,7 @@ def build() -> Diagram:
     )
     d.box(
         "lg1t", "数据预处理 / 盘级评估", 232, 398, 180, 28,
-        style=TEXT + "fontSize=15;",
+        style=TEXT + f"fontSize={FS_LEGEND_TEXT};",
     )
     d.box(
         "lg2", "", 430, 404, 30, 20,
@@ -251,7 +261,7 @@ def build() -> Diagram:
     )
     d.box(
         "lg2t", "方法模块 ①③（特征与集成）", 466, 398, 210, 28,
-        style=TEXT + "fontSize=15;",
+        style=TEXT + f"fontSize={FS_LEGEND_TEXT};",
     )
     d.box(
         "lg3", "", 700, 404, 30, 20,
@@ -259,7 +269,7 @@ def build() -> Diagram:
     )
     d.box(
         "lg3t", "方法模块 ②（混合标注）", 736, 398, 180, 28,
-        style=TEXT + "fontSize=15;",
+        style=TEXT + f"fontSize={FS_LEGEND_TEXT};",
     )
     d.free_edge(
         "lg4", 940, 414, 990, 414,
@@ -268,7 +278,7 @@ def build() -> Diagram:
     )
     d.box(
         "lg4t", "虚线：监督标注支路", 998, 398, 160, 28,
-        style=TEXT + "fontSize=15;",
+        style=TEXT + f"fontSize={FS_LEGEND_TEXT};",
     )
     return d
 

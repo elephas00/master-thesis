@@ -99,8 +99,8 @@ def main():
 
     x = np.arange(len(METHODS))
     bar_width = 0.72
-    BREAK_GAP = 0.028   # 上下段间距，避免刻度/标注重叠
-    BOT_FRAC = 0.26     # 下段高度占比
+    BREAK_GAP = 0.018   # 上下段间距（figure 坐标）；过大会在 MB1 断轴列留出大块空白
+    BOT_FRAC = 0.30     # 下段高度占比；略增以压缩上段空白、让低值柱更易读
 
 
     def _style_axis(ax):
@@ -111,37 +111,38 @@ def main():
         ax.tick_params(axis="y", pad=2)
 
 
-    def _annotate_zero(ax, xi, ylo, yhi, color):
-        """指标为 0：在 y 轴下沿标注「0」，不绘制柱形。"""
+    def _annotate_zero(ax, xi, ylo, yhi, color=None):
+        """指标为 0：在 y 轴下沿用黑色标注「0」，不绘制柱形。"""
         span = max(yhi - ylo, 1e-9)
         y = ylo + 0.035 * span
-        ax.plot([xi, xi], [ylo, ylo + 0.018 * span], color=color, lw=0.9, zorder=4, alpha=0.9)
+        ax.plot([xi, xi], [ylo, ylo + 0.018 * span], color=C_ZERO, lw=0.9, zorder=4)
         ax.text(xi, y, "0", ha="center", va="bottom", fontsize=FONT["annot"],
-                color=color, zorder=5, alpha=0.95)
+                color=C_ZERO, zorder=5)
 
 
-    TITLE_PAD = 12  # 列标题与子图之间的间距
+    TITLE_PAD = 26  # 指标标题与 MB1 行距（从行间 hspace 挪过来）
+    # 柱顶数值相对纵轴跨度的统一抬升（各柱、各子图同一比例）
+    ANNOT_PAD_FRAC = 0.025
 
 
     def _annotate_bar(ax, xi, v, raw, fmt, key, ylo, yhi, *, rotation=0, above_bar=False):
         if raw <= 0:
             return
         span = max(yhi - ylo, 1e-9)
+        pad = ANNOT_PAD_FRAC * span
         label = fmt.format(raw if key != "FPR" else raw)
-        if above_bar:
-            bar_top = min(max(v, ylo), yhi)
-            y_text = bar_top + 0.015 * span
-            ax.text(xi, y_text, label, ha="center", va="bottom",
-                    fontsize=FONT["annot"], rotation=rotation, zorder=5, clip_on=False)
-            return
+        # 一律贴在柱顶上方固定比例处；超出可视上界时也按同一 pad 抬升，避免近顶柱被压扁
+        bar_top = min(max(v, ylo), yhi) if v <= yhi else yhi
+        y_text = bar_top + pad
+        kw = dict(
+            ha="center", va="bottom", fontsize=FONT["annot"],
+            rotation=rotation, zorder=5, clip_on=False,
+        )
         if v > yhi:
-            ax.text(xi, yhi - 0.05 * span, label, ha="center", va="top",
-                    fontsize=FONT["annot"], rotation=rotation, zorder=4, color=C_ZERO)
-            return
+            kw["color"] = C_ZERO
         if v < ylo:
             return
-        ax.text(xi, min(v + 0.03 * span, yhi - 0.01 * span), label,
-                ha="center", va="bottom", fontsize=FONT["annot"], rotation=rotation, zorder=4)
+        ax.text(xi, y_text, label, **kw)
 
 
     def _draw_low_bar(ax, xi, v, raw, color, hatch, bot_lo, bot_hi, fmt, key):
@@ -389,7 +390,7 @@ def main():
         return ax
 
 
-    fig, axes = plt.subplots(2, 4, figsize=(13.8, 7.4), sharex=False)
+    fig, axes = plt.subplots(2, 4, figsize=(13.8, 6.6), sharex=False)
 
     broken_pairs = []
     row_panels = [[], []]
@@ -436,19 +437,30 @@ def main():
               edgecolor=C_EDGE, linewidth=BAR_LW, label=m)
         for m in METHODS
     ]
-    fig.legend(
-        handles=legend_handles, loc="lower center", ncol=6,
-        framealpha=0.95, edgecolor=C_LEGEND_FRAME, bbox_to_anchor=(0.5, -0.01),
-        fontsize=FONT["legend"],
-    )
 
-    fig.subplots_adjust(left=0.08, right=0.98, top=0.96, bottom=0.14, wspace=0.42, hspace=0.62)
+    # hspace 收紧 → 行距让给 TITLE_PAD（指标 ↔ MB1）
+    fig.subplots_adjust(left=0.08, right=0.98, top=0.93, bottom=0.08, wspace=0.38, hspace=0.22)
 
     for ax_top, ax_bot in broken_pairs:
         _align_broken_pair(ax_top, ax_bot)
     _align_mb1_columns_to_mb2(row_panels[0], row_panels[1], fig)
     _draw_row_label(row_panels[0][0], "MB1")
     _draw_row_label(row_panels[1][0], "MB2")
+
+    # 布局定稿后再放图例，保证仍居中；左侧仅补「图例」文字
+    leg = fig.legend(
+        handles=legend_handles, loc="lower center", ncol=6,
+        framealpha=0.95, edgecolor=C_LEGEND_FRAME, bbox_to_anchor=(0.5, 0.01),
+        fontsize=FONT["legend"],
+    )
+    fig.canvas.draw()
+    bb = leg.get_window_extent(fig.canvas.get_renderer()).transformed(fig.transFigure.inverted())
+    fig.text(
+        bb.x0 - 0.008, (bb.y0 + bb.y1) / 2, "图例",
+        transform=fig.transFigure, ha="right", va="center",
+        fontsize=FONT["legend"], fontweight="bold",
+    )
+
     # fig.savefig(OUT_GRID, bbox_inches="tight")
     fig.savefig(OUT_GRID_PDF, bbox_inches="tight")
     print(f"saved: {OUT_GRID_PDF}")

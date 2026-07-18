@@ -17,6 +17,7 @@ from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
 import matplotlib.path as mpath
 from matplotlib.patches import Circle, PathPatch, Polygon, Rectangle
 import numpy as np
+from thesis_style import FONT
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OUT_PDF = FIGURE_DIR / "chap2-program-erase-principle.pdf"
@@ -26,7 +27,7 @@ plt.rcParams.update({
     "axes.unicode_minus": False,
     "figure.dpi": 120,
     "savefig.dpi": 300,
-    "font.size": 11,
+    "font.size": FONT["label"],
     "pdf.fonttype": 42,
     "ps.fonttype": 42,
 })
@@ -153,7 +154,7 @@ def _sd_open_arc(ax, join_x, top_y, edge_x, bot_y, *, side: str, label: str):
             solid_capstyle="butt", solid_joinstyle="round")
     # 文字顶对齐于衬底上边线略下方，落在顶线与开放弧之间的空隙内
     ax.text(lx, top_y - 4.0, label,
-            ha="center", va="top", fontsize=10, color=C_TEXT, zorder=8)
+            ha="center", va="top", fontsize=FONT["label"], color=C_TEXT, zorder=8)
 
 
 def _draw_cell(ax, ox: float, *, mode: str) -> None:
@@ -207,12 +208,12 @@ def _draw_cell(ax, ox: float, *, mode: str) -> None:
     _side_wall(ax, wall_l_x, top, wall_w, stack_h, side="left")
     _side_wall(ax, wall_r_x, top, wall_w, stack_h, side="right")
 
-    # ---- 四层堆栈 ----
+    # ---- 四层堆栈（层内文字统一用 label，避免 annot/tick/title 混用显得忽大忽小）----
     layers = [
-        (tox_y, tox_h, C_OXIDE, "隧道氧化层", 8.5, "normal"),
+        (tox_y, tox_h, C_OXIDE, "隧道氧化层", FONT["label"], "normal"),
         (fg_y, fg_h, C_FG, "", 0, "normal"),
-        (ox_y, ox_h, C_OXIDE, "氧化层", 9.5, "normal"),
-        (cg_y, cg_h, C_CTRL, "控制极", 10.5, "bold"),
+        (ox_y, ox_h, C_OXIDE, "氧化层", FONT["label"], "normal"),
+        (cg_y, cg_h, C_CTRL, "控制极", FONT["label"], "bold"),
     ]
     for y, h, fc, text, fs, weight in layers:
         ax.add_patch(Rectangle(
@@ -241,7 +242,7 @@ def _draw_cell(ax, ox: float, *, mode: str) -> None:
     # 「隧道氧化层」白底文字浮于箭头之上（仅盖住字幅，箭头仍从上下露出）
     ax.text(
         stack_x + stack_w / 2, tox_y + tox_h / 2, "隧道氧化层",
-        ha="center", va="center", fontsize=8.5, color=C_TEXT, zorder=12,
+        ha="center", va="center", fontsize=FONT["label"], color=C_TEXT, zorder=12,
         bbox=dict(
             boxstyle="square,pad=0.15",
             facecolor="#FFFFFF",
@@ -263,7 +264,7 @@ def _draw_cell(ax, ox: float, *, mode: str) -> None:
         ax.plot([mid_x, mid_x], [stack_top, stack_top + 14],
                 color=C_EDGE, lw=LW, zorder=8, solid_capstyle="butt")
         ax.text(mid_x, stack_top + 16, r"$V_{PP}$",
-                ha="center", va="bottom", fontsize=11, color=C_TEXT, zorder=8)
+                ha="center", va="bottom", fontsize=FONT["label"], color=C_TEXT, zorder=8)
         # 衬底底部：圆点端子 + 接地符号（三横线）
         _terminal_dot(ax, sub_mid, sub_bot, r=2.4)
         ax.plot([sub_mid, sub_mid], [sub_bot, sub_bot - 8],
@@ -278,10 +279,10 @@ def _draw_cell(ax, ox: float, *, mode: str) -> None:
         ax.plot([sub_mid, sub_mid], [sub_bot, sub_bot - 14],
                 color=C_EDGE, lw=LW, zorder=8, solid_capstyle="butt")
         ax.text(sub_mid + 9, sub_bot - 11, r"$V_{PP}$",
-                ha="left", va="center", fontsize=11, color=C_TEXT, zorder=8)
+                ha="left", va="center", fontsize=FONT["label"], color=C_TEXT, zorder=8)
 
     ax.text(sub_mid, sub_y + sub_h * 0.38, "衬底",
-            ha="center", va="center", fontsize=9.5, color=C_TEXT, zorder=5)
+            ha="center", va="center", fontsize=FONT["label"], color=C_TEXT, zorder=5)
 
 
 def plot() -> plt.Figure:
@@ -294,11 +295,11 @@ def plot() -> plt.Figure:
 
     # 小标题上移，贴近接地下方
     _draw_cell(ax, ox=5, mode="program")
-    ax.text(140, 26, "a) 写原理", fontsize=11.5, fontweight="bold",
+    ax.text(140, 26, "a) 写原理", fontsize=FONT["title"], fontweight="bold",
             ha="center", va="top", color=C_TEXT)
 
     _draw_cell(ax, ox=275, mode="erase")
-    ax.text(410, 26, "b) 擦除原理", fontsize=11.5, fontweight="bold",
+    ax.text(410, 26, "b) 擦除原理", fontsize=FONT["title"], fontweight="bold",
             ha="center", va="top", color=C_TEXT)
 
     fig.subplots_adjust(left=0, right=1, bottom=0, top=1)

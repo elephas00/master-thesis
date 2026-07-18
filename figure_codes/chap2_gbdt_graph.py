@@ -21,6 +21,7 @@ from flowchart_style import (
     process,
     terminator,
 )
+from thesis_style import FONT
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OUT_PDF = FIGURE_DIR / "chap2-gbdt.pdf"
@@ -28,61 +29,96 @@ OUT_PDF = FIGURE_DIR / "chap2-gbdt.pdf"
 
 def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
     apply_flowchart_rc()
-    fig, ax = plt.subplots(figsize=(9.2, 3.1))
-    ax.set_xlim(-0.1, 13.2)
-    ax.set_ylim(0.9, 5.9)
+    fig, ax = plt.subplots(figsize=(9.6, 3.35))
+    ax.set_xlim(-0.1, 13.4)
+    ax.set_ylim(0.7, 6.1)
     ax.axis("off")
 
-    y_top, y_bottom = 5.1, 1.9
-    terminator(ax, (0.7, y_top), 1.1, 0.7, "开始", fontsize=9.2)
+    y_top, y_bottom = 5.2, 1.85
+    fs = FONT["label"]
+    gap = 0.5  # 顶行水平箭头统一间隙
+    box_h = 1.55       # 处理框统一高度
+    term_h = 0.85      # 起止框
+    dec_w, dec_h = 2.9, 2.05
+
+    # ---- 顶行：起止与处理框（由左向右用固定 gap 串联）----
+    start_c, start_w = 0.7, 1.1
+    init_w, grad_w, cart_w = 3.5, 3.3, 3.3
+    start_r = start_c + start_w / 2
+    init_c = start_r + gap + init_w / 2
+    init_r = init_c + init_w / 2
+    grad_c = init_r + gap + grad_w / 2
+    grad_r = grad_c + grad_w / 2
+    cart_c = grad_r + gap + cart_w / 2
+
+    terminator(ax, (start_c, y_top), start_w, term_h, "开始", fontsize=fs)
     process(
-        ax, (3.25, y_top), 3.1, 1.25,
-        "初始化模型\n$F_0(x)=\\arg\\min_c\\sum_i L(y_i,c)$", fontsize=9.0,
+        ax, (init_c, y_top), init_w, box_h,
+        "初始化模型\n$F_0(x)=\\arg\\min_c\\sum_i L(y_i,c)$", fontsize=fs,
     )
     process(
-        ax, (6.9, y_top), 3.3, 1.25,
+        ax, (grad_c, y_top), grad_w, box_h,
         "计算负梯度（伪残差）\n"
         "$r_{it}=-\\partial L/\\partial F_{t-1}$",
-        fontsize=8.8,
+        fontsize=fs,
     )
     process(
-        ax, (11.2, y_top), 3.3, 1.25,
+        ax, (cart_c, y_top), cart_w, box_h,
         "训练第 $t$ 棵 CART 树 $f_t(x)$\n拟合伪残差 $r_{it}$",
-        fontsize=9.0,
-    )
-    process(
-        ax, (11.2, y_bottom), 3.4, 1.25,
-        "更新模型\n$F_t(x)=F_{t-1}(x)+\\eta f_t(x)$",
-        fontsize=9.0,
+        fontsize=fs,
     )
 
-    arrow(ax, (1.25, y_top), (1.7, y_top))
-    arrow(ax, (4.8, y_top), (5.25, y_top))
-    arrow(ax, (8.55, y_top), (9.55, y_top))
-    arrow(ax, (11.2, 4.475), (11.2, 2.525))
+    update_w = 3.4
+    update_c = cart_c
+    process(
+        ax, (update_c, y_bottom), update_w, box_h,
+        "更新模型\n$F_t(x)=F_{t-1}(x)+\\eta f_t(x)$",
+        fontsize=fs,
+    )
+
+    arrow(ax, (start_r, y_top), (init_c - init_w / 2, y_top))
+    arrow(ax, (init_r, y_top), (grad_c - grad_w / 2, y_top))
+    arrow(ax, (grad_r, y_top), (cart_c - cart_w / 2, y_top))
+
+    arrow(ax, (cart_c, y_top - box_h / 2), (update_c, y_bottom + box_h / 2))
+
+    # ---- 底行：判断对齐负梯度框，使「否」竖直向上 ----
+    out_w = 3.7
+    dec_c = grad_c
+    dec_l = dec_c - dec_w / 2
+    dec_r = dec_c + dec_w / 2
+    update_l = update_c - update_w / 2
+    gap_yes = gap * 1.25  # 「是」箭头加长约 1/4
+    out_c = dec_l - gap_yes - out_w / 2
 
     decision(
-        ax, (6.9, y_bottom), 2.8, 1.7,
-        "是否达到最大\n迭代次数 $T$？", fontsize=9.0,
+        ax, (dec_c, y_bottom), dec_w, dec_h,
+        "是否达到最大\n迭代次数 $T$？", fontsize=fs,
     )
-    arrow(ax, (9.5, y_bottom), (8.3, y_bottom))
+    arrow(ax, (update_l, y_bottom), (dec_r, y_bottom))
 
     process(
         ax,
-        (3.25, y_bottom),
-        3.7,
-        1.35,
+        (out_c, y_bottom),
+        out_w,
+        box_h,
         "输出最终模型\n$F_T(x)=F_0(x)+\\eta\\sum_{t=1}^{T}f_t(x)$",
-        fontsize=8.8,
+        fontsize=fs,
     )
-    arrow(ax, (5.5, y_bottom), (5.1, y_bottom))
-    edge_label(ax, (5.3, 2.18), "是")
+    arrow(ax, (dec_l, y_bottom), (out_c + out_w / 2, y_bottom))
+    # 「是」紧贴左向箭头上方
+    yes_x = (dec_l + out_c + out_w / 2) / 2
+    edge_label(ax, (yes_x, y_bottom + 0.32), "是", fontsize=fs)
 
-    arrow(ax, (6.9, 2.75), (6.9, 4.475))
-    edge_label(ax, (7.18, 3.55), "否")
+    # 「否」：竖直向上；标签贴在箭头右侧中段
+    no_y0 = y_bottom + dec_h / 2
+    no_y1 = y_top - box_h / 2
+    arrow(ax, (dec_c, no_y0), (dec_c, no_y1))
+    edge_label(ax, (dec_c + 0.42, (no_y0 + no_y1) / 2), "否", fontsize=fs)
 
-    terminator(ax, (0.7, y_bottom), 1.1, 0.7, "结束", fontsize=9.2)
-    arrow(ax, (1.4, y_bottom), (1.25, y_bottom))
+    end_c, end_w = 0.7, 1.1
+    terminator(ax, (end_c, y_bottom), end_w, term_h, "结束", fontsize=fs)
+    arrow(ax, (out_c - out_w / 2, y_bottom), (end_c + end_w / 2, y_bottom))
 
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
     fig.savefig(save_pdf, bbox_inches="tight", pad_inches=0.06, facecolor="white")

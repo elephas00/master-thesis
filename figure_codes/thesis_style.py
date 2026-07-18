@@ -194,6 +194,11 @@ FONT = {
 }
 
 
+def drawio_fs(role: str, *, scale: float) -> int:
+    """drawio 画布字号：论文 FONT[role] × 画布倍率（导出后再缩到版心）。"""
+    return max(1, int(round(FONT[role] * scale)))
+
+
 def line_style(i: int) -> dict[str, Any]:
     """折线第 i 个系列（0-based）→ l1..lN（独立色序，含黑）。"""
     return dict(LINE_STYLE[line_key(i)])

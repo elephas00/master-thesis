@@ -21,6 +21,7 @@ from flowchart_style import (
     process,
     routed_arrow,
 )
+from thesis_style import FONT
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OUT_PDF = FIGURE_DIR / "chap4-block-labeling-flow.pdf"
@@ -33,30 +34,31 @@ def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
     ax.axis("off")
 
     y = 2.5
-    process(ax, (1.5, y), 2.5, 1.0, "物理 / 逻辑块\nBLOCK", fontsize=9.5)
+    fs = FONT["label"]
+    process(ax, (1.5, y), 2.5, 1.0, "物理 / 逻辑块\nBLOCK", fontsize=fs)
     arrow(ax, (2.75, y), (2.9, y))
 
     process(
         ax, (4.25, y), 2.7, 1.2,
-        "代表性 FBC\n$P_{99}$（BestRead）", fontsize=9.5,
+        "代表性 FBC\n$P_{99}$（BestRead）", fontsize=fs,
     )
     arrow(ax, (5.6, y), (5.75, y))
 
     process(
         ax, (7.4, y), 3.3, 1.2,
-        "对照 FBC 门限 $=151$\n推导 LIFESPAN", fontsize=9.5,
+        "对照 FBC 门限 $=151$\n推导 LIFESPAN", fontsize=fs,
     )
     arrow(ax, (9.05, y), (9.15, y))
 
-    decision(ax, (10.4, y), 2.5, 1.8, "LIFESPAN\n$=10000$？", fontsize=9.2)
+    decision(ax, (10.4, y), 2.5, 1.8, "LIFESPAN\n$=10000$？", fontsize=fs)
 
     routed_arrow(ax, [(10.4, 3.4), (10.4, 3.75), (11.8, 3.75)])
     routed_arrow(ax, [(10.4, 1.6), (10.4, 1.25), (11.8, 1.25)])
     edge_label(ax, (11.1, 3.97), "是")
     edge_label(ax, (11.1, 1.03), "否")
 
-    process(ax, (12.8, 3.75), 2.0, 1.0, "强块\nLabel $=0$", fontsize=9.2)
-    process(ax, (12.8, 1.25), 2.0, 1.0, "弱块\nLabel $=1$", fontsize=9.2)
+    process(ax, (12.8, 3.75), 2.0, 1.0, "强块\nLabel $=0$", fontsize=fs)
+    process(ax, (12.8, 1.25), 2.0, 1.0, "弱块\nLabel $=1$", fontsize=fs)
 
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
     fig.savefig(save_pdf, bbox_inches="tight", pad_inches=0.06, facecolor="white")

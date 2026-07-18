@@ -14,19 +14,28 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from figure_paths import BUILD_DIR, GENERATED_DIR, PROJECT_ROOT as ROOT, ensure_output_dirs
+from thesis_style import drawio_fs
 
 OUT_XML = BUILD_DIR / "chap5-database-er.xml"
 OUT_PDF = GENERATED_DIR / "chap5-database-er.pdf"
 
+_SCALE = 1.2
+FS_ENTITY = drawio_fs("title", scale=_SCALE)
+FS_REL = drawio_fs("tick", scale=_SCALE)
+FS_ATTR = drawio_fs("tick", scale=_SCALE)
+FS_ATTR_MD = drawio_fs("annot", scale=1.25)
+FS_ATTR_SM = drawio_fs("legend", scale=1.0)
+FS_CARD = drawio_fs("annot", scale=1.25)
+
 ENTITY = (
     "rounded=0;whiteSpace=wrap;html=1;align=center;"
-    "verticalAlign=middle;fontSize=13;fontStyle=1;"
+    f"verticalAlign=middle;fontSize={FS_ENTITY};fontStyle=1;"
 )
 ATTR = "ellipse;whiteSpace=wrap;html=1;fontSize={fs};"
 ATTR_PK = "ellipse;whiteSpace=wrap;html=1;fontSize={fs};fontStyle=4;"
 REL = (
     "rhombus;whiteSpace=wrap;html=1;align=center;"
-    "verticalAlign=middle;fontSize=11;"
+    f"verticalAlign=middle;fontSize={FS_REL};"
 )
 EDGE = "endArrow=none;html=1;rounded=0;"
 EDGE_DASH = "endArrow=none;html=1;rounded=0;dashed=1;"
@@ -69,7 +78,7 @@ class ER:
         _geom(c, x, y, w, h)
 
     def attr(self, cid: str, title: str, x: float, y: float, *,
-             pk: bool = False, w: float = 70, h: float = 32, fs: int = 11) -> None:
+             pk: bool = False, w: float = 70, h: float = 32, fs: int = FS_ATTR) -> None:
         style = (ATTR_PK if pk else ATTR).format(fs=fs)
         c = self._cell(cid, value=title, style=style, vertex="1")
         _geom(c, x, y, w, h)
@@ -92,7 +101,7 @@ class ER:
         card: str | None = None,
         card_x: float = 0.0,
         card_off: tuple[float, float] = (0, -10),
-        card_fs: int = 11,
+        card_fs: int = FS_ATTR,
     ) -> None:
         style = EDGE_DASH if dashed else EDGE
         if exit_ is not None:
@@ -179,7 +188,7 @@ def build() -> ER:
         ("raw属性值n", 785),
     ]):
         cid = f"a-log-{i + 3}"
-        er.attr(cid, name, x, 270, w=100, fs=10)
+        er.attr(cid, name, x, 270, w=100, fs=FS_ATTR_MD)
         er.link_attr(f"ll{i + 3}", cid, "e-log")
 
     for i, (name, y) in enumerate([
@@ -188,7 +197,7 @@ def build() -> ER:
         ("Normalized属性值n", 200),
     ]):
         cid = f"a-log-{i + 6}"
-        er.attr(cid, name, 720, y, w=130, fs=9)
+        er.attr(cid, name, 720, y, w=130, fs=FS_ATTR_SM)
         er.link_attr(f"ll{i + 6}", cid, "e-log")
 
     # 预警记录：左侧 2 + 下侧 3
@@ -252,12 +261,12 @@ def build() -> ER:
     er.link(
         "l-w-c", "e-warn", "r-confirm",
         dashed=True, exit_=(1, 0.5), entry=(0, 0.5),
-        card="0..1", card_x=-0.1, card_off=(0, -12), card_fs=10,
+        card="0..1", card_x=-0.1, card_off=(0, -12), card_fs=FS_CARD,
     )
     er.link(
         "l-c-f", "r-confirm", "e-fault",
         dashed=True, exit_=(1, 0.5), entry=(0, 0.5),
-        card="0..1", card_x=0.1, card_off=(0, -12), card_fs=10,
+        card="0..1", card_x=0.1, card_off=(0, -12), card_fs=FS_CARD,
     )
 
     return er

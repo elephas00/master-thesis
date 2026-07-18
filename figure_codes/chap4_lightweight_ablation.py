@@ -12,7 +12,7 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.lines import Line2D
+from matplotlib.transforms import blended_transform_factory
 
 from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
 from thesis_style import (
@@ -49,7 +49,7 @@ WL = {
 BASELINE = 17.08
 
 
-def _draw_panel(ax, xs, data, title: str, *, show_legend: bool = False) -> None:
+def _draw_panel(ax, xs, data, title: str) -> None:
     x = np.arange(len(xs))
     for rtype in ("DefaultRead", "BestRead"):
         ax.plot(
@@ -66,19 +66,14 @@ def _draw_panel(ax, xs, data, title: str, *, show_legend: bool = False) -> None:
     ax.set_title(title, fontsize=FONT["title"], pad=6)
     ax.grid(True, axis="y", linestyle="--", color=C_GRID, alpha=0.8)
     ax.set_axisbelow(True)
-    if show_legend:
-        handles, labels = ax.get_legend_handles_labels()
-        handles.append(Line2D([0], [0], color=C_PRIMARY, ls=":", lw=0.9))
-        labels.append(r"全量基准 $17.08\%$")
-        ax.legend(handles, labels, frameon=False, loc="best", fontsize=FONT["legend"])
 
 
 def plot(*, save_path: Path = OUT_PDF) -> plt.Figure:
     fig, axes = plt.subplots(1, 3, figsize=(12.0, 3.2), sharey=True)
 
-    _draw_panel(axes[0], VALUE_X, VALUE, "(a) 读取次数", show_legend=True)
-    _draw_panel(axes[1], LEVEL_X, LEVEL, "(b) 磨损档位", show_legend=True)
-    _draw_panel(axes[2], WL_X, WL, "(c) 字线采样", show_legend=True)
+    _draw_panel(axes[0], VALUE_X, VALUE, "(a) 读取次数")
+    _draw_panel(axes[1], LEVEL_X, LEVEL, "(b) 磨损档位")
+    _draw_panel(axes[2], WL_X, WL, "(c) 字线采样")
 
     axes[0].set_ylabel(r"$R_{\mathrm{imp}}$ / \%", fontsize=FONT["label"])
 
@@ -89,6 +84,24 @@ def plot(*, save_path: Path = OUT_PDF) -> plt.Figure:
     )
     ymin, ymax = min(all_vals), max(all_vals)
     axes[0].set_ylim(ymin - 2.5, ymax + 2.5)
+
+    # 全量基准用虚线 + 纵轴刻度标出
+    yticks = sorted({*np.round(axes[0].get_yticks(), 2), 0.0, BASELINE})
+    yticks = [t for t in yticks if ymin - 2.5 <= t <= ymax + 2.5]
+    axes[0].set_yticks(yticks)
+    axes[2].text(
+        len(WL_X) - 1, BASELINE,
+        "全量基准",
+        ha="right", va="bottom", fontsize=FONT["annot"], color=C_PRIMARY,
+    )
+
+    # 左下角、贴在 y=0 虚线上方（x 用轴坐标，y 用数据坐标）
+    for ax in axes:
+        trans = blended_transform_factory(ax.transAxes, ax.transData)
+        ax.legend(
+            frameon=False, loc="lower left", fontsize=FONT["legend"],
+            bbox_to_anchor=(0.02, 0.8), bbox_transform=trans, borderaxespad=0,
+        )
 
     fig.tight_layout()
     save_path.parent.mkdir(parents=True, exist_ok=True)

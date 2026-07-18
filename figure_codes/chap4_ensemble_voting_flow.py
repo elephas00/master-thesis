@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 
 from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
 from flowchart_style import apply_flowchart_rc, arrow, process
+from thesis_style import FONT
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OUT_PDF = FIGURE_DIR / "chap4-ensemble-voting-flow.pdf"
@@ -25,9 +26,10 @@ def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
     ax.set_ylim(0.2, 5.8)
     ax.axis("off")
 
+    fs = FONT["label"]
     process(
         ax, (1.35, 3.0), 2.1, 1.4,
-        "早期 PE 档位\nFBC 特征$\\mathbf{x}_i$", fontsize=9.3,
+        "早期 PE 档位\nFBC 特征$\\mathbf{x}_i$", fontsize=fs,
     )
 
     models = [
@@ -36,15 +38,15 @@ def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
         (4.3, 1.3, "LightGBM\nLP"),
     ]
     for x, y, t in models:
-        process(ax, (x, y), 1.9, 1.0, t, fontsize=9.3)
+        process(ax, (x, y), 1.9, 1.0, t, fontsize=fs)
 
     process(
         ax, (7.25, 3.0), 2.0, 1.3,
-        "多数投票\n（3 种页类型）", fontsize=9.3,
+        "多数投票\n（3 种页类型）", fontsize=fs,
     )
     process(
         ax, (10.15, 3.0), 2.1, 1.3,
-        "块级标签\n强块 / 弱块", fontsize=9.3,
+        "块级标签\n强块 / 弱块", fontsize=fs,
     )
 
     for (_, y, _), vote_y in zip(models, (3.5, 3.0, 2.5)):

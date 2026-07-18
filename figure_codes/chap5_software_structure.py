@@ -15,9 +15,14 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from figure_paths import BUILD_DIR, GENERATED_DIR, PROJECT_ROOT as ROOT, ensure_output_dirs
+from thesis_style import drawio_fs
 
 OUT_XML = BUILD_DIR / "chap5-software-structure.xml"
 OUT_PDF = GENERATED_DIR / "chap5-software-structure.pdf"
+
+_SCALE = 1.2
+FS_TITLE = drawio_fs("title", scale=_SCALE)
+FS_LABEL = drawio_fs("label", scale=_SCALE)
 
 # 黑白印刷：外层虚线框，内层实线白底
 LAYER = (
@@ -27,21 +32,21 @@ LAYER = (
 GROUP = (
     "rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;"
     "spacingLeft=10;spacingTop=6;fillColor=#ffffff;strokeColor=#111111;"
-    "fontSize=12;fontStyle=1;"
+    f"fontSize={FS_LABEL};fontStyle=1;"
 )
 GROUP_DASH = GROUP + "dashed=1;dashPattern=6 4;"
 BOX = (
     "rounded=0;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;"
-    "fillColor=#ffffff;strokeColor=#111111;fontSize=12;"
+    f"fillColor=#ffffff;strokeColor=#111111;fontSize={FS_LABEL};"
 )
 CYL = (
     "shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;"
     "backgroundOutline=1;size=10;fillColor=#ffffff;strokeColor=#111111;"
-    "fontSize=13;fontStyle=1;align=center;verticalAlign=middle;"
+    f"fontSize={FS_TITLE};fontStyle=1;align=center;verticalAlign=middle;"
 )
 LABEL = (
     "text;html=1;align=center;verticalAlign=middle;"
-    "fontSize=13;fontStyle=1;strokeColor=none;fillColor=none;"
+    f"fontSize={FS_TITLE};fontStyle=1;strokeColor=none;fillColor=none;"
 )
 
 
@@ -178,7 +183,7 @@ def build() -> Arch:
         cx, y, cw, h4,
         style=(
             "text;html=1;align=center;verticalAlign=middle;"
-            "fontSize=13;strokeColor=none;fillColor=none;"
+            f"fontSize={FS_TITLE};strokeColor=none;fillColor=none;"
         ),
     )
 

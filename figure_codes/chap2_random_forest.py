@@ -24,6 +24,7 @@ from matplotlib.patches import (
     Rectangle,
 )
 from matplotlib.lines import Line2D
+from thesis_style import FONT
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OUT_PDF = FIGURE_DIR / "chap2-random-forest.pdf"
@@ -34,7 +35,7 @@ plt.rcParams.update({
     "axes.unicode_minus": False,
     "figure.dpi": 120,
     "savefig.dpi": 300,
-    "font.size": 11,
+    "font.size": FONT["title"],
     "pdf.fonttype": 42,
     "ps.fonttype": 42,
 })
@@ -52,7 +53,7 @@ CYL_H = 6.2
 ELL_H = 1.6
 
 
-def _cylinder(ax, cx, cy, w=CYL_W, h=CYL_H, label=r"$D$", fs=16):
+def _cylinder(ax, cx, cy, w=CYL_W, h=CYL_H, label=r"$D$", fs=FONT["title"] + 2):
     """3D 风格圆柱：矩形体 + 上下椭圆（白底黑框）。"""
     x0, y0 = cx - w / 2, cy - h / 2
     ax.add_patch(Rectangle(
@@ -83,11 +84,13 @@ def _arrow(ax, x0, y0, x1, y1, *, lw=2.2, mutation_scale=14):
     ))
 
 
-def _vtext(ax, x, y, text, *, fs=10, color=C_TEXT, weight="normal"):
-    """竖排中文（逐字自上而下）。"""
+def _vtext(ax, x, y, text, *, fs=FONT["title"], color=C_TEXT, weight="normal"):
+    """竖排中文（逐字自上而下）；字距随字号缩放，避免放大后挤叠。"""
     chars = list(text)
     n = len(chars)
-    spacing = 1.85 if n <= 4 else 1.55
+    # 以 title=11 为基准：短词略疏，长词略紧但仍随 fs 放大
+    base = 2.15 if n <= 4 else 1.95
+    spacing = base * (fs / FONT["title"])
     total = (n - 1) * spacing
     y_top = y + total / 2
     for i, ch in enumerate(chars):
@@ -122,7 +125,7 @@ def _tree_box(ax, cx, cy, label=None, *, show_tree=True):
         _decision_tree_icon(ax, cx, cy + (0.5 if label else 0.15), scale=0.9)
     if label:
         ax.text(cx, cy - 2.4, label, ha="center", va="center",
-                fontsize=12, color=C_TEXT, style="italic", zorder=5,
+                fontsize=FONT["title"] + 2, color=C_TEXT, style="italic", zorder=5,
                 fontfamily="serif")
 
 
@@ -136,13 +139,17 @@ def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
     fig.patch.set_facecolor("white")
     ax.set_facecolor("white")
 
+    # 中文标注统一 title；数学符号略大一档
+    fs_text = FONT["title"]
+    fs_math = FONT["title"] + 2
+
     # ---- 纵列 y 坐标（三路并行，间距收紧）----
     ys = [36.0, 23.0, 10.0]  # D1/T1, D2/T2, Dn/Tn
     mid_y = ys[1]
 
     # ---- 1. 原始数据 D ----
     d_cx, d_cy = 8.5, mid_y
-    _cylinder(ax, d_cx, d_cy, label=r"$D$", fs=17)
+    _cylinder(ax, d_cx, d_cy, label=r"$D$", fs=fs_math + 1)
 
     # ---- 2. 自助采样：圆角矩形（与右侧集成模块呼应）----
     boot_x0, boot_w = 18.0, 8.0
@@ -153,7 +160,7 @@ def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
         facecolor=C_FILL, edgecolor=C_EDGE, lw=1.6, zorder=2,
     )
     ax.add_patch(boot_box)
-    _vtext(ax, boot_x0 + boot_w / 2, mid_y, "自助采样", fs=12, weight="bold")
+    _vtext(ax, boot_x0 + boot_w / 2, mid_y, "自助采样", fs=fs_text, weight="bold")
 
     # D → 自助采样
     _arrow(ax, d_cx + CYL_W / 2 + 0.4, d_cy, boot_x0 - 0.3, d_cy,
@@ -162,15 +169,15 @@ def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
     # ---- 3. Bootstrap 子数据集 ----
     boot_cx = 40.0
     ax.text(boot_cx, 43.0, "Bootstrap采样", ha="center", va="center",
-            fontsize=12, color=C_TEXT, fontweight="bold", zorder=5)
+            fontsize=fs_text, color=C_TEXT, fontweight="bold", zorder=5)
 
     for y, lab in zip(ys, [r"$D_1$", r"$D_2$", r"$D_n$"]):
-        _cylinder(ax, boot_cx, y, label=lab, fs=13)
+        _cylinder(ax, boot_cx, y, label=lab, fs=fs_math)
         _arrow(ax, boot_x0 + boot_w + 0.15, y, boot_cx - CYL_W / 2 - 0.5, y,
                lw=1.8, mutation_scale=12)
 
     ax.text(boot_cx, (ys[1] + ys[2]) / 2, "⋮", ha="center", va="center",
-            fontsize=15, color=C_EDGE, zorder=5)
+            fontsize=fs_math, color=C_EDGE, zorder=5)
 
     # ---- 分隔线 1 ----
     sep1 = 48.5
@@ -180,17 +187,17 @@ def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
     # ---- 4. 决策树模型 ----
     tree_cx = 62.0
     ax.text(tree_cx, 43.0, r"决策树模型", ha="center", va="center",
-            fontsize=12, color=C_TEXT, fontweight="bold", zorder=5)
+            fontsize=fs_text, color=C_TEXT, fontweight="bold", zorder=5)
 
     feat_x = 71.5
     for y, lab in zip(ys, [r"$T_1$", r"$T_2$", r"$T_n$"]):
         _arrow(ax, boot_cx + CYL_W / 2 + 0.4, y, tree_cx - 5.0, y,
                lw=1.8, mutation_scale=12)
         _tree_box(ax, tree_cx, y, label=lab)
-        _vtext(ax, feat_x, y, "随机特征选择", fs=9, color=C_TEXT)
+        _vtext(ax, feat_x, y, "随机特征选择", fs=fs_text, color=C_TEXT)
 
     ax.text(tree_cx, (ys[1] + ys[2]) / 2, "⋮", ha="center", va="center",
-            fontsize=15, color=C_EDGE, zorder=5)
+            fontsize=fs_math, color=C_EDGE, zorder=5)
 
     # ---- 分隔线 2 ----
     sep2 = 78.0
@@ -201,7 +208,7 @@ def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
     ens_x0, ens_w = 83.5, 7.5
     ens_y0, ens_h = 5.5, 34.0
     ax.text(ens_x0 + ens_w / 2, 43.0, "集成预测模块", ha="center", va="center",
-            fontsize=12, color=C_TEXT, fontweight="bold", zorder=5)
+            fontsize=fs_text, color=C_TEXT, fontweight="bold", zorder=5)
     ens = FancyBboxPatch(
         (ens_x0, ens_y0), ens_w, ens_h,
         boxstyle="round,pad=0.12,rounding_size=0.7",
@@ -209,7 +216,7 @@ def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
     )
     ax.add_patch(ens)
     _vtext(ax, ens_x0 + ens_w / 2, ens_y0 + ens_h / 2, "投票/平均",
-           fs=11, weight="bold")
+           fs=fs_text, weight="bold")
 
     for y in ys:
         _arrow(ax, feat_x + 2.0, y, ens_x0 - 0.3, y, lw=1.8, mutation_scale=12)
@@ -224,7 +231,7 @@ def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
     )
     ax.add_patch(out)
     ax.text(out_cx, out_cy, "最终预测结果", ha="center", va="center",
-            fontsize=13, color=C_TEXT, fontweight="bold", zorder=5)
+            fontsize=fs_text, color=C_TEXT, fontweight="bold", zorder=5)
 
     _arrow(ax, ens_x0 + ens_w + 0.3, out_cy, out_cx - out_w / 2 - 0.4, out_cy,
            lw=2.4, mutation_scale=16)
