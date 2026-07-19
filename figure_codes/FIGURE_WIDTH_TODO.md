@@ -30,10 +30,10 @@
 | [ ] | 中 | `figure/generated/chap3-temporal-missing-distribution.pdf` | `figure_codes/chap3_temporal_missing_distribution.py` | ~1.97× | 1×3，需压缩/改排 |
 | [ ] | 中 | `figure/generated/chap3-b-group-mutation-eda-mb1.pdf` | `figure_codes/chap3_b_group_mutation_eda.py` | ~2.13× | 同脚本出 MB1/MB2 |
 | [ ] | 中 | `figure/generated/chap3-b-group-mutation-eda-mb2.pdf` | `figure_codes/chap3_b_group_mutation_eda.py` | ~2.13× | 同上 |
-| [ ] | 中 | `figure/generated/chap3-first-jump-pmf.pdf` | `figure_codes/chap3_first_jump_pmf.py` | ~1.66× | 1×2 |
+| [x] | 中 | `figure/generated/chap3-first-jump-pmf.pdf` | `figure_codes/chap3_first_jump_pmf.py` | **1.00×** | 已对齐（无跳变靠左+折线+inset） |
 | [ ] | 中 | `figure/generated/chap3-label-strategy.pdf` | `figure_codes/chap3_label_strategy.py` | ~1.72× | 多列示意 |
 | [ ] | 中 | `figure/generated/chap3-tp-lead-method-E-heatmap.pdf` | `figure_codes/chap3_tp_lead_method_heatmap.py` | ~1.85× | 双面板热力 |
-| [ ] | 中 | `figure/generated/chap3-tp-lead-time-test.pdf` | `figure_codes/chap3_tp_lead_time_test.py` | ~1.89× | 1×2 柱图 |
+| [x] | 中 | `figure/generated/chap3-tp-lead-time-test.pdf` | `figure_codes/chap3_tp_lead_time_test.py` | **1.00×** | 已对齐（近端分面+远端时间轴） |
 | [ ] | 中 | `figure/generated/chap4-slc-mlc-tlc-vth.pdf` | `figure_codes/chap4_slc_mlc_tlc_vth.py` | ~1.49× | 3 行曲线 |
 | [ ] | 中 | `figure/generated/chap4-rimp-by-model-readtype.pdf` | `figure_codes/chap4_rimp_by_model_readtype.py` | ~1.65× | 1×2 |
 | [ ] | 中 | `figure/generated/chap4-lightweight-ablation.pdf` | `figure_codes/chap4_lightweight_ablation.py` | ~1.89× | 1×3 |

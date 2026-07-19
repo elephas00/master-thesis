@@ -13,6 +13,7 @@ diff/*
 
 ### Figure codegen (scheme B): intermediates & generated PDFs ###
 figure_codes/_build/
+figure_codes/_preview/
 figure/generated/
 
 ### Local experiment code and data (not versioned) ###

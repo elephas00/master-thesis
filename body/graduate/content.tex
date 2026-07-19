@@ -780,16 +780,15 @@ $W=30$ 日时，MB1 属性 5/180/183 命中率约 68.0\%（健康盘不足 0.1\%
 记观测日为 $t_{\mathrm{first\_jump}}$，定义距故障日 $d=t_{\mathrm{fail}}-t_{\mathrm{first\_jump}}$（天）；
 窗口内均无跳变者记为静默故障盘，并以全部故障盘为分母给出 $d$ 的逐日分布，如图~\ref{fig:first-jump-pmf}所示。
 
-\begin{figure}[htbp]
+\begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{figure/generated/chap3-first-jump-pmf.pdf}
+    \includegraphics{figure/generated/chap3-first-jump-pmf.pdf}
     \caption{\label{fig:first-jump-pmf}B 组首跳距故障日分布}
     \vspace{2pt}
     \begin{minipage}{\linewidth}
-     注：纵轴为占故障盘比例；"无跳变"表示 30 日内 B 组读数列均无 $|\Delta|>0$。
+        注：左柱为无跳变占比；折线为有跳变盘的 $d$ 日分布；右上的小图为 $d\geq 3$ 局部放大。
     \end{minipage}
 \end{figure}
-
 由图~\ref{fig:first-jump-pmf} 可见，MB1/MB2 分别有 30.2\%/80.7\% 为静默故障盘（30 日内 B 组均无 $|\Delta|>0$）。
 除静默盘外，$d=1$ 占比最高（占全部故障盘 60.6\%/7.4\%），$d\le 3$ 累计达 65.7\%/14.1\%，首跳多集中于近故障短窗口；$d>3$ 后各日占比均低于 1\%，远处跳变极为稀疏，支持后续将 $k$ 与 $W$ 取 1--3 日量级。
 
@@ -816,7 +815,7 @@ $W=30$ 日时，MB1 属性 5/180/183 命中率约 68.0\%（健康盘不足 0.1\%
 表~\ref{tab:first-jump-window-compare} 表明，
 MB1 全观测期内 76.1\% 故障盘曾有 B 组跳变（30 日内 69.8\%），其中 6.4\% 仅在全观测期出现首跳，失效前长期维持与健康盘相近的零基线读数；
 MB2 两窗口结果接近（22.0\% vs 19.3\%），静默盘占主导，说明该型号前兆整体微弱而非预警窗截断所致。
-综上，B 组前兆稀疏且盘间差异大，相当比例故障盘在 30 日预警窗内缺乏可分辨突变，单一突变规则难以覆盖全部故障盘，由此引出下文首跳对齐标签与加权突变特征设计。
+综上，B 组前兆稀疏且盘间差异大且出现在接近故障时刻，相当比例故障盘在 30 日预警窗内缺乏可分辨突变，由此引出下文首跳对齐标签与加权突变特征设计。
 
 \clearpage
 \section{基于异构集成的故障预测模型构建}
@@ -1461,19 +1460,19 @@ MB2 上，各行 $n$ 仅为 5--10，样本偏小；本文 $n=10$ 居各行之首
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\linewidth]{figure/generated/chap3-tp-lead-time-test.pdf}
+    \includegraphics{figure/generated/chap3-tp-lead-time-test.pdf}
     \caption{\label{fig:chap3-tp-lead-time}本文方法提前预警时间分布（分轮）}
     \vspace{2pt}
-    
+
     \begin{minipage}{\linewidth}
-     注：图例中 $d>2$ 日处柱顶标注 \texttt{R$r$·d$d$·×$n$} 依次表示测试轮次、提前天数及该处 TP 盘数（如 \texttt{R2·d6·×1} 即第二轮在 $d=6$ 检出 1 盘）。
+     注：因近端与远端检出量级差异大，分上下两排绘制。上排为近端 $d\in\{0,1,2\}$ 分轮柱图；下排为 $d>2$ 时间轴，每个标记点对应一次检出，旁注给出轮次、$d$ 与 TP 盘数。
     \end{minipage}
 \end{figure}
 
 表~\ref{tab:chap3-tp-lead-by-round} 与图~\ref{fig:chap3-tp-lead-time} 显示，对本文方法而言，检出规模与提前量宜分开解读。
-MB1 三轮提前天数中位数均为 1 天，$d=1$ 占 77\%--92\%，$d\le 1$ 占 97\%--100\%，已检出盘的告警时刻普遍贴近故障日；仅 R1、R2 各 1 例 $d>2$ 远端检出（\texttt{R1·d17·×1}、\texttt{R2·d6·×1}），不影响总体判断。
+MB1 三轮提前天数中位数均为 1 天，$d=1$ 占 77\%--92\%，$d\le 1$ 占 97\%--100\%，已检出盘的告警时刻普遍贴近故障日；仅 R1、R2 各 1 例 $d>2$ 远端检出（R1，$d{=}17$，TP${=}1$；R2，$d{=}6$，TP${=}1$），不影响总体判断。
 R3 TP 增至 66 块而 $d$ 分布仍近端集中，说明规模扩张并未改变已检出盘的时效形态。
-关于 R3 统计口径：可评估故障盘共 93 块（66 TP + 27 FN），图例 \texttt{FAIL}$=95$ 系按故障单 \texttt{failure\_time} 落入 2019-11 统计，二者差异源于口径不完全对齐——6 块盘虽故障日在 11 月但测试月内无可用 SMART 日志而未纳入评估；4 块 TP 于 11 月 30 日告警、故障日在 12 月 1 日，计入 $\mathrm{TP}+\mathrm{FN}$ 但不计入 11 月 \texttt{FAIL}，属跨月边界情形。
+关于 R3 统计口径：可评估故障盘共 93 块（66 TP + 27 FN），而按故障单 \texttt{failure\_time} 落入 2019-11 统计的故障盘数 FAIL${=}95$，二者差异源于口径不完全对齐——6 块盘虽故障日在 11 月但测试月内无可用 SMART 日志而未纳入评估；4 块 TP 于 11 月 30 日告警、故障日在 12 月 1 日，计入 $\mathrm{TP}+\mathrm{FN}$ 但不计入 11 月 FAIL，属跨月边界情形。
 MB2 各轮 TP 仅 1--7 块：R1 以 $d=0$ 为主（6/7 满足 $d\le 1$），含 1 例 $d=20$ 远端检出；R2 两例 TP 分处 $d=0$ 与 $d=5$，故 $d\le 1$ 占比为 50\%。
 随测试月由 R1 推进至 R3，TPR 由 30.4\% 降至 5.6\%，但柱形仍集中于 $d=0$--$1$，与图~\ref{fig:chap3-tp-lead-method-compare} 中 MB2 合计行一致，再次表明弱信号下漂移主要侵蚀检出能力。
 
