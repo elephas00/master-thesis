@@ -97,14 +97,15 @@ def plot(*, save_path: Path = OUT_PDF) -> plt.Figure:
         ha="right", va="bottom", fontsize=FONT["annot"], color=C_PRIMARY,
     )
 
-    fig.subplots_adjust(left=0.09, right=0.99, top=0.86, bottom=0.30, wspace=0.20)
+    # 图例置顶；与子图标题约 4 pt，避免叠字
+    fig.subplots_adjust(left=0.09, right=0.99, top=0.885, bottom=0.22, wspace=0.20)
     handles, labels = axes[0].get_legend_handles_labels()
     fig_shared_legend(
         fig,
         handles=handles,
         labels=labels,
         loc="lower center",
-        bbox_to_anchor=(0.5, 0.01),
+        bbox_to_anchor=(0.54, 0.955),
         ncol=2,
         fontsize=FONT["note"],
     )

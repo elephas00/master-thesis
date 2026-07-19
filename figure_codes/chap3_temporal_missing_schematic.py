@@ -68,11 +68,12 @@ def plot_timeline_schematic(output: Path = OUTPUT_PDF) -> plt.Figure:
 
     spine_color = C_SPINE_MUTED
 
+    bar_w = 0.62  # 柱间留白，避免 40 日挤成一片
     for ax, (tier, obs_set, gap_kind) in zip(axes, scenarios):
         for d in days:
             if d in obs_set:
                 ax.bar(
-                    d, 1, width=0.88,
+                    d, 1, width=bar_w,
                     facecolor=ST_OBS["color"],
                     edgecolor=C_EDGE,
                     linewidth=BAR_LW,
@@ -80,7 +81,7 @@ def plot_timeline_schematic(output: Path = OUTPUT_PDF) -> plt.Figure:
                 )
             elif gap_kind == "remove":
                 ax.bar(
-                    d, 1, width=0.88,
+                    d, 1, width=bar_w,
                     facecolor=ST_REMOVE["color"],
                     edgecolor=C_EDGE,
                     linewidth=BAR_LW,
@@ -88,7 +89,7 @@ def plot_timeline_schematic(output: Path = OUTPUT_PDF) -> plt.Figure:
                 )
             else:
                 ax.bar(
-                    d, 1, width=0.88,
+                    d, 1, width=bar_w,
                     facecolor=ST_IMPUTE["color"],
                     edgecolor=C_EDGE,
                     linewidth=BAR_LW,

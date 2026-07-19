@@ -14,18 +14,19 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from figure_paths import BUILD_DIR, GENERATED_DIR, PROJECT_ROOT as ROOT, ensure_output_dirs
-from thesis_style import drawio_fs
+from thesis_style import drawio_fs, fit_drawio_pdf_width
 
 OUT_XML = BUILD_DIR / "chap5-database-er.xml"
 OUT_PDF = GENERATED_DIR / "chap5-database-er.pdf"
 
-_SCALE = 1.2
+# 导出后缩到栏宽；倍率≈当前裁剪宽/栏宽，使缩后字号接近 FONT
+_SCALE = 1.36
 FS_ENTITY = drawio_fs("title", scale=_SCALE)
 FS_REL = drawio_fs("tick", scale=_SCALE)
 FS_ATTR = drawio_fs("tick", scale=_SCALE)
-FS_ATTR_MD = drawio_fs("annot", scale=1.25)
-FS_ATTR_SM = drawio_fs("legend", scale=1.0)
-FS_CARD = drawio_fs("annot", scale=1.25)
+FS_ATTR_MD = drawio_fs("annot", scale=_SCALE)
+FS_ATTR_SM = drawio_fs("legend", scale=_SCALE)
+FS_CARD = drawio_fs("annot", scale=_SCALE)
 
 ENTITY = (
     "rounded=0;whiteSpace=wrap;html=1;align=center;"
@@ -292,7 +293,8 @@ def main() -> None:
     OUT_XML.write_text(xml, encoding="utf-8")
     print(f"wrote {OUT_XML.relative_to(ROOT)}")
     if export_pdf(OUT_XML, OUT_PDF):
-        print(f"wrote {OUT_PDF.relative_to(ROOT)}")
+        s = fit_drawio_pdf_width(OUT_PDF)
+        print(f"wrote {OUT_PDF.relative_to(ROOT)} (fit×{s:.3f})")
 
 
 if __name__ == "__main__":

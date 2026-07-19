@@ -321,6 +321,32 @@ def savefig_text_width(
         writer.write(fh)
 
 
+def fit_drawio_pdf_width(path) -> float:
+    """将 draw.io 导出的 PDF 页宽精确缩放到 ``TEXT_WIDTH_PT``。
+
+    返回施加的缩放系数（``TEXT_WIDTH_PT / 原宽``）。画布字号宜用
+    ``drawio_fs(..., scale≈原宽/栏宽)``，缩栏后接近 ``FONT`` 字号。
+    """
+    from pathlib import Path
+
+    from pypdf import PdfReader, PdfWriter
+
+    out = Path(path)
+    reader = PdfReader(str(out))
+    page = reader.pages[0]
+    w = float(page.mediabox.width)
+    if w <= 0:
+        raise ValueError(f"empty PDF width for {out}")
+    scale = TEXT_WIDTH_PT / w
+    if abs(scale - 1.0) > 1e-6:
+        page.scale_by(scale)
+        writer = PdfWriter()
+        writer.add_page(page)
+        with out.open("wb") as fh:
+            writer.write(fh)
+    return scale
+
+
 def fig_legend_title(
     fig,
     leg,

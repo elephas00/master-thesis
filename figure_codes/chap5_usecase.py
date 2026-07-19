@@ -13,13 +13,14 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from figure_paths import BUILD_DIR, GENERATED_DIR, PROJECT_ROOT as ROOT, ensure_output_dirs
-from thesis_style import drawio_fs
+from thesis_style import drawio_fs, fit_drawio_pdf_width
 
 OUT_XML = BUILD_DIR / "chap5-usecase.xml"
 OUT_PDF = GENERATED_DIR / "chap5-usecase.pdf"
 
-_SCALE = 1.4
-FS_BOUNDARY = drawio_fs("title", scale=16 / 11)
+# 导出后缩到栏宽；倍率≈原宽/栏宽
+_SCALE = 1.71
+FS_BOUNDARY = drawio_fs("title", scale=_SCALE * (16 / 11) / 1.4)
 FS_TITLE = drawio_fs("title", scale=_SCALE)
 FS_LABEL = drawio_fs("label", scale=_SCALE)
 FS_TICK = drawio_fs("tick", scale=_SCALE)
@@ -392,7 +393,8 @@ def main() -> None:
     OUT_XML.write_text(xml, encoding="utf-8")
     print(f"wrote {OUT_XML.relative_to(ROOT)}")
     if export_pdf(OUT_XML, OUT_PDF):
-        print(f"wrote {OUT_PDF.relative_to(ROOT)}")
+        s = fit_drawio_pdf_width(OUT_PDF)
+        print(f"wrote {OUT_PDF.relative_to(ROOT)} (fit×{s:.3f})")
 
 
 if __name__ == "__main__":

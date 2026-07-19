@@ -14,19 +14,20 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from figure_paths import BUILD_DIR, GENERATED_DIR, PROJECT_ROOT as ROOT, ensure_output_dirs
-from thesis_style import drawio_fs
+from thesis_style import drawio_fs, fit_drawio_pdf_width
 
 OUT_XML = BUILD_DIR / "chap3-ensemble.xml"
 OUT_PDF = GENERATED_DIR / "chap3-ensemble.pdf"
 
-_SCALE = 5.0
+_SCALE = 6.19
+_R = _SCALE / 5.0
 FS_TITLE = drawio_fs("title", scale=_SCALE)
 FS_LABEL = drawio_fs("label", scale=_SCALE)
 FS_TICK = drawio_fs("tick", scale=_SCALE)
-FS_BOX = drawio_fs("title", scale=60 / 11)
-FS_SWIM = drawio_fs("title", scale=54 / 11)
-FS_BODY = drawio_fs("label", scale=5.1)
-FS_EDGE = drawio_fs("tick", scale=7.0)
+FS_BOX = drawio_fs("title", scale=(60 / 11) * _R)
+FS_SWIM = drawio_fs("title", scale=(54 / 11) * _R)
+FS_BODY = drawio_fs("label", scale=5.1 * _R)
+FS_EDGE = drawio_fs("tick", scale=7.0 * _R)
 
 TEXT = "text;html=1;strokeColor=none;fillColor=none;"
 
@@ -477,7 +478,8 @@ def main() -> None:
     OUT_XML.write_text(xml, encoding="utf-8")
     print(f"wrote {OUT_XML.relative_to(ROOT)}")
     if export_pdf(OUT_XML, OUT_PDF):
-        print(f"wrote {OUT_PDF.relative_to(ROOT)}")
+        s = fit_drawio_pdf_width(OUT_PDF)
+        print(f"wrote {OUT_PDF.relative_to(ROOT)} (fit×{s:.3f})")
 
 
 if __name__ == "__main__":

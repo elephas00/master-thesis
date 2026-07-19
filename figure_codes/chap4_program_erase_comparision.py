@@ -21,6 +21,7 @@ from thesis_style import (
     apply_rc,
     bar_key,
     bar_style,
+    fig_shared_legend,
     legend_swatch,
     savefig_text_width,
 )
@@ -47,40 +48,51 @@ def plot(*, save_path: Path = OUT_PDF) -> plt.Figure:
     right_values = [max(0, pe - threshold) for pe in pe_values]
     block_labels = [f"块{i + 1}" for i in range(len(pe_values))]
 
-    fig, ax = plt.subplots(figsize=(TEXT_WIDTH_IN, 3.2))
+    # 图高适中；图例贴紧坐标轴顶边
+    fig, ax = plt.subplots(figsize=(TEXT_WIDTH_IN, 2.35))
     y = range(len(pe_values))
+    bar_h = 0.50
 
     ax.barh(
-        y, left_values,
+        y, left_values, height=bar_h,
         color=ST_LEFT["color"], hatch=ST_LEFT["hatch"],
         edgecolor=C_EDGE, linewidth=BAR_LW,
     )
     ax.barh(
-        y, right_values, left=left_values,
+        y, right_values, left=left_values, height=bar_h,
         color=ST_RIGHT["color"], hatch=ST_RIGHT["hatch"],
         edgecolor=C_EDGE, linewidth=BAR_LW,
     )
-    ax.axvline(x=threshold, color=C_EDGE, linestyle="--", linewidth=1.5)
+    ax.axvline(x=threshold, color=C_EDGE, linestyle="--", linewidth=1.2)
 
     ax.set_yticks(list(y))
-    ax.set_yticklabels(block_labels)
-    ax.set_xlim(0, max(pe_values) * 1.1)
+    ax.set_yticklabels(block_labels, fontsize=FONT["tick"])
+    ax.tick_params(axis="x", labelsize=FONT["tick"])
+    ax.set_xlim(0, max(pe_values) * 1.12)
+    # 收紧上下留白，避免图例与顶行柱之间出现大块空距
+    ax.set_ylim(-0.35, len(pe_values) - 0.65)
 
-    ax.legend(
+    for i, pe in enumerate(pe_values):
+        ax.text(pe + 80, i, f"{pe}", ha="left", va="center", fontsize=FONT["annot"])
+
+    # 图例置顶；无子图标题，轴顶抬高使间距约 4–5 pt
+    fig.subplots_adjust(left=0.10, right=0.98, top=0.935, bottom=0.13)
+    fig_shared_legend(
+        fig,
         handles=[
             legend_swatch(KEY_LEFT, "固定阈值策略每个块的 PE 次数"),
             legend_swatch(KEY_RIGHT, "理想策略可额外使用的 PE 次数"),
         ],
-        loc="best",
-        fontsize=FONT["legend"],
-        frameon=False,
+        loc="lower center",
+        bbox_to_anchor=(0.54, 0.955),
+        ncol=2,
+        fontsize=FONT["note"],
+        handlelength=1.6,
+        handleheight=1.1,
+        borderpad=0.28,
+        borderaxespad=0.0,
     )
-
-    for i, pe in enumerate(pe_values):
-        ax.text(pe, i, f"{pe}", ha="left", va="center", fontsize=FONT["annot"])
-
-    fig.tight_layout()
-    savefig_text_width(fig, save_path)
+    savefig_text_width(fig, save_path, pad_inches=0.04)
     return fig
 
 

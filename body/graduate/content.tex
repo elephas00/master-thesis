@@ -85,7 +85,7 @@ Zhang等人设计3D TLC块粒度SVM预测框架，配套现场可编程门阵列
 \begin{figure}[htbp]
     \centering
     \vspace*{-8pt}
-    \includegraphics[width=\linewidth]{figure/generated/chap1-framework.pdf}
+    \includegraphics{figure/generated/chap1-framework.pdf}
     \caption{本文研究框架与技术路线（第三至五章）}
     \label{fig:framework}
 \end{figure}
@@ -398,7 +398,7 @@ SSD 盘级故障预警属于“读入整段时序、输出是否失效”的判�
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\linewidth]{figure/generated/chap3-pipeline.pdf}
+    \includegraphics{figure/generated/chap3-pipeline.pdf}
     \caption{SSD 故障预测方法流程}
     \label{fig:chap3-pipeline}
 \end{figure}
@@ -930,7 +930,7 @@ y_{i,t}=y^{\mathrm{fix}}_{i,t}\cdot y^{\mathrm{jump}}_{i,t},
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\linewidth]{figure/generated/chap3-ensemble.pdf}
+    \includegraphics{figure/generated/chap3-ensemble.pdf}
     \caption{异构集成结构示意}
     \label{fig:chap3-ensemble}
 \end{figure}
@@ -1527,7 +1527,7 @@ MB2 各轮 TP 仅 1--7 块：R1 以 $d=0$ 为主（6/7 满足 $d\le 1$），含 
 
 \begin{figure}[htb]
     \centering
-    \includegraphics[width=\linewidth]{figure/generated/chap4-program-erase-comparison.pdf}
+    \includegraphics{figure/generated/chap4-program-erase-comparison.pdf}
     \caption{固定阈值策略与理想策略的块级 PE 次数对比示意图}
     \label{fig:pe-comparison}
 \end{figure}
@@ -1786,7 +1786,6 @@ MB2 各轮 TP 仅 1--7 块：R1 以 $d=0$ 为主（6/7 满足 $d\le 1$），含 
     \end{tabularx}
 \end{table}
 
-\clearpage
 对表~\ref{tab:partial-value-results}--\ref{tab:partial-wl-results} 中的实验结果，下面依次从采集成本、收益保留与部署建议三个角度展开讨论。
 
 在采集成本上，DefaultRead 的效果普遍比 BestRead 更好，单次读取方案将同一条件下的重复读降为 1 次，开销最低；稀疏磨损档位方案将多节点轨迹压缩为单点快照，适合块已处于中后期 PE 阶段的在线探测；有限 Wordline 方案的开销介于两者之间，Wordline 0--49 子集已可将遍历规模显著压缩，而全量 Wordline 仍是最重配置。
@@ -1861,7 +1860,7 @@ MB2 各轮 TP 仅 1--7 块：R1 以 $d=0$ 为主（6/7 满足 $d\le 1$），含 
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\linewidth]{figure/generated/chap5-usecase.pdf}
+    \includegraphics{figure/generated/chap5-usecase.pdf}
     \caption{智慧 SSD 运维系统用例图}
     \label{fig:ch5-usecase}
 \end{figure}
@@ -1876,7 +1875,7 @@ MB2 各轮 TP 仅 1--7 块：R1 以 $d=0$ 为主（6/7 满足 $d\le 1$），含 
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\linewidth]{figure/generated/chap5-software-structure.pdf}
+    \includegraphics{figure/generated/chap5-software-structure.pdf}
     \caption{软件总体架构图}
     \label{fig:software-structure}
 \end{figure}
@@ -2024,7 +2023,7 @@ MB2 各轮 TP 仅 1--7 块：R1 以 $d=0$ 为主（6/7 满足 $d\le 1$），含 
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\linewidth]{figure/generated/chap5-database-er.pdf}
+    \includegraphics{figure/generated/chap5-database-er.pdf}
     \caption{智慧 SSD 运维系统 E-R 图}
     \label{fig:ch5-er}
 \end{figure}

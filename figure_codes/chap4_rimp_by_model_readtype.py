@@ -71,7 +71,8 @@ def _draw_panel(ax, read_type: str, *, show_ylabel: bool) -> None:
     ax.axhline(BASELINE, color=C_PRIMARY, lw=0.9, ls=":", alpha=0.7, zorder=2)
     ax.set_xticks(x)
     ax.set_xticklabels(COLS, fontsize=FONT["tick"])
-    ax.set_title(read_type, fontsize=FONT["title"], pad=4)
+    # 小标题放底部
+    ax.set_xlabel(read_type, fontsize=FONT["title"], labelpad=6)
     if show_ylabel:
         ax.set_ylabel(r"$R_{\mathrm{imp}}$ / \%", fontsize=FONT["note"])
     ax.tick_params(axis="y", labelsize=FONT["tick"])
@@ -80,7 +81,7 @@ def _draw_panel(ax, read_type: str, *, show_ylabel: bool) -> None:
 
 
 def plot(*, save_path: Path = OUT_PDF) -> plt.Figure:
-    fig, axes = plt.subplots(1, 2, figsize=(TEXT_WIDTH_IN, 2.95), sharey=True)
+    fig, axes = plt.subplots(1, 2, figsize=(TEXT_WIDTH_IN, 2.85), sharey=True)
 
     _draw_panel(axes[0], "BestRead", show_ylabel=True)
     _draw_panel(axes[1], "DefaultRead", show_ylabel=False)
@@ -98,14 +99,15 @@ def plot(*, save_path: Path = OUT_PDF) -> plt.Figure:
         ha="right", va="bottom", fontsize=FONT["annot"], color=C_PRIMARY,
     )
 
-    fig.subplots_adjust(left=0.10, right=0.99, top=0.88, bottom=0.22, wspace=0.18)
+    # 图例置顶；小标题在下；抬高轴顶消除标题挪走后的上空距
+    fig.subplots_adjust(left=0.10, right=0.99, top=0.955, bottom=0.18, wspace=0.18)
     handles, labels = axes[0].get_legend_handles_labels()
     fig_shared_legend(
         fig,
         handles=handles,
         labels=labels,
         loc="lower center",
-        bbox_to_anchor=(0.5, 0.01),
+        bbox_to_anchor=(0.54, 0.955),
         ncol=3,
         fontsize=FONT["note"],
     )

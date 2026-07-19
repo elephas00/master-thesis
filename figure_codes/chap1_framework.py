@@ -14,17 +14,17 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from figure_paths import BUILD_DIR, GENERATED_DIR, PROJECT_ROOT as ROOT, ensure_output_dirs
-from thesis_style import drawio_fs
+from thesis_style import drawio_fs, fit_drawio_pdf_width
 
 OUT_XML = BUILD_DIR / "chap1-framework.xml"
 OUT_PDF = GENERATED_DIR / "chap1-framework.pdf"
 
-_SCALE = 2.0
+_SCALE = 2.10
 FS_TITLE = drawio_fs("title", scale=_SCALE)
 FS_LABEL = drawio_fs("label", scale=_SCALE)
 FS_TICK = drawio_fs("tick", scale=_SCALE)
 FS_ANNOT = drawio_fs("annot", scale=_SCALE)
-FS_LEGEND_SM = drawio_fs("annot", scale=1.75)
+FS_LEGEND_SM = drawio_fs("annot", scale=_SCALE * 1.75 / 2.0)
 
 TEXT = "text;html=1;strokeColor=none;fillColor=none;fontFamily=Helvetica;"
 EDGE = (
@@ -404,7 +404,8 @@ def main() -> None:
     OUT_XML.write_text(xml, encoding="utf-8")
     print(f"wrote {OUT_XML.relative_to(ROOT)}")
     if export_pdf(OUT_XML, OUT_PDF):
-        print(f"wrote {OUT_PDF.relative_to(ROOT)}")
+        s = fit_drawio_pdf_width(OUT_PDF)
+        print(f"wrote {OUT_PDF.relative_to(ROOT)} (fit×{s:.3f})")
 
 
 if __name__ == "__main__":

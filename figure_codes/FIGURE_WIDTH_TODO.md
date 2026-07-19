@@ -45,25 +45,25 @@
 | [x] | 难 | `figure/generated/chap3-tp-tn-fp-fn.pdf` | `figure_codes/chap3_tp_tn_fp_fn.py` | **1.00×** | 已对齐（栏宽；图例/标注紧凑） |
 | [x] | 难 | `figure/generated/chap3-baseline-bar-grid.pdf` | `figure_codes/chap3_baseline_bar_grid.py` | **1.00×** | 已对齐（栏宽出图；FPR 标 ×10⁻⁵ 数值） |
 | [x] | 难 | `figure/generated/chap4-blockfilter-grouping.pdf` | `figure_codes/chap4_blockfilter_grouping.py` | **1.00×** | 已对齐（栏宽；块号 tick 字号） |
-| [ ] | 难 | `figure/generated/chap1-framework.pdf` | `figure_codes/chap1_framework.py` | ~2.10× | draw.io 整页重排 |
-| [ ] | 难 | `figure/generated/chap3-pipeline.pdf` | `figure_codes/chap3_pipeline.py` | ~2.14× | draw.io |
-| [ ] | 难 | `figure/generated/chap3-ensemble.pdf` | `figure_codes/chap3_ensemble.py` | ~6.19× | draw.io，画布过大 |
-| [ ] | 难 | `figure/generated/chap5-usecase.pdf` | `figure_codes/chap5_usecase.py` | ~1.71× | draw.io |
-| [ ] | 难 | `figure/generated/chap5-software-structure.pdf` | `figure_codes/chap5_software_structure.py` | ~1.61× | draw.io |
-| [ ] | 难 | `figure/generated/chap5-database-er.pdf` | `figure_codes/chap5_database_er.py` | ~1.36× | draw.io |
+| [x] | 难 | `figure/generated/chap1-framework.pdf` | `figure_codes/chap1_framework.py` | **1.00×** | 已对齐（draw.io 导出后缩栏宽） |
+| [x] | 难 | `figure/generated/chap3-pipeline.pdf` | `figure_codes/chap3_pipeline.py` | **1.00×** | 已对齐（draw.io 导出后缩栏宽） |
+| [x] | 难 | `figure/generated/chap3-ensemble.pdf` | `figure_codes/chap3_ensemble.py` | **1.00×** | 已对齐（draw.io 导出后缩栏宽） |
+| [x] | 难 | `figure/generated/chap5-usecase.pdf` | `figure_codes/chap5_usecase.py` | **1.00×** | 已对齐（draw.io 导出后缩栏宽） |
+| [x] | 难 | `figure/generated/chap5-software-structure.pdf` | `figure_codes/chap5_software_structure.py` | **1.00×** | 已对齐（draw.io 导出后缩栏宽） |
+| [x] | 难 | `figure/generated/chap5-database-er.pdf` | `figure_codes/chap5_database_er.py` | **1.00×** | 已对齐（draw.io 导出后缩栏宽） |
 
 ## 汇总
 
 - 易：8（已完成 7 / 截图不改 1）
 - 中：13（已完成）
-- 难：12（已完成 6）
+- 难：12（已完成 12）
 - 合计：33
 
 ## 建议顺序
 
 1. ~~先做 **易**~~（截图已跳过）
 2. ~~再做 **中**~~（已完成）
-3. 最后做 **难**（下一批：draw.io，由窄到宽：`database-er` → `software-structure` → `usecase` → `framework` → `pipeline` → `ensemble`）
+3. ~~最后做 **难**~~（draw.io 已全部对齐栏宽）
 
 ## 验收
 
