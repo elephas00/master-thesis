@@ -17,10 +17,12 @@ from thesis_style import (
     BAR_LW,
     C_EDGE,
     FONT,
+    TEXT_WIDTH_IN,
     apply_rc,
     bar_key,
     bar_style,
     legend_swatch,
+    savefig_text_width,
 )
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -45,7 +47,7 @@ def plot(*, save_path: Path = OUT_PDF) -> plt.Figure:
     right_values = [max(0, pe - threshold) for pe in pe_values]
     block_labels = [f"块{i + 1}" for i in range(len(pe_values))]
 
-    fig, ax = plt.subplots(figsize=(5, 3))
+    fig, ax = plt.subplots(figsize=(TEXT_WIDTH_IN, 3.2))
     y = range(len(pe_values))
 
     ax.barh(
@@ -62,8 +64,6 @@ def plot(*, save_path: Path = OUT_PDF) -> plt.Figure:
 
     ax.set_yticks(list(y))
     ax.set_yticklabels(block_labels)
-    ax.set_xlabel("每个块理想 PE 次数", fontsize=FONT["label"])
-    ax.set_ylabel("")
     ax.set_xlim(0, max(pe_values) * 1.1)
 
     ax.legend(
@@ -80,8 +80,7 @@ def plot(*, save_path: Path = OUT_PDF) -> plt.Figure:
         ax.text(pe, i, f"{pe}", ha="left", va="center", fontsize=FONT["annot"])
 
     fig.tight_layout()
-    save_path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(save_path, bbox_inches="tight", facecolor="white")
+    savefig_text_width(fig, save_path)
     return fig
 
 

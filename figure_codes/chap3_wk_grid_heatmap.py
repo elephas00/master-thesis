@@ -22,7 +22,7 @@ import numpy as np
 from matplotlib.patches import Rectangle
 
 from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
-from thesis_style import CMAP_HEAT, FONT, apply_rc
+from thesis_style import CMAP_HEAT, FONT, TEXT_WIDTH_IN, apply_rc, savefig_text_width
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OUT_PDF = FIGURE_DIR / "chap3-wk-grid-heatmap-A.pdf"
@@ -163,6 +163,7 @@ def plot_wk_panel(
 
 def plot_heatmap(*, save_path_pdf: Path | None = None) -> plt.Figure:
     # 按相同方格边长定位；两图紧挨并排（正常子图间距）
+    # 先按经验尺寸排布，保存时再精确对齐栏宽
     cell = 0.48
     n_rows = 4
     n_cols = [len(K_LABELS[m]) for m in MODELS]
@@ -171,6 +172,19 @@ def plot_heatmap(*, save_path_pdf: Path | None = None) -> plt.Figure:
     panel_gap = 0.42  # 左色条刻度文字 → 右 y 标签
     left_m, right_m, bot_m, top_m = 0.02, 0.02, 0.40, 0.42
 
+    panel_w = [y_label + n * cell + cbar_pad + cbar_w for n in n_cols]
+    fig_w = left_m + panel_w[0] + panel_gap + panel_w[1] + right_m
+    # 略放大到接近栏宽，减少最终缩放对字号的影响
+    scale = TEXT_WIDTH_IN / fig_w
+    cell *= scale
+    y_label *= scale
+    cbar_w *= scale
+    cbar_pad *= scale
+    panel_gap *= scale
+    left_m *= scale
+    right_m *= scale
+    bot_m *= scale
+    top_m *= scale
     panel_w = [y_label + n * cell + cbar_pad + cbar_w for n in n_cols]
     fig_w = left_m + panel_w[0] + panel_gap + panel_w[1] + right_m
     fig_h = bot_m + n_rows * cell + top_m
@@ -206,7 +220,7 @@ def plot_heatmap(*, save_path_pdf: Path | None = None) -> plt.Figure:
         cbar.ax.tick_params(labelsize=FONT["note"], pad=1)
 
     if save_path_pdf is not None:
-        fig.savefig(save_path_pdf, bbox_inches="tight", pad_inches=0.02)
+        savefig_text_width(fig, save_path_pdf, pad_inches=0.02)
 
     return fig
 

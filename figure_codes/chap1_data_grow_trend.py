@@ -16,7 +16,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
-from thesis_style import C_EDGE, C_GRID, C_INK, FONT, apply_rc, line_style
+from thesis_style import (
+    C_EDGE,
+    C_GRID,
+    C_INK,
+    FONT,
+    TEXT_WIDTH_IN,
+    apply_rc,
+    line_style,
+    savefig_text_width,
+)
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OUT_PDF = FIGURE_DIR / "chap1-data-growth-trend.pdf"
@@ -29,7 +38,7 @@ VALUES = [11, 15, 20, 26, 33, 44, 58, 77, 102, 133, 175, 236, 325, 460, 670, 100
 
 def plot(*, save_path: Path = OUT_PDF) -> plt.Figure:
     st = line_style(0)
-    fig, ax = plt.subplots(figsize=(12.8, 5))
+    fig, ax = plt.subplots(figsize=(TEXT_WIDTH_IN, 2.2))
     fig.patch.set_facecolor("white")
     ax.set_facecolor("white")
 
@@ -38,10 +47,10 @@ def plot(*, save_path: Path = OUT_PDF) -> plt.Figure:
         YEARS,
         VALUES,
         color=st["color"],
-        linewidth=1.6,
+        linewidth=1.3,
         linestyle=st["ls"],
         marker=st["marker"],
-        markersize=3.5,
+        markersize=2.8,
         markerfacecolor=st["color"],
         markeredgecolor=st["color"],
         zorder=2,
@@ -49,7 +58,8 @@ def plot(*, save_path: Path = OUT_PDF) -> plt.Figure:
 
     ax.set_yticks(np.arange(0, 1201, 200))
     ax.set_xticks(range(len(YEARS)))
-    ax.set_xticklabels(YEARS, rotation=0, fontsize=FONT["annot"])
+    ax.set_xticklabels(YEARS, rotation=0, fontsize=FONT["annot"] - 1)
+    ax.tick_params(axis="y", labelsize=FONT["annot"] - 1)
 
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
@@ -57,16 +67,23 @@ def plot(*, save_path: Path = OUT_PDF) -> plt.Figure:
     ax.spines["bottom"].set_color(C_EDGE)
     ax.tick_params(colors=C_INK)
 
+    # 用点偏移（而非数据坐标 +14），避免后期数值贴线
     for i, val in enumerate(VALUES):
-        ax.text(
-            i, val + 30, str(val),
-            ha="center", va="bottom",
-            fontsize=FONT["annot"], color=C_INK,
+        ax.annotate(
+            str(val),
+            (i, val),
+            textcoords="offset points",
+            xytext=(0, 5),
+            ha="center",
+            va="bottom",
+            fontsize=FONT["annot"] - 1,
+            color=C_INK,
+            clip_on=False,
         )
 
+    ax.set_ylim(0, max(VALUES) * 1.12)
     fig.tight_layout()
-    save_path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(save_path, bbox_inches="tight", facecolor="white")
+    savefig_text_width(fig, save_path)
     return fig
 
 

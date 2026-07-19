@@ -18,6 +18,14 @@ from __future__ import annotations
 from typing import Any
 
 # ---------------------------------------------------------------------------
+# 版心宽度（研究生模板 A4、左右 2.5 cm → 160 mm）
+# 出图固有宽对齐此值后，正文可用 \\includegraphics 默认尺寸插入。
+# ---------------------------------------------------------------------------
+TEXT_WIDTH_MM = 160.0
+TEXT_WIDTH_IN = TEXT_WIDTH_MM / 25.4  # ≈ 6.299 in
+TEXT_WIDTH_PT = TEXT_WIDTH_IN * 72.0  # ≈ 453.54 pt
+
+# ---------------------------------------------------------------------------
 # 墨色与版式常量（轴线/文字；非数据系列色）
 # ---------------------------------------------------------------------------
 C_INK = "#111111"
@@ -32,24 +40,24 @@ C_SPINE_MUTED = "#BDBDBD"
 
 # ---------------------------------------------------------------------------
 # 柱图色序（b1..b6；白 = 第 1 优先）
-# Okabe–Ito 改编：第 2 位原蓝改为灰，印刷对照更稳
+# Okabe–Ito 改编：第 2 位用灰作第一对照，第 3 位恢复 Okabe 天蓝
 # ---------------------------------------------------------------------------
 COLORS_BAR: list[str] = [
     "#FFFFFF",  # 1 白底 — 优先（黑边勾勒，印刷清晰）
-    "#5D6D7E",  # 2 灰（替 Okabe 蓝，作第一对照）
-    "#E69F00",  # 3 琥珀
-    "#009E73",  # 4 绿蓝
-    "#CC79A7",  # 5 紫红
-    "#56B4E9",  # 6 天蓝
+    "#5D6D7E",  # 2 灰 — 第一对照
+    "#56B4E9",  # 3 Okabe 天蓝
+    "#E69F00",  # 4 琥珀
+    "#009E73",  # 5 绿蓝
+    "#CC79A7",  # 6 紫红
 ]
 
 HATCH_BAR: list[str] = [
     "",         # 1 白
     "",         # 2 灰 — 无底纹
-    "///",      # 3 琥珀
-    "\\\\\\",   # 4 绿蓝
-    "xx",       # 5 紫红
-    "..",       # 6 天蓝
+    "..",       # 3 天蓝
+    "///",      # 4 琥珀
+    "\\\\\\",   # 5 绿蓝
+    "xx",       # 6 紫红
 ]
 
 # ---------------------------------------------------------------------------
@@ -259,6 +267,58 @@ def apply_rc() -> None:
         "ytick.labelsize": FONT["tick"],
         "legend.fontsize": FONT["legend"],
     })
+
+
+def savefig_text_width(
+    fig,
+    path,
+    *,
+    pad_inches: float = 0.04,
+    facecolor: str = "white",
+    match_width: bool = True,
+    **kwargs: Any,
+) -> None:
+    """保存 PDF；默认将页面宽度精确缩放到 ``TEXT_WIDTH_PT``（栏宽）。
+
+    先按 ``bbox_inches='tight'`` 裁白边，再整体等比缩放，避免仅改
+    ``figsize`` 时 tight 裁剪导致最终宽度偏离版心。
+    """
+    import io
+    from pathlib import Path
+
+    from pypdf import PdfReader, PdfWriter
+
+    out = Path(path)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    if not match_width:
+        fig.savefig(
+            out,
+            bbox_inches="tight",
+            pad_inches=pad_inches,
+            facecolor=facecolor,
+            **kwargs,
+        )
+        return
+
+    buf = io.BytesIO()
+    fig.savefig(
+        buf,
+        format="pdf",
+        bbox_inches="tight",
+        pad_inches=pad_inches,
+        facecolor=facecolor,
+        **kwargs,
+    )
+    buf.seek(0)
+    page = PdfReader(buf).pages[0]
+    w = float(page.mediabox.width)
+    if w <= 0:
+        raise ValueError(f"empty PDF width for {out}")
+    page.scale_by(TEXT_WIDTH_PT / w)
+    writer = PdfWriter()
+    writer.add_page(page)
+    with out.open("wb") as fh:
+        writer.write(fh)
 
 
 def fig_legend_title(

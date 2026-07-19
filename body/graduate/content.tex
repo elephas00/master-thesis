@@ -4,7 +4,7 @@
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=.9\linewidth]{figure/generated/chap1-data-growth-trend.pdf}
+    \includegraphics[width=\linewidth]{figure/generated/chap1-data-growth-trend.pdf}
     \caption{全球每年新产生的数据总量预测}
     \label{fig:global-data-growth}
 \end{figure}
@@ -85,7 +85,7 @@ Zhang等人设计3D TLC块粒度SVM预测框架，配套现场可编程门阵列
 \begin{figure}[htbp]
     \centering
     \vspace*{-8pt}
-    \includegraphics[width=0.96\linewidth,keepaspectratio]{figure/generated/chap1-framework.pdf}
+    \includegraphics[width=\linewidth]{figure/generated/chap1-framework.pdf}
     \caption{本文研究框架与技术路线（第三至五章）}
     \label{fig:framework}
 \end{figure}
@@ -134,7 +134,7 @@ NAND 闪存以浮栅场效应晶体管（Floating Gate MOSFET）作为基本存�
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=.95\linewidth]{figure/generated/chap2-ssd-structure.pdf}
+    \includegraphics[width=\linewidth]{figure/generated/chap2-ssd-structure.pdf}
     \caption{固态硬盘基本结构}
     \label{fig:ssd_basic_structure}
 \end{figure}
@@ -152,7 +152,7 @@ NAND 闪存的数据操作可归纳为编程（Program）与擦除（Erase）两
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=.95\linewidth]{figure/generated/chap2-program-erase-principle.pdf}
+    \includegraphics[width=\linewidth]{figure/generated/chap2-program-erase-principle.pdf}
     \caption{闪存擦写原理}
     \label{fig:ssd_read_write}
 \end{figure}
@@ -265,7 +265,7 @@ SMART 是一种自动的硬盘状态检测与预警系统和规范，通过在�
 其基本思想是对训练集进行自助采样（Bootstrap），训练多个相互独立的决策树分类器，并在预测阶段通过投票或平均的方式得到最终预测结果，如图~\ref{fig:random_forest}所示：
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=.95\linewidth]{figure/generated/chap2-random-forest.pdf}
+    \includegraphics[width=\linewidth]{figure/generated/chap2-random-forest.pdf}
     \caption{随机森林示意图 }
     \label{fig:random_forest}
 \end{figure}
@@ -297,7 +297,7 @@ XGBoost（Extreme Gradient Boosting）是梯度提升树（GBDT）算法的高�
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=.95\linewidth]{figure/generated/chap2-gbdt.pdf}
+    \includegraphics[width=\linewidth]{figure/generated/chap2-gbdt.pdf}
     \caption{GBDT算法迭代流程示意图}
     \label{fig:gbdt_flow}
 \end{figure}
@@ -398,7 +398,7 @@ SSD 盘级故障预警属于“读入整段时序、输出是否失效”的判�
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.92\linewidth]{figure/generated/chap3-pipeline.pdf}
+    \includegraphics[width=\linewidth]{figure/generated/chap3-pipeline.pdf}
     \caption{SSD 故障预测方法流程}
     \label{fig:chap3-pipeline}
 \end{figure}
@@ -422,7 +422,7 @@ SSD 盘级故障预警属于“读入整段时序、输出是否失效”的判�
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.90\linewidth]{figure/generated/chap3-tp-tn-fp-fn.pdf}
+    \includegraphics[width=\linewidth]{figure/generated/chap3-tp-tn-fp-fn.pdf}
     \caption{盘级 TP/FP/TN/FN 判定示意}
     \label{fig:tp-fp-tn-fn}
 \end{figure}
@@ -501,7 +501,7 @@ MB1 与 MB2 均为 MLC-SSD，SMART 属性集合相近，故障样本活跃，因
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.88\linewidth]{figure/generated/chap3-failure-by-month.pdf}
+    \includegraphics[width=\linewidth]{figure/generated/chap3-failure-by-month.pdf}
     \caption{月度故障盘分布}
     \label{fig:failure-by-month}
 \end{figure}
@@ -722,14 +722,14 @@ $\rho_s$ 取值范围为 $[-1,1]$，$|\rho_s|$ 越大表示单调相关越强。
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.95\linewidth]{figure/generated/chap3-b-group-mutation-eda-mb1.pdf}
+    \includegraphics[width=\linewidth]{figure/generated/chap3-b-group-mutation-eda-mb1.pdf}
     \caption{MB1 故障盘 B 组属性时序}
     \label{fig:b-mutation-mb1}
 \end{figure}
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.95\linewidth]{figure/generated/chap3-b-group-mutation-eda-mb2.pdf}
+    \includegraphics[width=\linewidth]{figure/generated/chap3-b-group-mutation-eda-mb2.pdf}
     \caption{MB2 故障盘 B 组属性时序}
     \label{fig:b-mutation-mb2}
 \end{figure}
@@ -782,7 +782,7 @@ $W=30$ 日时，MB1 属性 5/180/183 命中率约 68.0\%（健康盘不足 0.1\%
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.92\linewidth]{figure/generated/chap3-first-jump-pmf.pdf}
+    \includegraphics[width=\linewidth]{figure/generated/chap3-first-jump-pmf.pdf}
     \caption{\label{fig:first-jump-pmf}B 组首跳距故障日分布}
     \vspace{2pt}
     \begin{minipage}{\linewidth}
@@ -931,7 +931,7 @@ y_{i,t}=y^{\mathrm{fix}}_{i,t}\cdot y^{\mathrm{jump}}_{i,t},
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.92\linewidth]{figure/generated/chap3-ensemble.pdf}
+    \includegraphics[width=\linewidth]{figure/generated/chap3-ensemble.pdf}
     \caption{异构集成结构示意}
     \label{fig:chap3-ensemble}
 \end{figure}
@@ -1096,7 +1096,7 @@ p_t=
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.92\linewidth]{figure/generated/chap3-wk-grid-heatmap-A.pdf}
+    \includegraphics[width=\linewidth]{figure/generated/chap3-wk-grid-heatmap-A.pdf}
     \caption{\label{fig:chap3-wk-grid-heatmap}$W$--$k$ 网格搜索的盘级 $F_{0.5}$ 热力图}
     \vspace{2pt}
     \begin{minipage}{\linewidth}
@@ -1251,7 +1251,7 @@ p_t=
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.98\linewidth]{figure/generated/chap3-baseline-bar-grid.pdf}
+    \includegraphics[width=\linewidth]{figure/generated/chap3-baseline-bar-grid.pdf}
     \caption{\label{fig:chap3-baseline-bar-grid} 三轮平均的 MB1/MB2 盘级基线性能对比}
     \vspace{2pt}
     \begin{minipage}{\linewidth}
@@ -1417,7 +1417,7 @@ Mut-RF 采用 30 日固定窗口标签，以健康盘的7日SMART时序送入Inf
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.98\linewidth]{figure/generated/chap3-tp-lead-method-E-heatmap.pdf}
+    \includegraphics[width=\linewidth]{figure/generated/chap3-tp-lead-method-E-heatmap.pdf}
     \caption{\label{fig:chap3-tp-lead-method-compare}多方法提前预警天数分布对比}
     \vspace{2pt}
 
@@ -1461,7 +1461,7 @@ MB2 上，各行 $n$ 仅为 5--10，样本偏小；本文 $n=10$ 居各行之首
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.98\linewidth]{figure/generated/chap3-tp-lead-time-test.pdf}
+    \includegraphics[width=\linewidth]{figure/generated/chap3-tp-lead-time-test.pdf}
     \caption{\label{fig:chap3-tp-lead-time}本文方法提前预警时间分布（分轮）}
     \vspace{2pt}
     
@@ -1514,7 +1514,7 @@ MB2 各轮 TP 仅 1--7 块：R1 以 $d=0$ 为主（6/7 满足 $d\le 1$），含 
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.72\linewidth]{figure/generated/chap4-slc-mlc-tlc-vth.pdf}
+    \includegraphics[width=\linewidth]{figure/generated/chap4-slc-mlc-tlc-vth.pdf}
     \caption{SLC、MLC与TLC存储方式对比示意图}
     \label{fig:xlc-comparison}
 \end{figure}
@@ -1527,7 +1527,7 @@ MB2 各轮 TP 仅 1--7 块：R1 以 $d=0$ 为主（6/7 满足 $d\le 1$），含 
 
 \begin{figure}[htb]
     \centering
-    \includegraphics[width=0.8\linewidth]{figure/generated/chap4-program-erase-comparison.pdf}
+    \includegraphics[width=\linewidth]{figure/generated/chap4-program-erase-comparison.pdf}
     \caption{固定阈值策略与理想策略的块级 PE 次数对比示意图}
     \label{fig:pe-comparison}
 \end{figure}
@@ -1592,7 +1592,7 @@ MB2 各轮 TP 仅 1--7 块：R1 以 $d=0$ 为主（6/7 满足 $d\le 1$），含 
 基于该假设，将块编号 BlockFilter 的数值对 4 取余进行分组，在逻辑上认为每个组对应一个逻辑块，组内不同物理块在不同 PE 档位上的数据共同构成该逻辑块的观测轨迹。如图\ref{fig:blockfilter-grouping}所示：
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.95\linewidth]{figure/generated/chap4-blockfilter-grouping.pdf}
+    \includegraphics[width=\linewidth]{figure/generated/chap4-blockfilter-grouping.pdf}
     \caption{分组逻辑示意图}
     \label{fig:blockfilter-grouping}
 \end{figure}
@@ -1629,16 +1629,11 @@ MB2 各轮 TP 仅 1--7 块：R1 以 $d=0$ 为主（6/7 满足 $d\le 1$），含 
 \begin{table}[htbp]
     \centering
     \caption{\label{tab:lifespan-distribution}逻辑块寿命分布统计}
-    \begin{tabularx}{0.56\linewidth}{>{\centering\arraybackslash}X >{\centering\arraybackslash}X}
+    \begin{tabularx}{0.92\linewidth}{l *{6}{>{\centering\arraybackslash}X}}
         \toprule
-        寿命（LIFESPAN） & 块数量 \\
+        寿命（LIFESPAN） & 7500 & 8000 & 8500 & 9000 & 9500 & 10000 \\
         \midrule
-        7500 & 1 \\
-        8000 & 0 \\
-        8500 & 1 \\
-        9000 & 2 \\
-        9500 & 1 \\
-        10000 & 251 \\
+        块数量 & 1 & 0 & 1 & 2 & 1 & 251 \\
         \bottomrule
     \end{tabularx}
 \end{table}
@@ -1647,7 +1642,7 @@ MB2 各轮 TP 仅 1--7 块：R1 以 $d=0$ 为主（6/7 满足 $d\le 1$），含 
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.96\linewidth]{figure/generated/chap4-block-labeling-flow.pdf}
+    \includegraphics[width=\linewidth]{figure/generated/chap4-block-labeling-flow.pdf}
     \caption{块寿命标签构造流程}
     \label{fig:block-labeling-flow}
 \end{figure}
@@ -1671,7 +1666,7 @@ MB2 各轮 TP 仅 1--7 块：R1 以 $d=0$ 为主（6/7 满足 $d\le 1$），含 
 考虑到特征数量中等、存在非线性关系、且样本数量有限（仅 256 个块），本文采用 XGBoost、RandomForest 与 LightGBM 三种集成学习模型进行块寿命预测。由于 LP、MP、UP 与 label 的对应关系存在一定差异，在数据量有限的情况下容易导致过拟合，本文分别针对 LP、MP、UP 建模，并采用投票机制对最终分类结果进行融合。集成投票流程如图\ref{fig:ensemble-voting-flow}所示：
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.82\linewidth]{figure/generated/chap4-ensemble-voting-flow.pdf}
+    \includegraphics[width=\linewidth]{figure/generated/chap4-ensemble-voting-flow.pdf}
     \caption{集成投票流程}
     \label{fig:ensemble-voting-flow}
 \end{figure}
@@ -1866,7 +1861,7 @@ MB2 各轮 TP 仅 1--7 块：R1 以 $d=0$ 为主（6/7 满足 $d\le 1$），含 
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.98\linewidth]{figure/generated/chap5-usecase.pdf}
+    \includegraphics[width=\linewidth]{figure/generated/chap5-usecase.pdf}
     \caption{智慧 SSD 运维系统用例图}
     \label{fig:ch5-usecase}
 \end{figure}
@@ -1881,7 +1876,7 @@ MB2 各轮 TP 仅 1--7 块：R1 以 $d=0$ 为主（6/7 满足 $d\le 1$），含 
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.98\linewidth]{figure/generated/chap5-software-structure.pdf}
+    \includegraphics[width=\linewidth]{figure/generated/chap5-software-structure.pdf}
     \caption{软件总体架构图}
     \label{fig:software-structure}
 \end{figure}
@@ -1963,7 +1958,7 @@ MB2 各轮 TP 仅 1--7 块：R1 以 $d=0$ 为主（6/7 满足 $d\le 1$），含 
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.92\linewidth]{figure/generated/chap5-warning-gen-flow.pdf}
+    \includegraphics[width=\linewidth]{figure/generated/chap5-warning-gen-flow.pdf}
     \caption{预警生成流程}
     \label{fig:ch5-warning-gen-flow}
 \end{figure}
@@ -1974,7 +1969,7 @@ MB2 各轮 TP 仅 1--7 块：R1 以 $d=0$ 为主（6/7 满足 $d\le 1$），含 
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.92\linewidth]{figure/generated/chap5-warning-handle-flow.pdf}
+    \includegraphics[width=\linewidth]{figure/generated/chap5-warning-handle-flow.pdf}
     \caption{预警处置交互流程}
     \label{fig:ch5-warning-handle-flow}
 \end{figure}
@@ -2028,7 +2023,7 @@ MB2 各轮 TP 仅 1--7 块：R1 以 $d=0$ 为主（6/7 满足 $d\le 1$），含 
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.92\linewidth]{figure/generated/chap5-database-er.pdf}
+    \includegraphics[width=\linewidth]{figure/generated/chap5-database-er.pdf}
     \caption{智慧 SSD 运维系统 E-R 图}
     \label{fig:ch5-er}
 \end{figure}
@@ -2087,7 +2082,7 @@ MB2 各轮 TP 仅 1--7 块：R1 以 $d=0$ 为主（6/7 满足 $d\le 1$），含 
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.95\linewidth]{figure/chap5-ui-warning.png}
+    \includegraphics[width=\linewidth]{figure/chap5-ui-warning.png}
     \caption{故障处理页面实现效果}
     \label{fig:ch5-ui-warning}
 \end{figure}
