@@ -20,7 +20,7 @@ from matplotlib.patches import Circle, Rectangle
 
 from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
 from flowchart_style import INK, apply_flowchart_rc
-from thesis_style import FONT
+from thesis_style import FONT, TEXT_WIDTH_IN, savefig_text_width
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OUT_PDF = FIGURE_DIR / "chap3-tp-tn-fp-fn.pdf"
@@ -85,101 +85,125 @@ def _timeline(ax, x0: float, x1: float, y: float) -> None:
 
 def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
     apply_flowchart_rc()
-    fig, ax = plt.subplots(figsize=(10.8, 5.6))
-    ax.set_xlim(0.2, 14.6)
-    ax.set_ylim(0.2, 7.4)
+    # 栏宽出图；字号降一档；整体压矮
+    fs_h = FONT["tick"]       # 原 label 10 → 9
+    fs_b = FONT["note"] - 1   # 原 note 8 → 7
+    fig, ax = plt.subplots(figsize=(TEXT_WIDTH_IN, 2.95))
+    ax.set_xlim(0.2, 14.7)
+    ax.set_ylim(0.0, 6.35)
     ax.axis("off")
 
-    # ---- 图例 ----
-    ax.text(0.5, 7.05, "图例", fontsize=FONT["title"], fontweight="bold", color=INK)
-    legend = [
-        (2.0, "TP", "TP（窗口内预警）"),
-        (5.2, "FP", "FP（误报）"),
-        (7.8, "TN", "TN（正确不预警）"),
-        (11.0, "FN", "FN（窗口内未预警）"),
-    ]
-    for x, kind, label in legend:
-        _marker(ax, x, 7.05, kind, r=0.12)
-        ax.text(x + 0.28, 7.05, label, ha="left", va="center", fontsize=FONT["legend"], color=INK)
+    # 左：「图例」；右上行四项自左排布，余量均分到项间距
+    x_lab, x_left, x_right = 0.35, 1.85, 13.85
+    y_leg, y_time = 6.05, 5.5
+    ax.text(
+        x_lab, 0.5 * (y_leg + y_time), "图例",
+        fontsize=fs_h, fontweight="bold", color=INK, va="center",
+    )
 
-    # ---- 时间流向 ----
-    ax.text(0.5, 6.35, "时间流向", fontsize=FONT["label"], fontweight="bold", color=C_MUTED)
-    ax.text(2.0, 6.35, "更早", fontsize=FONT["tick"], color=C_MUTED, ha="left", va="center")
-    ax.plot([2.7, 11.8], [6.35, 6.35], color=C_FLOW, linewidth=2.5, zorder=1)
+    legend_items = [
+        ("TP", "TP（窗口内预警）", 2.55),
+        ("FP", "FP（误报）", 1.55),
+        ("TN", "TN（正确不预警）", 2.55),
+        ("FN", "FN（窗口内未预警）", 2.65),
+    ]
+    mark_to_text = 0.42
+    item_w = [mark_to_text + tw for _, _, tw in legend_items]
+    n = len(legend_items)
+    spare = (x_right - x_left) - sum(item_w)
+    gap = max(spare / (n - 1), 0.35) if n > 1 else 0.0
+    x = x_left
+    for (kind, label, _), w in zip(legend_items, item_w):
+        _marker(ax, x + 0.12, y_leg, kind, r=0.11)
+        ax.text(x + mark_to_text, y_leg, label, ha="left", va="center",
+                fontsize=fs_b, color=INK)
+        x += w + gap
+
+    ax.text(x_left, y_time, "时间流向：更早", fontsize=fs_b, color=C_MUTED,
+            ha="left", va="center")
+    ax.plot([x_left + 2.35, x_right - 0.85], [y_time, y_time], color=C_FLOW, linewidth=2.2, zorder=1)
     ax.annotate(
         "",
-        xy=(12.15, 6.35),
-        xytext=(11.8, 6.35),
+        xy=(x_right - 0.5, y_time),
+        xytext=(x_right - 0.85, y_time),
         arrowprops={
             "arrowstyle": "-|>",
             "color": C_FLOW,
-            "linewidth": 2.2,
-            "mutation_scale": 11,
+            "linewidth": 2.0,
+            "mutation_scale": 10,
             "shrinkA": 0,
             "shrinkB": 0,
         },
         zorder=1,
     )
-    ax.text(12.4, 6.35, "更晚", fontsize=FONT["tick"], color=C_MUTED, ha="left", va="center")
+    ax.text(x_right - 0.35, y_time, "更晚", fontsize=fs_b, color=C_MUTED,
+            ha="left", va="center")
 
     # ---- 行 1：有故障 ----
-    y1 = 4.55
-    ax.text(0.5, 5.55, "1）有故障：故障发生时刻 $t_0$", fontsize=FONT["title"], fontweight="bold", color=INK)
+    y1 = 3.85
+    half = 0.34
+    ax.text(0.4, 4.85, "1）有故障：故障发生时刻 $t_0$", fontsize=fs_h, fontweight="bold", color=INK)
 
-    win_x0, win_x1 = 7.2, 11.0
+    win_x0, win_x1 = 6.4, 12.35
     ax.add_patch(Rectangle(
-        (win_x0, y1 - 0.45),
+        (win_x0, y1 - half),
         win_x1 - win_x0,
-        0.9,
+        2 * half,
         facecolor=C_WINDOW,
         edgecolor="#B0BEC5",
         linewidth=0.8,
         alpha=0.55,
         zorder=0,
     ))
-    ax.plot([win_x0, win_x0], [y1 - 0.45, y1 + 0.45], color=C_WINDOW_EDGE, linewidth=1.6, zorder=2)
+    ax.plot([win_x0, win_x0], [y1 - half, y1 + half], color=C_WINDOW_EDGE, linewidth=1.5, zorder=2)
+    y_cap = y1 + 0.48
     ax.text(
-        (win_x0 + win_x1) / 2, y1 + 0.72,
-        "时间窗口：$t_0{-}30\\mathrm{d} \\rightarrow t_0$",
-        ha="center", va="center", fontsize=FONT["tick"], color=C_WINDOW_EDGE,
+        (win_x0 + win_x1) / 2, y_cap,
+        "时间窗口：$t_0{-}30\\mathrm{d}\\rightarrow t_0$",
+        ha="center", va="center", fontsize=fs_b, color=C_WINDOW_EDGE,
     )
     ax.text(
-        win_x0 - 0.15, y1 + 0.72, "$t_0{-}30\\mathrm{d}$",
-        ha="right", va="center", fontsize=FONT["tick"], color=C_WINDOW_EDGE,
+        win_x0, y_cap, "$t_0{-}30\\mathrm{d}$",
+        ha="center", va="center", fontsize=fs_b, color=C_WINDOW_EDGE,
     )
 
-    _timeline(ax, 1.8, 11.0, y1)
+    _timeline(ax, 1.9, 12.35, y1)
 
-    t0 = 11.0
-    ax.plot([t0, t0], [y1 - 0.7, y1 + 0.7], color=C_T0, linewidth=2.0, zorder=2)
-    ax.text(t0 + 0.2, y1 + 0.45, "故障发生 $t_0$", ha="left", va="center", fontsize=FONT["legend"], color=INK)
+    t0 = 12.35
+    ax.plot([t0, t0], [y1 - half, y1 + half], color=C_T0, linewidth=1.8, zorder=2)
+    ax.text(t0, y_cap, "故障发生 $t_0$", ha="center", va="center",
+            fontsize=fs_b, color=INK)
 
-    _marker(ax, 4.0, y1, "FP")
-    ax.text(4.0, y1 - 0.75, "FP：窗口前预警", ha="center", va="center", fontsize=FONT["tick"])
+    y_lab = y1 - 0.52
+    _marker(ax, 3.7, y1, "FP", r=0.11)
+    ax.text(3.7, y_lab, "FP：窗口前预警", ha="center", va="center", fontsize=fs_b)
 
-    # 窗口内 TP / FN 拉开，避免下方长标签重叠
-    _marker(ax, 7.85, y1, "TP")
-    ax.text(7.85, y1 - 0.75, "TP：窗口内预警", ha="center", va="center", fontsize=FONT["tick"])
+    _marker(ax, 7.2, y1, "TP", r=0.11)
+    ax.text(7.2, y_lab, "TP：窗口内预警", ha="center", va="center", fontsize=fs_b)
 
-    _marker(ax, 10.15, y1, "FN")
-    ax.text(10.15, y1 - 0.75, "FN：全程未预警", ha="center", va="center", fontsize=FONT["tick"])
+    _marker(ax, 10.35, y1, "FN", r=0.11)
+    ax.text(10.35, y_lab, "FN：全程未预警", ha="center", va="center", fontsize=fs_b)
 
     # ---- 行 2：无故障 TN ----
-    y2 = 2.55
-    ax.text(0.5, 3.35, "2）无故障：无误报 ⇒ TN", fontsize=FONT["title"], fontweight="bold", color=INK)
-    _timeline(ax, 1.8, 13.2, y2)
-    _marker(ax, 7.5, y2, "TN", r=0.14)
-    ax.text(7.5, y2 - 0.7, "TN：全程不触发预警", ha="center", va="center", fontsize=FONT["tick"])
+    y2 = 1.9
+    ax.text(0.4, 2.5, "2）无故障：无误报 ⇒ TN", fontsize=fs_h, fontweight="bold", color=INK)
+    t2_x0, t2_x1 = 1.7, 13.1
+    _timeline(ax, t2_x0, t2_x1, y2)
+    x_tn = t2_x0 + (t2_x1 - t2_x0) * (2 / 3)
+    _marker(ax, x_tn, y2, "TN", r=0.12)
+    ax.text(x_tn, y2 - 0.48, "TN：全程不触发预警", ha="center", va="center", fontsize=fs_b)
 
     # ---- 行 3：无故障 FP ----
-    y3 = 0.85
-    ax.text(0.5, 1.65, "3）无故障：发生误报 ⇒ FP", fontsize=FONT["title"], fontweight="bold", color=INK)
-    _timeline(ax, 1.8, 13.2, y3)
-    _marker(ax, 7.5, y3, "FP", r=0.14)
-    ax.text(7.5, y3 - 0.55, "FP：无故障但触发预警", ha="center", va="center", fontsize=FONT["tick"])
+    y3 = 0.48
+    ax.text(0.4, 1.08, "3）无故障：发生误报 ⇒ FP", fontsize=fs_h, fontweight="bold", color=INK)
+    t3_x0, t3_x1 = 1.7, 13.1
+    _timeline(ax, t3_x0, t3_x1, y3)
+    x_fp = t3_x0 + (t3_x1 - t3_x0) * (2 / 3)
+    _marker(ax, x_fp, y3, "FP", r=0.12)
+    ax.text(x_fp, y3 - 0.42, "FP：无故障但触发预警", ha="center", va="center", fontsize=fs_b)
 
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
-    fig.savefig(save_pdf, bbox_inches="tight", pad_inches=0.08, facecolor="white")
+    savefig_text_width(fig, save_pdf, pad_inches=0.02)
     return fig
 
 

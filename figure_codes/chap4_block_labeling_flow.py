@@ -21,47 +21,62 @@ from flowchart_style import (
     process,
     routed_arrow,
 )
-from thesis_style import FONT
+from thesis_style import FONT, TEXT_WIDTH_IN, savefig_text_width
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OUT_PDF = FIGURE_DIR / "chap4-block-labeling-flow.pdf"
 
+
 def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
     apply_flowchart_rc()
-    fig, ax = plt.subplots(figsize=(8.6, 2.8))
-    ax.set_xlim(0.0, 13.9)
-    ax.set_ylim(0.2, 4.8)
+    fig, ax = plt.subplots(figsize=(TEXT_WIDTH_IN, 2.05))
+    ax.set_xlim(-0.05, 14.6)
+    ax.set_ylim(0.55, 4.45)
     ax.axis("off")
 
     y = 2.5
-    fs = FONT["label"]
-    process(ax, (1.5, y), 2.5, 1.0, "物理 / 逻辑块\nBLOCK", fontsize=fs)
-    arrow(ax, (2.75, y), (2.9, y))
+    fs = FONT["note"] - 1
+    gap = 0.58  # 框间水平箭头间隙
+
+    # 压矮：分支上下靠拢；中间框略降高、加宽保文字
+    w1, w2, w3, wd, wr = 1.9, 2.7, 3.15, 2.05, 1.7
+    h_box, h_mid, h_dec = 0.95, 1.22, 1.55
+
+    c1 = 1.1
+    c2 = c1 + w1 / 2 + gap + w2 / 2
+    c3 = c2 + w2 / 2 + gap + w3 / 2
+    cd = c3 + w3 / 2 + gap + wd / 2
+    branch_run = 0.95
+    cr = cd + wd / 2 + branch_run + wr / 2
+
+    process(ax, (c1, y), w1, h_box, "物理 / 逻辑块\nBLOCK", fontsize=fs)
+    arrow(ax, (c1 + w1 / 2, y), (c2 - w2 / 2, y))
 
     process(
-        ax, (4.25, y), 2.7, 1.2,
+        ax, (c2, y), w2, h_mid,
         "代表性 FBC\n$P_{99}$（BestRead）", fontsize=fs,
     )
-    arrow(ax, (5.6, y), (5.75, y))
+    arrow(ax, (c2 + w2 / 2, y), (c3 - w3 / 2, y))
 
     process(
-        ax, (7.4, y), 3.3, 1.2,
+        ax, (c3, y), w3, h_mid,
         "对照 FBC 门限 $=151$\n推导 LIFESPAN", fontsize=fs,
     )
-    arrow(ax, (9.05, y), (9.15, y))
+    arrow(ax, (c3 + w3 / 2, y), (cd - wd / 2, y))
 
-    decision(ax, (10.4, y), 2.5, 1.8, "LIFESPAN\n$=10000$？", fontsize=fs)
+    decision(ax, (cd, y), wd, h_dec, "LIFESPAN\n$=10000$？", fontsize=fs)
 
-    routed_arrow(ax, [(10.4, 3.4), (10.4, 3.75), (11.8, 3.75)])
-    routed_arrow(ax, [(10.4, 1.6), (10.4, 1.25), (11.8, 1.25)])
-    edge_label(ax, (11.1, 3.97), "是")
-    edge_label(ax, (11.1, 1.03), "否")
+    y_yes, y_no = 3.45, 1.55
+    routed_arrow(ax, [(cd, y + h_dec / 2), (cd, y_yes), (cr - wr / 2, y_yes)])
+    routed_arrow(ax, [(cd, y - h_dec / 2), (cd, y_no), (cr - wr / 2, y_no)])
+    edge_label(ax, ((cd + cr - wr / 2) / 2, y_yes + 0.18), "是", fontsize=fs)
+    edge_label(ax, ((cd + cr - wr / 2) / 2, y_no - 0.18), "否", fontsize=fs)
 
-    process(ax, (12.8, 3.75), 2.0, 1.0, "强块\nLabel $=0$", fontsize=fs)
-    process(ax, (12.8, 1.25), 2.0, 1.0, "弱块\nLabel $=1$", fontsize=fs)
+    process(ax, (cr, y_yes), wr, h_box, "强块\nLabel $=0$", fontsize=fs)
+    process(ax, (cr, y_no), wr, h_box, "弱块\nLabel $=1$", fontsize=fs)
 
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
-    fig.savefig(save_pdf, bbox_inches="tight", pad_inches=0.06, facecolor="white")
+    savefig_text_width(fig, save_pdf, pad_inches=0.03)
     return fig
 
 

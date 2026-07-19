@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
-from thesis_style import C_EDGE, C_GRID, C_INK, C_ZERO, FONT, apply_rc
+from thesis_style import C_EDGE, C_GRID, C_INK, C_ZERO, FONT, TEXT_WIDTH_IN, apply_rc, savefig_text_width
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OUT_PDF = FIGURE_DIR / "chap4-slc-mlc-tlc-vth.pdf"
@@ -45,14 +45,14 @@ def _panel(ax, mus, codes, title, *, sigma=0.2, xlabel=False):
     for mu, code in zip(mus, codes):
         ax.text(
             mu, 1.05, code,
-            ha="center", va="bottom", fontsize=FONT["label"],
+            ha="center", va="bottom", fontsize=FONT["tick"],
             color=C_INK, fontfamily="monospace", zorder=4,
         )
 
-    ax.set_title(title, fontsize=FONT["title"], pad=8)
-    ax.set_ylabel("概率密度（示意）", fontsize=FONT["label"])
+    ax.set_title(title, fontsize=FONT["title"], pad=4)
+    ax.set_ylabel("概率密度（示意）", fontsize=FONT["note"])
     if xlabel:
-        ax.set_xlabel(r"阈值电压 $V_{\mathrm{th}}$（示意）", fontsize=FONT["label"])
+        ax.set_xlabel(r"阈值电压 $V_{\mathrm{th}}$（示意）", fontsize=FONT["note"])
     ax.set_xlim(0, 10)
     ax.set_ylim(0, 1.28)
     ax.tick_params(axis="both", which="both", length=0)
@@ -87,16 +87,16 @@ def plot(*, save_path: Path = OUT_PDF) -> plt.Figure:
         },
     ]
 
-    fig, axes = plt.subplots(3, 1, figsize=(9.5, 6.0), sharex=True)
+    fig, axes = plt.subplots(3, 1, figsize=(TEXT_WIDTH_IN, 4.2), sharex=True)
     for i, (ax, cfg) in enumerate(zip(axes, panels)):
         _panel(
             ax, cfg["mus"], cfg["codes"], cfg["title"],
             sigma=cfg["sigma"], xlabel=(i == 2),
         )
 
-    fig.tight_layout(h_pad=1.2)
+    fig.tight_layout(h_pad=0.85)
     save_path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(save_path, bbox_inches="tight", facecolor="white", pad_inches=0.08)
+    savefig_text_width(fig, save_path, pad_inches=0.04)
     return fig
 
 

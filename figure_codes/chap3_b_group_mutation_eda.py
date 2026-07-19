@@ -23,7 +23,14 @@ import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 
 from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
-from thesis_style import FONT, apply_rc, fig_shared_legend, line_style
+from thesis_style import (
+    FONT,
+    TEXT_WIDTH_IN,
+    apply_rc,
+    fig_shared_legend,
+    line_style,
+    savefig_text_width,
+)
 
 HERE = Path(__file__).resolve().parent
 PROJECT_ROOT = HERE.parent
@@ -33,7 +40,7 @@ ATTR_LABEL = {
     "r_5": "重映射扇区计数",
     "r_180": "未用的备用块计数",
     "r_183": "串口降速错误计数",
-    "n_180": "未用的备用块计数(归一化)",
+    "n_180": "未用的备用块计数",
     "r_199": "Ultra ATA CRC 错误率",
 }
 
@@ -56,7 +63,8 @@ def plot_model(model: str, bundle: dict) -> Path:
     disk_ids = bundle["disk_ids"]
     series = bundle["series"]
 
-    fig, axes = plt.subplots(1, 3, figsize=(13.5, 4.0))
+    # 按版心宽度出图，避免正文 width= 缩放缩字号
+    fig, axes = plt.subplots(1, 3, figsize=(TEXT_WIDTH_IN, 2.25))
     legend_handles: list = []
     legend_labels: list[str] = []
 
@@ -81,13 +89,13 @@ def plot_model(model: str, bundle: dict) -> Path:
                 ds,
                 ys,
                 marker=st["marker"],
-                ms=5.0,
-                lw=1.6,
+                ms=3.5,
+                lw=1.3,
                 ls=st["ls"],
                 alpha=0.95,
                 color=st["color"],
             )
-            ax.axvline(ft, color="#444444", ls="--", lw=0.9, alpha=0.55)
+            ax.axvline(ft, color="#444444", ls="--", lw=0.8, alpha=0.55)
             if col_idx == 0:
                 legend_handles.append(line)
                 legend_labels.append(f"disk {disk_id} (fail {ft_str})")
@@ -100,31 +108,31 @@ def plot_model(model: str, bundle: dict) -> Path:
             xticks.append(month_start)
         xticks.append(plot_end)
         ax.set_xticks(xticks)
-        ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d"))
+        # 栏宽下三列较窄：用月-日，避免 YYYY-MM-DD 挤叠
+        ax.xaxis.set_major_formatter(mdates.DateFormatter("%m-%d"))
         ax.xaxis.set_minor_locator(mdates.WeekdayLocator(byweekday=mdates.MO))
-        ax.set_ylabel("读数", fontsize=FONT["label"])
+        ax.tick_params(axis="both", labelsize=FONT["tick"])
         panel = chr(ord("a") + col_idx)
-        ax.set_title(f"({panel}) {col} {ATTR_LABEL[col]}", fontsize=FONT["title"], pad=6)
+        ax.set_title(f"({panel}) {col} {ATTR_LABEL[col]}", fontsize=FONT["title"], pad=4)
         ax.grid(True, alpha=0.25)
-        ax.set_xlabel("日期", fontsize=FONT["label"])
 
-    fig.autofmt_xdate(rotation=0, ha="center")
-    fig.tight_layout()
+    fig.subplots_adjust(left=0.07, right=0.99, top=0.86, bottom=0.30, wspace=0.30)
     fig_shared_legend(
         fig,
         legend_handles,
         legend_labels,
         loc="lower center",
-        bbox_to_anchor=(0.5, -0.14),
+        bbox_to_anchor=(0.5, 0.02),
         ncol=3,
-        handlelength=3.2,
-        handletextpad=0.6,
-        columnspacing=1.2,
+        handlelength=2.4,
+        handletextpad=0.45,
+        columnspacing=0.9,
+        fontsize=FONT["note"],
     )
 
     output = OUTPUTS[model]
     output.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(output, bbox_inches="tight", facecolor="white")
+    savefig_text_width(fig, output, pad_inches=0.02)
     plt.close(fig)
     return output
 

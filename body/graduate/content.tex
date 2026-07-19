@@ -265,7 +265,7 @@ SMART 是一种自动的硬盘状态检测与预警系统和规范，通过在�
 其基本思想是对训练集进行自助采样（Bootstrap），训练多个相互独立的决策树分类器，并在预测阶段通过投票或平均的方式得到最终预测结果，如图~\ref{fig:random_forest}所示：
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\linewidth]{figure/generated/chap2-random-forest.pdf}
+    \includegraphics{figure/generated/chap2-random-forest.pdf}
     \caption{随机森林示意图 }
     \label{fig:random_forest}
 \end{figure}
@@ -297,7 +297,7 @@ XGBoost（Extreme Gradient Boosting）是梯度提升树（GBDT）算法的高�
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\linewidth]{figure/generated/chap2-gbdt.pdf}
+    \includegraphics{figure/generated/chap2-gbdt.pdf}
     \caption{GBDT算法迭代流程示意图}
     \label{fig:gbdt_flow}
 \end{figure}
@@ -501,7 +501,7 @@ MB1 与 MB2 均为 MLC-SSD，SMART 属性集合相近，故障样本活跃，因
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\linewidth]{figure/generated/chap3-failure-by-month.pdf}
+    \includegraphics{figure/generated/chap3-failure-by-month.pdf}
     \caption{月度故障盘分布}
     \label{fig:failure-by-month}
 \end{figure}
@@ -570,7 +570,7 @@ $\rho_s$ 取值范围为 $[-1,1]$，$|\rho_s|$ 越大表示单调相关越强。
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\linewidth]{figure/generated/chap3-temporal-missing-schematic.pdf}
+    \includegraphics{figure/generated/chap3-temporal-missing-schematic.pdf}
     \caption{日历缺失补全与剔除示意}
     \label{fig:temporal-missing-schematic}
 \end{figure}
@@ -591,7 +591,7 @@ $\rho_s$ 取值范围为 $[-1,1]$，$|\rho_s|$ 越大表示单调相关越强。
 
 \begin{figure}[!htbp]
     \centering
-    \includegraphics[width=\linewidth]{figure/generated/chap3-temporal-missing-distribution.pdf}
+    \includegraphics{figure/generated/chap3-temporal-missing-distribution.pdf}
     \caption{日历缺失分布}
     \label{fig:temporal-missing-distribution}
 \end{figure}
@@ -722,14 +722,14 @@ $\rho_s$ 取值范围为 $[-1,1]$，$|\rho_s|$ 越大表示单调相关越强。
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\linewidth]{figure/generated/chap3-b-group-mutation-eda-mb1.pdf}
+    \includegraphics{figure/generated/chap3-b-group-mutation-eda-mb1.pdf}
     \caption{MB1 故障盘 B 组属性时序}
     \label{fig:b-mutation-mb1}
 \end{figure}
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\linewidth]{figure/generated/chap3-b-group-mutation-eda-mb2.pdf}
+    \includegraphics{figure/generated/chap3-b-group-mutation-eda-mb2.pdf}
     \caption{MB2 故障盘 B 组属性时序}
     \label{fig:b-mutation-mb2}
 \end{figure}
@@ -868,7 +868,7 @@ $W$ 控制 Lag 回看的日历长度，过小则上下文不足，过大则远�
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\linewidth]{figure/generated/chap3-label-strategy.pdf}
+    \includegraphics{figure/generated/chap3-label-strategy.pdf}
     \caption{\label{fig:chap3-label-strategy} 不同标签策略示意图}
     \vspace{2pt}
     \begin{minipage}{\linewidth}
@@ -1095,7 +1095,7 @@ p_t=
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\linewidth]{figure/generated/chap3-wk-grid-heatmap-A.pdf}
+    \includegraphics{figure/generated/chap3-wk-grid-heatmap-A.pdf}
     \caption{\label{fig:chap3-wk-grid-heatmap}$W$--$k$ 网格搜索的盘级 $F_{0.5}$ 热力图}
     \vspace{2pt}
     \begin{minipage}{\linewidth}
@@ -1254,7 +1254,7 @@ p_t=
     \caption{\label{fig:chap3-baseline-bar-grid} 三轮平均的 MB1/MB2 盘级基线性能对比}
     \vspace{2pt}
     \begin{minipage}{\linewidth}
-        注：上、下两行分别为 MB1 与 MB2；各子图 $y$ 轴含义由列标题给出，其中 FPR 纵轴刻度为 $\times 10^{-5}$（读数需乘以 $10^{-5}$）；部分子图采用断轴以同时展示高低值差异。
+        注：上、下两行分别为 MB1 与 MB2；各子图 $y$ 轴含义由列标题给出，其中 FPR 纵轴刻度为 $\times 10^{-5}$（读数需乘以 $10^{-5}$）；部分子图采用断轴以同时展示高低值异。
     \end{minipage}
 \end{figure}
 
@@ -1416,15 +1416,16 @@ Mut-RF 采用 30 日固定窗口标签，以健康盘的7日SMART时序送入Inf
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\linewidth]{figure/generated/chap3-tp-lead-method-E-heatmap.pdf}
+    \includegraphics{figure/generated/chap3-tp-lead-method-E-heatmap.pdf}
     \caption{\label{fig:chap3-tp-lead-method-compare}多方法提前预警天数分布对比}
     \vspace{2pt}
 
     \begin{minipage}{\linewidth}
-        注：左、右分别为 MB1、MB2；行侧 $n$ 为三轮 TP 合计；$d=0..7$ 逐日统计，$d=8$--$30$ 合并；格内为 TP 盘数，底色为该格占同行 TP 的比例。
+        注：格内为 TP 盘数，底色为占同行合计的比例；$d=0..7$ 逐日列出，$d=8$--$30$ 因远端 TP 稀疏而合并为一列。
     \end{minipage}
 \end{figure}
 
+下文以 $n$ 记各方法在三轮测试上合计的 TP 盘数（即图~\ref{fig:chap3-tp-lead-method-compare} 中同行格内盘数之和）。
 MB1 上，本文方法、RF 与 MVT-RF 的 $n$ 分别为 149、157 与 156，检出规模接近；三者已检出 TP 均高度近端，$d\le 1$ 者分别为 147、153 与 154 块（占各行 97.5\%--98.7\%），且均以 $d=1$ 格为主，$d=8$--$30$ 远端仅各 1--3 块。
 头部方法在提前量上未见系统性差异；方法间 $F_{0.5}$ 差距主要体现是否误报与 FPR 控制（见 \S\ref{sec:chap3-main-results}）。
 AE 与 Mut-RF 在 MB1 上 $n$ 仅分别为 7 与 4，Mut-RF 合计 TP 全部落在 $d=8$--$30$；二者 TPR 偏低且 \S\ref{sec:chap3-main-results} 中 FP 明显多于头部方法，在误报未受控的前提下，不宜据本图对其提前量作稳定对比。
@@ -1513,7 +1514,7 @@ MB2 各轮 TP 仅 1--7 块：R1 以 $d=0$ 为主（6/7 满足 $d\le 1$），含 
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\linewidth]{figure/generated/chap4-slc-mlc-tlc-vth.pdf}
+    \includegraphics{figure/generated/chap4-slc-mlc-tlc-vth.pdf}
     \caption{SLC、MLC与TLC存储方式对比示意图}
     \label{fig:xlc-comparison}
 \end{figure}
@@ -1641,7 +1642,7 @@ MB2 各轮 TP 仅 1--7 块：R1 以 $d=0$ 为主（6/7 满足 $d\le 1$），含 
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\linewidth]{figure/generated/chap4-block-labeling-flow.pdf}
+    \includegraphics{figure/generated/chap4-block-labeling-flow.pdf}
     \caption{块寿命标签构造流程}
     \label{fig:block-labeling-flow}
 \end{figure}
@@ -1665,7 +1666,7 @@ MB2 各轮 TP 仅 1--7 块：R1 以 $d=0$ 为主（6/7 满足 $d\le 1$），含 
 考虑到特征数量中等、存在非线性关系、且样本数量有限（仅 256 个块），本文采用 XGBoost、RandomForest 与 LightGBM 三种集成学习模型进行块寿命预测。由于 LP、MP、UP 与 label 的对应关系存在一定差异，在数据量有限的情况下容易导致过拟合，本文分别针对 LP、MP、UP 建模，并采用投票机制对最终分类结果进行融合。集成投票流程如图\ref{fig:ensemble-voting-flow}所示：
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\linewidth]{figure/generated/chap4-ensemble-voting-flow.pdf}
+    \includegraphics{figure/generated/chap4-ensemble-voting-flow.pdf}
     \caption{集成投票流程}
     \label{fig:ensemble-voting-flow}
 \end{figure}
@@ -1690,7 +1691,7 @@ MB2 各轮 TP 仅 1--7 块：R1 以 $d=0$ 为主（6/7 满足 $d\le 1$），含 
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\linewidth]{figure/generated/chap4-rimp-by-model-readtype.pdf}
+    \includegraphics{figure/generated/chap4-rimp-by-model-readtype.pdf}
     \caption{不同读模式与页类型下的写入量提升率}
     \label{fig:chap4-rimp-model-readtype}
 \end{figure}
@@ -1733,7 +1734,7 @@ MB2 各轮 TP 仅 1--7 块：R1 以 $d=0$ 为主（6/7 满足 $d\le 1$），含 
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\linewidth]{figure/generated/chap4-lightweight-ablation.pdf}
+    \includegraphics{figure/generated/chap4-lightweight-ablation.pdf}
     \caption{轻量化采集消融}
     \label{fig:chap4-lightweight-ablation}
 \end{figure}
@@ -1957,7 +1958,7 @@ MB2 各轮 TP 仅 1--7 块：R1 以 $d=0$ 为主（6/7 满足 $d\le 1$），含 
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\linewidth]{figure/generated/chap5-warning-gen-flow.pdf}
+    \includegraphics{figure/generated/chap5-warning-gen-flow.pdf}
     \caption{预警生成流程}
     \label{fig:ch5-warning-gen-flow}
 \end{figure}
@@ -1968,11 +1969,12 @@ MB2 各轮 TP 仅 1--7 块：R1 以 $d=0$ 为主（6/7 满足 $d\le 1$），含 
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\linewidth]{figure/generated/chap5-warning-handle-flow.pdf}
+    \includegraphics{figure/generated/chap5-warning-handle-flow.pdf}
     \caption{预警处置交互流程}
     \label{fig:ch5-warning-handle-flow}
 \end{figure}
 
+\clearpage
 \subsection{预警状态设计}
 
 预警记录在生命周期内具有三种状态：pending 表示待处置，confirmed 表示已确认故障，ignored 表示已忽略。状态转换规则如表~\ref{tab:sw-warning-state}所示。

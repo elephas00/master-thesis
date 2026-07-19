@@ -16,8 +16,17 @@ import numpy as np
 
 from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
 from thesis_style import (
-    BAR_LW, C_EDGE, C_SPINE_MUTED, FONT,
-    apply_rc, bar_key, bar_style, fig_shared_legend, legend_swatch,
+    BAR_LW,
+    C_EDGE,
+    C_SPINE_MUTED,
+    FONT,
+    TEXT_WIDTH_IN,
+    apply_rc,
+    bar_key,
+    bar_style,
+    fig_shared_legend,
+    legend_swatch,
+    savefig_text_width,
 )
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -53,14 +62,13 @@ def plot_timeline_schematic(output: Path = OUTPUT_PDF) -> plt.Figure:
         ("重度", sev_obs, "remove"),
     ]
 
-    fig, axes = plt.subplots(3, 1, figsize=(10.5, 3.2), sharex=True)
-    fig.subplots_adjust(left=0.06, right=0.98, top=0.86, bottom=0.16, hspace=0.32)
+    # 压矮以便与「日历缺失分布」同页
+    fig, axes = plt.subplots(3, 1, figsize=(TEXT_WIDTH_IN, 1.85), sharex=True)
+    fig.subplots_adjust(left=0.12, right=0.99, top=0.86, bottom=0.11, hspace=0.22)
 
     spine_color = C_SPINE_MUTED
 
     for ax, (tier, obs_set, gap_kind) in zip(axes, scenarios):
-        ax.set_title(f"{tier}缺失", loc="left", fontsize=FONT["title"], pad=3)
-
         for d in days:
             if d in obs_set:
                 ax.bar(
@@ -89,8 +97,17 @@ def plot_timeline_schematic(output: Path = OUTPUT_PDF) -> plt.Figure:
 
         ax.set_xlim(0.5, n_days + 0.5)
         ax.set_xticks([1, 10, 20, 30, 40])
+        ax.tick_params(axis="x", labelsize=FONT["note"])
         ax.set_yticks([])
         ax.set_ylim(0, 1.05)
+        ax.set_ylabel(
+            f"{tier}缺失",
+            fontsize=FONT["legend"],
+            rotation=0,
+            ha="right",
+            va="center",
+            labelpad=8,
+        )
         ax.set_facecolor("#FFFFFF")
         for spine in ax.spines.values():
             spine.set_linewidth(0.8)
@@ -104,17 +121,13 @@ def plot_timeline_schematic(output: Path = OUTPUT_PDF) -> plt.Figure:
             legend_swatch(KEY_REMOVE, "缺失（删除）"),
         ],
         loc="upper center",
-        bbox_to_anchor=(0.5, 1.0),
+        bbox_to_anchor=(0.5, 0.995),
         ncol=3,
+        fontsize=FONT["note"],
     )
 
-    axes[-1].set_xlabel("日历日 $t$（40 天观测窗）", fontsize=FONT["label"])
-    fig.savefig(
-        output,
-        facecolor="white",
-        bbox_inches="tight",
-        pad_inches=0.08,
-    )
+    axes[-1].set_xlabel("日历日 $t$（40 天观测窗）", fontsize=FONT["note"])
+    savefig_text_width(fig, output, pad_inches=0.02)
     return fig
 
 

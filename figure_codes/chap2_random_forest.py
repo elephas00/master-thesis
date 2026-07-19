@@ -14,8 +14,6 @@ from __future__ import annotations
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-
-from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
 from matplotlib.patches import (
     Circle,
     Ellipse,
@@ -23,11 +21,13 @@ from matplotlib.patches import (
     FancyBboxPatch,
     Rectangle,
 )
-from matplotlib.lines import Line2D
-from thesis_style import FONT
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
+from thesis_style import FONT, TEXT_WIDTH_IN, savefig_text_width
+
 OUT_PDF = FIGURE_DIR / "chap2-random-forest.pdf"
+
+FS = FONT["note"] - 1  # 7 pt，与其他流程图框内字一致
 
 plt.rcParams.update({
     "font.sans-serif": ["Arial Unicode MS", "PingFang SC", "PingFang HK",
@@ -35,216 +35,157 @@ plt.rcParams.update({
     "axes.unicode_minus": False,
     "figure.dpi": 120,
     "savefig.dpi": 300,
-    "font.size": FONT["title"],
+    "font.size": FS,
     "pdf.fonttype": 42,
     "ps.fonttype": 42,
 })
 
-# 配色：黑白教材风格，容器白底/无底色
 C_FILL = "#FFFFFF"
 C_EDGE = "#000000"
 C_ARROW = "#000000"
-C_DASH = "#666666"
 C_TEXT = "#000000"
-C_TREE = "#000000"
+C_DOT = "#666666"
 
-CYL_W = 7.0
-CYL_H = 6.2
-ELL_H = 1.6
+CYL_W, CYL_H, ELL_H = 6.4, 5.6, 1.4
+TREE_W, TREE_H = 11.6, 8.8
+LW = 1.35
 
 
-def _cylinder(ax, cx, cy, w=CYL_W, h=CYL_H, label=r"$D$", fs=FONT["title"] + 2):
-    """3D 风格圆柱：矩形体 + 上下椭圆（白底黑框）。"""
-    x0, y0 = cx - w / 2, cy - h / 2
+def _cylinder(ax, cx, cy, label, *, fs=FS):
+    x0, y0 = cx - CYL_W / 2, cy - CYL_H / 2
     ax.add_patch(Rectangle(
-        (x0, y0), w, h,
-        facecolor=C_FILL, edgecolor="none", zorder=2,
+        (x0, y0), CYL_W, CYL_H, facecolor=C_FILL, edgecolor="none", zorder=2,
     ))
-    ax.plot([x0, x0], [y0, y0 + h], color=C_EDGE, lw=1.6, zorder=3)
-    ax.plot([x0 + w, x0 + w], [y0, y0 + h], color=C_EDGE, lw=1.6, zorder=3)
+    ax.plot([x0, x0], [y0, y0 + CYL_H], color=C_EDGE, lw=LW, zorder=3)
+    ax.plot([x0 + CYL_W, x0 + CYL_W], [y0, y0 + CYL_H], color=C_EDGE, lw=LW, zorder=3)
     ax.add_patch(Ellipse(
-        (cx, y0), w, ELL_H,
-        facecolor=C_FILL, edgecolor=C_EDGE, lw=1.6, zorder=2,
+        (cx, y0), CYL_W, ELL_H, facecolor=C_FILL, edgecolor=C_EDGE, lw=LW, zorder=2,
     ))
     ax.add_patch(Ellipse(
-        (cx, y0 + h), w, ELL_H,
-        facecolor=C_FILL, edgecolor=C_EDGE, lw=1.6, zorder=4,
+        (cx, y0 + CYL_H), CYL_W, ELL_H,
+        facecolor=C_FILL, edgecolor=C_EDGE, lw=LW, zorder=4,
     ))
-    ax.text(cx, cy + 0.2, label, ha="center", va="center",
-            fontsize=fs, color=C_TEXT, style="italic", zorder=5,
+    ax.text(cx, cy + 0.15, label, ha="center", va="center",
+            fontsize=fs, color=C_TEXT, style="italic", zorder=5, fontfamily="serif")
+
+
+def _arrow(ax, x0, y0, x1, y1, *, lw=1.5, ms=11):
+    ax.add_patch(FancyArrowPatch(
+        (x0, y0), (x1, y1),
+        arrowstyle="-|>", mutation_scale=ms, lw=lw, color=C_ARROW, zorder=3,
+    ))
+
+
+def _vtext(ax, x, y, text, *, fs=FS, weight="normal"):
+    chars = list(text)
+    n = len(chars)
+    spacing = (2.0 if n <= 4 else 1.75) * (fs / FS)
+    y_top = y + (n - 1) * spacing / 2
+    for i, ch in enumerate(chars):
+        ax.text(x, y_top - i * spacing, ch, ha="center", va="center",
+                fontsize=fs, color=C_TEXT, fontweight=weight, zorder=5)
+
+
+def _tree_box(ax, cx, cy, label):
+    ax.add_patch(FancyBboxPatch(
+        (cx - TREE_W / 2, cy - TREE_H / 2), TREE_W, TREE_H,
+        boxstyle="round,pad=0.12,rounding_size=0.55",
+        facecolor=C_FILL, edgecolor=C_EDGE, lw=LW, zorder=2,
+    ))
+    s = 1.45
+    r = 0.5 * s
+    root = (cx, cy + 1.45 * s)
+    left = (cx - 1.5 * s, cy - 0.65 * s)
+    right = (cx + 1.5 * s, cy - 0.65 * s)
+    for a, b in [(root, left), (root, right)]:
+        ax.plot([a[0], b[0]], [a[1], b[1]], color=C_EDGE, lw=LW, zorder=4)
+    for p in (root, left, right):
+        ax.add_patch(Circle(p, r, facecolor=C_FILL, edgecolor=C_EDGE, lw=LW, zorder=5))
+    ax.text(cx, cy - 3.15, label, ha="center", va="center",
+            fontsize=FS, color=C_TEXT, style="italic", zorder=5,
             fontfamily="serif")
 
 
-def _arrow(ax, x0, y0, x1, y1, *, lw=2.2, mutation_scale=14):
-    ax.add_patch(FancyArrowPatch(
-        (x0, y0), (x1, y1),
-        arrowstyle="-|>", mutation_scale=mutation_scale,
-        lw=lw, color=C_ARROW, zorder=3,
-        connectionstyle="arc3,rad=0",
+def _panel(ax, x0, y0, w, h, vlabel):
+    ax.add_patch(FancyBboxPatch(
+        (x0, y0), w, h,
+        boxstyle="round,pad=0.1,rounding_size=0.55",
+        facecolor=C_FILL, edgecolor=C_EDGE, lw=LW, zorder=2,
     ))
-
-
-def _vtext(ax, x, y, text, *, fs=FONT["title"], color=C_TEXT, weight="normal"):
-    """竖排中文（逐字自上而下）；字距随字号缩放，避免放大后挤叠。"""
-    chars = list(text)
-    n = len(chars)
-    # 以 title=11 为基准：短词略疏，长词略紧但仍随 fs 放大
-    base = 2.15 if n <= 4 else 1.95
-    spacing = base * (fs / FONT["title"])
-    total = (n - 1) * spacing
-    y_top = y + total / 2
-    for i, ch in enumerate(chars):
-        ax.text(x, y_top - i * spacing, ch, ha="center", va="center",
-                fontsize=fs, color=color, fontweight=weight, zorder=5)
-
-
-def _decision_tree_icon(ax, cx, cy, scale=1.0):
-    """框内简易决策树：一根 + 两叶。"""
-    r = 0.48 * scale
-    root = (cx, cy + 1.25 * scale)
-    left = (cx - 1.3 * scale, cy - 0.7 * scale)
-    right = (cx + 1.3 * scale, cy - 0.7 * scale)
-    for (a, b) in [(root, left), (root, right)]:
-        ax.plot([a[0], b[0]], [a[1], b[1]],
-                color=C_TREE, lw=1.5, zorder=4)
-    for p in (root, left, right):
-        ax.add_patch(Circle(
-            p, r, facecolor=C_FILL, edgecolor=C_TREE, lw=1.5, zorder=5,
-        ))
-
-
-def _tree_box(ax, cx, cy, label=None, *, show_tree=True):
-    w, h = 9.5, 7.2
-    box = FancyBboxPatch(
-        (cx - w / 2, cy - h / 2), w, h,
-        boxstyle="round,pad=0.15,rounding_size=0.7",
-        facecolor=C_FILL, edgecolor=C_EDGE, lw=1.6, zorder=2,
-    )
-    ax.add_patch(box)
-    if show_tree:
-        _decision_tree_icon(ax, cx, cy + (0.5 if label else 0.15), scale=0.9)
-    if label:
-        ax.text(cx, cy - 2.4, label, ha="center", va="center",
-                fontsize=FONT["title"] + 2, color=C_TEXT, style="italic", zorder=5,
-                fontfamily="serif")
+    _vtext(ax, x0 + w / 2, y0 + h / 2, vlabel, weight="bold")
 
 
 def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
-    # 更扁：横向加宽感强，竖向压缩
-    fig, ax = plt.subplots(figsize=(13.2, 4.6))
-    ax.set_xlim(0, 132)
-    ax.set_ylim(0, 46)
+    # 收紧横坐标，使 equal 布局在栏宽下图标更大、更疏
+    fig, ax = plt.subplots(figsize=(TEXT_WIDTH_IN, 3.0))
+    ax.set_xlim(0, 104)
+    ax.set_ylim(0, 48)
     ax.set_aspect("equal")
     ax.axis("off")
     fig.patch.set_facecolor("white")
     ax.set_facecolor("white")
 
-    # 中文标注统一 title；数学符号略大一档
-    fs_text = FONT["title"]
-    fs_math = FONT["title"] + 2
+    ys = [36.5, 23.0, 9.5]
+    mid = ys[1]
+    band_y0, band_h = 4.2, 35.0
+    fs = FS
 
-    # ---- 纵列 y 坐标（三路并行，间距收紧）----
-    ys = [36.0, 23.0, 10.0]  # D1/T1, D2/T2, Dn/Tn
-    mid_y = ys[1]
+    # D
+    d_cx = 5.8
+    _cylinder(ax, d_cx, mid, r"$D$", fs=fs + 1)
 
-    # ---- 1. 原始数据 D ----
-    d_cx, d_cy = 8.5, mid_y
-    _cylinder(ax, d_cx, d_cy, label=r"$D$", fs=fs_math + 1)
+    # 自助采样
+    bx0, bw = 13.2, 6.4
+    _panel(ax, bx0, band_y0, bw, band_h, "自助采样")
+    _arrow(ax, d_cx + CYL_W / 2 + 0.3, mid, bx0 - 0.3, mid, lw=1.7, ms=12)
 
-    # ---- 2. 自助采样：圆角矩形（与右侧集成模块呼应）----
-    boot_x0, boot_w = 18.0, 8.0
-    boot_y0, boot_h = 5.5, 34.0
-    boot_box = FancyBboxPatch(
-        (boot_x0, boot_y0), boot_w, boot_h,
-        boxstyle="round,pad=0.12,rounding_size=0.7",
-        facecolor=C_FILL, edgecolor=C_EDGE, lw=1.6, zorder=2,
-    )
-    ax.add_patch(boot_box)
-    _vtext(ax, boot_x0 + boot_w / 2, mid_y, "自助采样", fs=fs_text, weight="bold")
-
-    # D → 自助采样
-    _arrow(ax, d_cx + CYL_W / 2 + 0.4, d_cy, boot_x0 - 0.3, d_cy,
-           lw=2.4, mutation_scale=16)
-
-    # ---- 3. Bootstrap 子数据集 ----
-    boot_cx = 40.0
-    ax.text(boot_cx, 43.0, "Bootstrap采样", ha="center", va="center",
-            fontsize=fs_text, color=C_TEXT, fontweight="bold", zorder=5)
-
+    # 子集
+    d_boot = 29.5
+    ax.text(d_boot, 44.5, "采样子集", ha="center", va="center",
+            fontsize=fs, fontweight="bold", color=C_TEXT, zorder=5)
     for y, lab in zip(ys, [r"$D_1$", r"$D_2$", r"$D_n$"]):
-        _cylinder(ax, boot_cx, y, label=lab, fs=fs_math)
-        _arrow(ax, boot_x0 + boot_w + 0.15, y, boot_cx - CYL_W / 2 - 0.5, y,
-               lw=1.8, mutation_scale=12)
+        _cylinder(ax, d_boot, y, lab, fs=fs)
+        _arrow(ax, bx0 + bw + 0.2, y, d_boot - CYL_W / 2 - 0.35, y)
+    ax.text(d_boot, (ys[1] + ys[2]) / 2, "⋮", ha="center", va="center",
+            fontsize=fs + 2, color=C_DOT, zorder=5)
 
-    ax.text(boot_cx, (ys[1] + ys[2]) / 2, "⋮", ha="center", va="center",
-            fontsize=fs_math, color=C_EDGE, zorder=5)
-
-    # ---- 分隔线 1 ----
-    sep1 = 48.5
-    ax.add_line(Line2D([sep1, sep1], [4.0, 43.5],
-                       color=C_DASH, lw=1.4, ls="--", zorder=1))
-
-    # ---- 4. 决策树模型 ----
-    tree_cx = 62.0
-    ax.text(tree_cx, 43.0, r"决策树模型", ha="center", va="center",
-            fontsize=fs_text, color=C_TEXT, fontweight="bold", zorder=5)
-
-    feat_x = 71.5
+    # 决策树（框与树图标再放大）
+    t_cx = 50.0
+    ax.text(t_cx, 44.5, "决策树", ha="center", va="center",
+            fontsize=fs, fontweight="bold", color=C_TEXT, zorder=5)
     for y, lab in zip(ys, [r"$T_1$", r"$T_2$", r"$T_n$"]):
-        _arrow(ax, boot_cx + CYL_W / 2 + 0.4, y, tree_cx - 5.0, y,
-               lw=1.8, mutation_scale=12)
-        _tree_box(ax, tree_cx, y, label=lab)
-        _vtext(ax, feat_x, y, "随机特征选择", fs=fs_text, color=C_TEXT)
+        _arrow(ax, d_boot + CYL_W / 2 + 0.3, y, t_cx - TREE_W / 2 - 0.3, y)
+        _tree_box(ax, t_cx, y, lab)
+    ax.text(t_cx, (ys[1] + ys[2]) / 2, "⋮", ha="center", va="center",
+            fontsize=fs + 2, color=C_DOT, zorder=5)
 
-    ax.text(tree_cx, (ys[1] + ys[2]) / 2, "⋮", ha="center", va="center",
-            fontsize=fs_math, color=C_EDGE, zorder=5)
-
-    # ---- 分隔线 2 ----
-    sep2 = 78.0
-    ax.add_line(Line2D([sep2, sep2], [4.0, 43.5],
-                       color=C_DASH, lw=1.4, ls="--", zorder=1))
-
-    # ---- 5. 集成预测模块 ----
-    ens_x0, ens_w = 83.5, 7.5
-    ens_y0, ens_h = 5.5, 34.0
-    ax.text(ens_x0 + ens_w / 2, 43.0, "集成预测模块", ha="center", va="center",
-            fontsize=fs_text, color=C_TEXT, fontweight="bold", zorder=5)
-    ens = FancyBboxPatch(
-        (ens_x0, ens_y0), ens_w, ens_h,
-        boxstyle="round,pad=0.12,rounding_size=0.7",
-        facecolor=C_FILL, edgecolor=C_EDGE, lw=1.6, zorder=2,
-    )
-    ax.add_patch(ens)
-    _vtext(ax, ens_x0 + ens_w / 2, ens_y0 + ens_h / 2, "投票/平均",
-           fs=fs_text, weight="bold")
-
+    # 投票/平均
+    ex0, ew = 68.0, 6.4
+    ax.text(ex0 + ew / 2, 44.5, "集成", ha="center", va="center",
+            fontsize=fs, fontweight="bold", color=C_TEXT, zorder=5)
+    _panel(ax, ex0, band_y0, ew, band_h, "投票/平均")
     for y in ys:
-        _arrow(ax, feat_x + 2.0, y, ens_x0 - 0.3, y, lw=1.8, mutation_scale=12)
+        _arrow(ax, t_cx + TREE_W / 2 + 0.3, y, ex0 - 0.3, y)
 
-    # ---- 6. 最终预测结果 ----
-    out_cx, out_cy = 111.5, mid_y
-    out_w, out_h = 17.0, 8.5
-    out = FancyBboxPatch(
-        (out_cx - out_w / 2, out_cy - out_h / 2), out_w, out_h,
-        boxstyle="round,pad=0.15,rounding_size=0.8",
-        facecolor=C_FILL, edgecolor=C_EDGE, lw=1.8, zorder=2,
-    )
-    ax.add_patch(out)
-    ax.text(out_cx, out_cy, "最终预测结果", ha="center", va="center",
-            fontsize=fs_text, color=C_TEXT, fontweight="bold", zorder=5)
+    # 最终结果（箭头终点与框留足间隙，避免箭头尖压字）
+    ox, ow, oh = 91.0, 13.5, 6.8
+    ax.add_patch(FancyBboxPatch(
+        (ox - ow / 2, mid - oh / 2), ow, oh,
+        boxstyle="round,pad=0.12,rounding_size=0.6",
+        facecolor=C_FILL, edgecolor=C_EDGE, lw=LW, zorder=2,
+    ))
+    ax.text(ox, mid, "最终预测结果", ha="center", va="center",
+            fontsize=fs, fontweight="bold", color=C_TEXT, zorder=5)
+    _arrow(ax, ex0 + ew + 0.35, mid, ox - ow / 2 - 1.0, mid, lw=1.7, ms=11)
 
-    _arrow(ax, ens_x0 + ens_w + 0.3, out_cy, out_cx - out_w / 2 - 0.4, out_cy,
-           lw=2.4, mutation_scale=16)
-
+    FIGURE_DIR.mkdir(parents=True, exist_ok=True)
+    savefig_text_width(fig, save_pdf, pad_inches=0.04)
     return fig
 
 
 def main() -> None:
     ensure_output_dirs()
-    FIGURE_DIR.mkdir(parents=True, exist_ok=True)
     fig = plot()
-    fig.savefig(OUT_PDF, bbox_inches="tight", facecolor="white",
-                edgecolor="none", pad_inches=0.12)
     plt.close(fig)
     print(f"saved: {OUT_PDF}")
 

@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 
 from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
 from matplotlib.patches import FancyBboxPatch
-from thesis_style import FONT
+from thesis_style import FONT, TEXT_WIDTH_IN, savefig_text_width
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OUT_PDF = FIGURE_DIR / "chap2-ssd-structure.pdf"
@@ -62,7 +62,8 @@ def _box(ax, xy, w, h, text, fc, ec, fs=FONT["label"], weight="bold", lw=1.4):
 
 
 def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
-    fig, ax = plt.subplots(figsize=(11, 7.6))
+    # 栏宽出图；层级标题略降字号，避免缩窄后溢出
+    fig, ax = plt.subplots(figsize=(TEXT_WIDTH_IN, 4.85))
     ax.set_xlim(-2, 102)
     # LUN 外框顶约 y=80，上沿贴紧内容，去掉层级说明后的多余留白
     ax.set_ylim(0, 81.5)
@@ -72,20 +73,20 @@ def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
         """块内纵向排列 页0 / 页1 / ○○○ / 页255。"""
         _box(ax, (bx, by), bw, bh, None, C_BLK_FILL, C_BLK_EDGE, lw=1.2)
         ax.text(bx + bw / 2, by + bh - 0.8, name,
-                ha="center", va="top", fontsize=FONT["title"],
+                ha="center", va="top", fontsize=FONT["note"],
                 fontweight="bold", color=C_BLK_EDGE, zorder=3)
         pgw = bw - 4
         pgx = bx + 2
         pgh = 3.2
         top = by + bh - 7.0
         _box(ax, (pgx, top), pgw, pgh, "页0",
-             C_PG_FILL, C_PG_EDGE, fs=FONT["tick"], weight="normal", lw=0.8)
+             C_PG_FILL, C_PG_EDGE, fs=FONT["note"] - 1, weight="normal", lw=0.8)
         _box(ax, (pgx, top - 4.2), pgw, pgh, "页1",
-             C_PG_FILL, C_PG_EDGE, fs=FONT["tick"], weight="normal", lw=0.8)
+             C_PG_FILL, C_PG_EDGE, fs=FONT["note"] - 1, weight="normal", lw=0.8)
         ax.text(bx + bw / 2, top - 6.2, "⋯",
-                ha="center", va="center", fontsize=FONT["label"], color=C_TEXT)
+                ha="center", va="center", fontsize=FONT["note"], color=C_TEXT)
         _box(ax, (pgx, top - 10.4), pgw, pgh, "页255",
-             C_PG_FILL, C_PG_EDGE, fs=FONT["tick"], weight="normal", lw=0.8)
+             C_PG_FILL, C_PG_EDGE, fs=FONT["note"] - 1, weight="normal", lw=0.8)
 
     def _draw_plane(px, py, pw, ph, plane_idx):
         """一个 Plane 竖列：块 → … → 块 → 页缓存 → 闪存缓存。"""
@@ -96,21 +97,21 @@ def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
         )
         ax.add_patch(plane)
         ax.text(px + pw / 2, py + ph - 1.5, f"Plane{plane_idx}",
-                ha="center", va="top", fontsize=FONT["title"] + 1.5,
+                ha="center", va="top", fontsize=FONT["tick"],
                 fontweight="bold", color=C_PLANE_EDGE, zorder=3)
         bw = pw - 4
         bx = px + 2
         # 块自上而下堆叠
         _draw_block(bx, py + 44, bw, 18, "块0")
         ax.text(px + pw / 2, py + 43, "⋯",
-                ha="center", va="center", fontsize=FONT["title"] + 5,
+                ha="center", va="center", fontsize=FONT["tick"] + 1,
                 color=C_TEXT, fontweight="bold")
         _draw_block(bx, py + 24, bw, 18, "块1023")
         # 页缓存 / 闪存缓存：位于每个 Plane 列底部
         _box(ax, (bx, py + 12), bw, 9, "页缓存",
-             C_CACHE_FILL, C_CACHE_EDGE, fs=FONT["title"], lw=1.1)
+             C_CACHE_FILL, C_CACHE_EDGE, fs=FONT["note"], lw=1.1)
         _box(ax, (bx, py + 2), bw, 9, "闪存缓存",
-             C_CACHE_FILL, C_CACHE_EDGE, fs=FONT["title"], lw=1.1)
+             C_CACHE_FILL, C_CACHE_EDGE, fs=FONT["note"], lw=1.1)
 
     lun_w = 45
     plane_w = 19.5
@@ -123,7 +124,7 @@ def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
         )
         ax.add_patch(lun)
         ax.text(lx + lun_w / 2, 78.5, lname,
-                ha="center", va="top", fontsize=FONT["title"] + 5,
+                ha="center", va="top", fontsize=FONT["label"],
                 fontweight="bold", color=C_LUN_EDGE, zorder=3)
         # ---- 两个并排 Plane，各自含块与缓存 ----
         for pi in range(2):
@@ -132,16 +133,16 @@ def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
 
     # LUN 间横向省略
     ax.text(50, 40, "⋯", ha="center", va="center",
-            fontsize=int(FONT["title"] * 2.5), color=C_TEXT, fontweight="bold")
+            fontsize=FONT["tick"] + 2, color=C_TEXT, fontweight="bold")
 
+    FIGURE_DIR.mkdir(parents=True, exist_ok=True)
+    savefig_text_width(fig, save_pdf, pad_inches=0.02)
     return fig
 
 
 def main() -> None:
     ensure_output_dirs()
-    FIGURE_DIR.mkdir(parents=True, exist_ok=True)
     fig = plot()
-    fig.savefig(OUT_PDF, bbox_inches="tight", facecolor="white", pad_inches=0.06)
     plt.close(fig)
     print(f"saved: {OUT_PDF}")
 

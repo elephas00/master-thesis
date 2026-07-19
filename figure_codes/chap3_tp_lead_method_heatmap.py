@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
-from thesis_style import CMAP_HEAT, FONT, apply_rc
+from thesis_style import CMAP_HEAT, FONT, TEXT_WIDTH_IN, apply_rc, savefig_text_width
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OUT_PDF = FIGURE_DIR / "chap3-tp-lead-method-E-heatmap.pdf"
@@ -61,54 +61,60 @@ def _counts_to_share(counts: list[int]) -> np.ndarray:
 
 
 def plot_heatmap(*, save_path_pdf: Path | None = None) -> plt.Figure:
-    # 缩小方格物理尺寸，字号保持不变
-    cell = 0.42
+    # 方法名只在左侧；右侧一根共享色标（0–1），两侧颜色可直接对比
+    cell = 0.52
     n_rows = len(METHODS)
     n_cols = len(COL_LABELS)
-    y_label = 1.55
-    cbar_w, cbar_pad = 0.18, 0.06
-    panel_gap = 0.55
+    y_label = 0.95
+    right_y_pad = 0.10
+    cbar_w, cbar_pad = 0.20, 0.08
+    panel_gap = 0.28
     left_m, right_m, bot_m, top_m = 0.05, 0.05, 0.55, 0.42
 
-    panel_w = y_label + n_cols * cell + cbar_pad + cbar_w
-    fig_w = left_m + 2 * panel_w + panel_gap + right_m
+    panel_w_l = y_label + n_cols * cell
+    panel_w_r = right_y_pad + n_cols * cell + cbar_pad + cbar_w
+    fig_w = left_m + panel_w_l + panel_gap + panel_w_r + right_m
+    scale = TEXT_WIDTH_IN / fig_w
+    cell *= scale
+    y_label *= scale
+    right_y_pad *= scale
+    cbar_w *= scale
+    cbar_pad *= scale
+    panel_gap *= scale
+    left_m *= scale
+    right_m *= scale
+    bot_m *= scale
+    top_m *= scale
+    panel_w_l = y_label + n_cols * cell
+    panel_w_r = right_y_pad + n_cols * cell + cbar_pad + cbar_w
+    fig_w = left_m + panel_w_l + panel_gap + panel_w_r + right_m
     fig_h = bot_m + n_rows * cell + top_m
     fig = plt.figure(figsize=(fig_w, fig_h))
 
-    def _panel_axes(x0: float):
+    xs = [left_m, left_m + panel_w_l + panel_gap]
+    y_pads = [y_label, right_y_pad]
+    last_im = None
+    for x0, y_pad, model, show_ylabels in zip(xs, y_pads, MODELS, [True, False]):
         ax = fig.add_axes([
-            (x0 + y_label) / fig_w,
+            (x0 + y_pad) / fig_w,
             bot_m / fig_h,
             (n_cols * cell) / fig_w,
             (n_rows * cell) / fig_h,
         ])
-        cax = fig.add_axes([
-            (x0 + y_label + n_cols * cell + cbar_pad) / fig_w,
-            bot_m / fig_h,
-            cbar_w / fig_w,
-            (n_rows * cell) / fig_h,
-        ])
-        return ax, cax
-
-    xs = [left_m, left_m + panel_w + panel_gap]
-    for x0, model in zip(xs, MODELS):
-        ax, cax = _panel_axes(x0)
         count_rows = [BUCKET_COUNTS[model][method] for method in METHODS]
         share_rows = [_counts_to_share(row) for row in count_rows]
         mat_count = np.asarray(count_rows, dtype=int)
         mat_share = np.asarray(share_rows, dtype=float)
 
-        vmax = mat_share.max() if mat_share.size else 1.0
-        im = ax.imshow(
-            mat_share, aspect="equal", cmap=CMAP_HEAT, vmin=0, vmax=max(vmax, 0.05),
+        last_im = ax.imshow(
+            mat_share, aspect="equal", cmap=CMAP_HEAT, vmin=0, vmax=1.0,
         )
 
-        row_labels = [
-            f"{method}  ($n$={int(mat_count[i].sum())})"
-            for i, method in enumerate(METHODS)
-        ]
         ax.set_yticks(range(len(METHODS)))
-        ax.set_yticklabels(row_labels, fontsize=FONT["tick"])
+        if show_ylabels:
+            ax.set_yticklabels(METHODS, fontsize=FONT["tick"])
+        else:
+            ax.set_yticklabels([])
         ax.set_xticks(range(len(COL_LABELS)))
         ax.set_xticklabels(COL_LABELS, fontsize=FONT["tick"])
         ax.set_xlabel("提前天数 $d$（天）", fontsize=FONT["label"])
@@ -130,12 +136,18 @@ def plot_heatmap(*, save_path_pdf: Path | None = None) -> plt.Figure:
                     color="white" if share > 0.48 else "#0F172A",
                 )
 
-        cbar = fig.colorbar(im, cax=cax)
-        cbar.set_label("TP 占比", fontsize=FONT["legend"])
-        cbar.ax.tick_params(labelsize=FONT["note"], pad=1)
+    cax = fig.add_axes([
+        (left_m + panel_w_l + panel_gap + right_y_pad + n_cols * cell + cbar_pad) / fig_w,
+        bot_m / fig_h,
+        cbar_w / fig_w,
+        (n_rows * cell) / fig_h,
+    ])
+    cbar = fig.colorbar(last_im, cax=cax)
+    cbar.set_label("TP 占比", fontsize=FONT["legend"])
+    cbar.ax.tick_params(labelsize=FONT["note"], pad=1)
 
     if save_path_pdf is not None:
-        fig.savefig(save_path_pdf, bbox_inches="tight", pad_inches=0.02)
+        savefig_text_width(fig, save_path_pdf, pad_inches=0.02)
 
     return fig
 

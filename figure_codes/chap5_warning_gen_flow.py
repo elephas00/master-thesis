@@ -22,7 +22,7 @@ from flowchart_style import (
     routed_arrow,
     terminator,
 )
-from thesis_style import FONT
+from thesis_style import FONT, TEXT_WIDTH_IN, savefig_text_width
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OUT_PDF = FIGURE_DIR / "chap5-warning-gen-flow.pdf"
@@ -30,41 +30,68 @@ OUT_PDF = FIGURE_DIR / "chap5-warning-gen-flow.pdf"
 
 def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
     apply_flowchart_rc()
-    fig, ax = plt.subplots(figsize=(10.2, 1.95))
-    ax.set_xlim(0, 11.5)
-    # 紧贴菱形顶边与「否」支路底边，减少上下留白
-    ax.set_ylim(0.48, 2.78)
+    fig, ax = plt.subplots(figsize=(TEXT_WIDTH_IN, 1.05))
+    ax.set_xlim(-0.05, 12.0)
+    ax.set_ylim(0.12, 1.62)
     ax.axis("off")
-    fig.subplots_adjust(left=0, right=1, top=1, bottom=0)
 
-    y = 2.0
-    fs = FONT["label"]
-    terminator(ax, (0.6, y), 0.9, 0.58, "开始", fontsize=fs)
-    process(ax, (1.85, y), 1.25, 0.82, "拉取增量\nSMART 日志", fontsize=fs)
-    process(ax, (3.25, y), 1.05, 0.72, "数据预处理", fontsize=fs)
-    process(ax, (4.6, y), 1.15, 0.72, "特征/标签\n构造", fontsize=fs)
-    process(ax, (5.95, y), 1.05, 0.72, "模型推理", fontsize=fs)
-    decision(ax, (7.35, y), 1.4, 1.28, "满足预警\n条件？", fontsize=fs)
-    process(ax, (8.85, y), 1.05, 0.72, "预警写入", fontsize=fs)
-    terminator(ax, (10.25, y), 0.9, 0.58, "结束", fontsize=fs)
+    y = 1.12
+    fs = FONT["note"] - 1
+    # 左右边距对称，剩余宽度均分到箭头间隙
+    x_left, x_right = 0.12, 11.88
 
-    arrow(ax, (1.05, y), (1.225, y))
-    arrow(ax, (2.475, y), (2.725, y))
-    arrow(ax, (3.775, y), (4.025, y))
-    arrow(ax, (5.175, y), (5.425, y))
-    arrow(ax, (6.475, y), (6.65, y))
-    arrow(ax, (8.05, y), (8.325, y))
-    edge_label(ax, (8.18, 2.22), "是")
-    arrow(ax, (9.375, y), (9.8, y))
+    wt = 0.84
+    boxes = [
+        ("term", "开始", wt, 0.44),
+        ("proc", "拉取增量\nSMART 日志", 1.42, 0.60),
+        ("proc", "数据\n预处理", 1.04, 0.56),
+        ("proc", "特征/标签\n构造", 1.22, 0.56),
+        ("proc", "模型推理", 1.10, 0.56),
+        ("dec", "满足预\n警条件？", 1.52, 0.88),
+        ("proc", "预警写入", 1.10, 0.56),
+        ("term", "结束", wt, 0.44),
+    ]
+    widths = [w for _, _, w, _ in boxes]
+    gap = (x_right - x_left - sum(widths)) / (len(boxes) - 1)
 
+    centers: list[float] = []
+    lefts: list[float] = []
+    rights: list[float] = []
+    x = x_left
+    for kind, text, w, h in boxes:
+        lefts.append(x)
+        rights.append(x + w)
+        c = x + w / 2
+        centers.append(c)
+        if kind == "term":
+            terminator(ax, (c, y), w, h, text, fontsize=fs)
+        elif kind == "dec":
+            decision(ax, (c, y), w, h, text, fontsize=fs)
+        else:
+            process(ax, (c, y), w, h, text, fontsize=fs)
+        x = c + w / 2 + gap
+
+    for i in range(len(boxes) - 1):
+        arrow(ax, (rights[i], y), (lefts[i + 1], y))
+    edge_label(ax, ((rights[5] + lefts[6]) / 2, y + 0.14), "是", fontsize=fs)
+
+    dec_c, dec_h = centers[5], boxes[5][3]
+    end_c = centers[7]
+    end_top = y - boxes[7][3] / 2
+    bypass_y = 0.26
     routed_arrow(
         ax,
-        [(7.35, 1.36), (7.35, 0.62), (10.25, 0.62), (10.25, 1.71)],
+        [
+            (dec_c, y - dec_h / 2),
+            (dec_c, bypass_y),
+            (end_c, bypass_y),
+            (end_c, end_top),
+        ],
     )
-    edge_label(ax, (7.35, 1.02), "否")
+    edge_label(ax, (dec_c + 0.28, (y - dec_h / 2 + bypass_y) / 2), "否", fontsize=fs)
 
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
-    fig.savefig(save_pdf, bbox_inches="tight", pad_inches=0.02, facecolor="white")
+    savefig_text_width(fig, save_pdf, pad_inches=0.02)
     return fig
 
 

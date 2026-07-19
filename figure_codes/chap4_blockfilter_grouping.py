@@ -21,7 +21,7 @@ from flowchart_style import (
     apply_flowchart_rc,
     process,
 )
-from thesis_style import FONT
+from thesis_style import FONT, TEXT_WIDTH_IN, savefig_text_width
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OUT_PDF = FIGURE_DIR / "chap4-blockfilter-grouping.pdf"
@@ -35,18 +35,21 @@ def _group_cells(remainder: int) -> list[str]:
 
 def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
     apply_flowchart_rc()
-    fig, ax = plt.subplots(figsize=(10.6, 5.0))
+    # 栏宽出图；块号单行 + 小号字，避免换行挤框
+    fs_title = FONT["tick"]      # 9
+    fs_cell = 6                  # 单行块号，略小于 note
+    fig, ax = plt.subplots(figsize=(TEXT_WIDTH_IN, 2.75))
     ax.set_xlim(0, 19.4)
-    ax.set_ylim(0, 9.4)
+    ax.set_ylim(0, 9.0)
     ax.axis("off")
 
     layout = [
-        (0.3, 4.9, 0),
-        (9.85, 4.9, 1),
+        (0.3, 4.7, 0),
+        (9.85, 4.7, 1),
         (0.3, 0.3, 2),
         (9.85, 0.3, 3),
     ]
-    group_w, group_h = 9.2, 4.1
+    group_w, group_h = 9.2, 4.0
 
     for x0, y0, r in layout:
         ax.add_patch(Rectangle(
@@ -61,26 +64,26 @@ def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
         ))
         ax.text(
             x0 + group_w / 2,
-            y0 + group_h - 0.45,
+            y0 + group_h - 0.4,
             f"逻辑组 B{r}（BlockFilter $\\mathrm{{mod}}\\ 4={r}$）",
             ha="center",
             va="center",
-            fontsize=FONT["title"],
+            fontsize=fs_title,
             color=INK,
         )
 
         cells = _group_cells(r)
         positions = [
-            (x0 + 2.35, y0 + 2.55),
-            (x0 + 6.85, y0 + 2.55),
-            (x0 + 2.35, y0 + 0.95),
-            (x0 + 6.85, y0 + 0.95),
+            (x0 + 2.4, y0 + 2.45),
+            (x0 + 6.8, y0 + 2.45),
+            (x0 + 2.4, y0 + 0.95),
+            (x0 + 6.8, y0 + 0.95),
         ]
         for center, label in zip(positions, cells):
-            process(ax, center, 4.2, 1.15, label, fontsize=FONT["label"])
+            process(ax, center, 4.7, 1.1, label, fontsize=fs_cell)
 
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
-    fig.savefig(save_pdf, bbox_inches="tight", pad_inches=0.06, facecolor="white")
+    savefig_text_width(fig, save_pdf, pad_inches=0.02)
     return fig
 
 

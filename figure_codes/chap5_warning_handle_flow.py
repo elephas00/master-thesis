@@ -25,7 +25,7 @@ from flowchart_style import (
     routed_arrow,
     routed_dashed_arrow,
 )
-from thesis_style import FONT
+from thesis_style import FONT, TEXT_WIDTH_IN, savefig_text_width
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OUT_PDF = FIGURE_DIR / "chap5-warning-handle-flow.pdf"
@@ -48,36 +48,36 @@ def _lane(ax, x: float, w: float, title: str, *, y0: float, h: float, head_h: fl
     ))
     ax.text(
         x, y0 + h - head_h / 2, title, ha="center", va="center",
-        fontsize=FONT["label"], color=INK, fontweight="bold", zorder=2,
+        fontsize=FONT["note"] - 1, color=INK, fontweight="bold", zorder=2,
     )
 
 
 def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
     apply_flowchart_rc()
-    fig, ax = plt.subplots(figsize=(10.0, 3.2))
+    fig, ax = plt.subplots(figsize=(TEXT_WIDTH_IN, 2.00))
     ax.set_xlim(0.05, 10.3)
-    ax.set_ylim(0.06, 3.72)
+    ax.set_ylim(0.03, 2.62)
     ax.axis("off")
     fig.subplots_adjust(left=0, right=1, top=1, bottom=0)
 
-    lane_y0, lane_h, head_h = 0.10, 3.52, 0.36
+    lane_y0, lane_h, head_h = 0.05, 2.50, 0.28
     for x, w, title in zip(LX, LW, LANES):
         _lane(ax, x, w, title, y0=lane_y0, h=lane_h, head_h=head_h)
 
-    bh, bh2, bh3 = 0.52, 0.55, 0.70
-    fs, fs2 = FONT["annot"], FONT["note"]
+    bh, bh2, bh3 = 0.42, 0.44, 0.56
+    fs, fs2 = FONT["note"] - 1, FONT["note"] - 1
     hw1, hw2, hw4 = 0.95, 1.0, 0.95
 
-    # 表头底约 3.26；① 顶边留约 0.12 间距
-    u1 = (LX[0], 2.88)
-    f2 = (LX[1], 2.32)
-    b2 = (LX[2], 2.32)
-    u3 = (LX[0], 1.74)
-    f4 = (LX[1], 1.16)
-    b4 = (LX[2], 1.16)
-    d5 = (LX[3], 1.16)
-    b6 = (LX[2], 0.44)
-    f6 = (LX[1], 0.44)
+    # 表头底约 2.27；① 贴表头（同底边≈0.05）；①→② 只保留小阶梯
+    u1 = (LX[0], 2.01)
+    f2 = (LX[1], 1.62)
+    b2 = (LX[2], 1.62)
+    u3 = (LX[0], 1.16)
+    f4 = (LX[1], 0.76)
+    b4 = (LX[2], 0.76)
+    d5 = (LX[3], 0.76)
+    b6 = (LX[2], 0.30)
+    f6 = (LX[1], 0.30)
 
     process(ax, u1, 1.9, bh, "① 查看预警\n列表与详情", fontsize=fs)
     process(ax, f2, 2.0, bh, "② 请求预警\n详情接口", fontsize=fs)
@@ -89,14 +89,13 @@ def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
     process(ax, b6, 2.0, bh, "返回处置结果", fontsize=fs)
     process(ax, f6, 2.0, bh, "⑥ 刷新列表\n与详情展示", fontsize=fs)
 
-    # L 形两折：先水平到目标中线，再竖直进入顶边
     routed_arrow(ax, [
         (u1[0] + hw1, u1[1]),
         (f2[0], u1[1]),
         (f2[0], f2[1] + bh / 2),
     ])
-    arrow(ax, (f2[0] + hw2, f2[1] + 0.08), (b2[0] - hw2, b2[1] + 0.08))
-    dashed_arrow(ax, (b2[0] - hw2, b2[1] - 0.1), (f2[0] + hw2, f2[1] - 0.1))
+    arrow(ax, (f2[0] + hw2, f2[1] + 0.05), (b2[0] - hw2, b2[1] + 0.05))
+    dashed_arrow(ax, (b2[0] - hw2, b2[1] - 0.07), (f2[0] + hw2, f2[1] - 0.07))
     routed_dashed_arrow(ax, [
         (f2[0] - hw2, f2[1]),
         (u3[0], f2[1]),
@@ -117,7 +116,7 @@ def plot(*, save_pdf: Path = OUT_PDF) -> plt.Figure:
     dashed_arrow(ax, (b6[0] - hw2, b6[1]), (f6[0] + hw2, f6[1]))
 
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
-    fig.savefig(save_pdf, bbox_inches="tight", pad_inches=0.02, facecolor="white")
+    savefig_text_width(fig, save_pdf, pad_inches=0.02)
     return fig
 
 

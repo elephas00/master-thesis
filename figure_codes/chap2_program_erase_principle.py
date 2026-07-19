@@ -17,7 +17,7 @@ from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
 import matplotlib.path as mpath
 from matplotlib.patches import Circle, PathPatch, Polygon, Rectangle
 import numpy as np
-from thesis_style import FONT
+from thesis_style import FONT, TEXT_WIDTH_IN, savefig_text_width
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OUT_PDF = FIGURE_DIR / "chap2-program-erase-principle.pdf"
@@ -128,10 +128,10 @@ def _side_wall(ax, x, y, w, h, *, side: str):
 def _sd_open_arc(ax, join_x, top_y, edge_x, bot_y, *, side: str, label: str):
     """源/漏开放弧：接点 → 外侧结束于衬底左右端同一竖直投影。
 
-    外端 x 与上下横线端点对齐；外端 y 取两条横线之间的 1/2 高度，
-    不接到衬底下边线。
+    外端 x 与上下横线端点对齐；外端 y 约在衬底一半高度（衬底加高后弧下移，
+    与「源极/漏极」文字留空）。
     """
-    y_end = 0.5 * (top_y + bot_y)  # 上下横线中间
+    y_end = 0.5 * (top_y + bot_y)
     span = abs(join_x - edge_x)
     depth = top_y - y_end
     if side == "left":
@@ -152,15 +152,15 @@ def _sd_open_arc(ax, join_x, top_y, edge_x, bot_y, *, side: str, label: str):
            + 3 * (1 - t) * t ** 2 * p2 + t ** 3 * p3)
     ax.plot(pts[:, 0], pts[:, 1], color=C_EDGE, lw=LW, zorder=2.5,
             solid_capstyle="butt", solid_joinstyle="round")
-    # 文字顶对齐于衬底上边线略下方，落在顶线与开放弧之间的空隙内
-    ax.text(lx, top_y - 4.0, label,
-            ha="center", va="top", fontsize=FONT["label"], color=C_TEXT, zorder=8)
+    # 文字贴上边线内侧，与中线开放弧拉开
+    ax.text(lx, top_y - 2.2, label,
+            ha="center", va="top", fontsize=FONT["tick"], color=C_TEXT, zorder=8)
 
 
 def _draw_cell(ax, ox: float, *, mode: str) -> None:
-    # 衬底较矮，且仅上下横线（无左右边框），对齐原图
-    sub_x, sub_y = ox + 18, 46
-    sub_w, sub_h = 228, 30  # 衬底再压矮
+    # 衬底上边贴栅堆不动；底边略下移加高（比原先矮版略高，避免源漏字与弧过挤）
+    sub_x, sub_y = ox + 18, 44
+    sub_w, sub_h = 228, 32
     top = sub_y + sub_h
 
     ax.add_patch(Rectangle(
@@ -176,7 +176,7 @@ def _draw_cell(ax, ox: float, *, mode: str) -> None:
     # 栅堆几何（整体再压矮）
     wall_w = 16
     stack_w = 110
-    tox_h, fg_h, ox_h, cg_h = 15, 24, 14, 17
+    tox_h, fg_h, ox_h, cg_h = 15, 20, 18, 17  # 氧化层略加高，从浮栅层挪高度
     stack_h = tox_h + fg_h + ox_h + cg_h
     stack_x = sub_x + (sub_w - stack_w) / 2
     wall_l_x = stack_x - wall_w
@@ -210,10 +210,10 @@ def _draw_cell(ax, ox: float, *, mode: str) -> None:
 
     # ---- 四层堆栈（层内文字统一用 label，避免 annot/tick/title 混用显得忽大忽小）----
     layers = [
-        (tox_y, tox_h, C_OXIDE, "隧道氧化层", FONT["label"], "normal"),
+        (tox_y, tox_h, C_OXIDE, "隧道氧化层", FONT["tick"], "normal"),
         (fg_y, fg_h, C_FG, "", 0, "normal"),
-        (ox_y, ox_h, C_OXIDE, "氧化层", FONT["label"], "normal"),
-        (cg_y, cg_h, C_CTRL, "控制极", FONT["label"], "bold"),
+        (ox_y, ox_h, C_OXIDE, "氧化层", FONT["tick"], "normal"),
+        (cg_y, cg_h, C_CTRL, "控制极", FONT["tick"], "bold"),
     ]
     for y, h, fc, text, fs, weight in layers:
         ax.add_patch(Rectangle(
@@ -242,7 +242,7 @@ def _draw_cell(ax, ox: float, *, mode: str) -> None:
     # 「隧道氧化层」白底文字浮于箭头之上（仅盖住字幅，箭头仍从上下露出）
     ax.text(
         stack_x + stack_w / 2, tox_y + tox_h / 2, "隧道氧化层",
-        ha="center", va="center", fontsize=FONT["label"], color=C_TEXT, zorder=12,
+        ha="center", va="center", fontsize=FONT["tick"], color=C_TEXT, zorder=12,
         bbox=dict(
             boxstyle="square,pad=0.15",
             facecolor="#FFFFFF",
@@ -264,42 +264,43 @@ def _draw_cell(ax, ox: float, *, mode: str) -> None:
         ax.plot([mid_x, mid_x], [stack_top, stack_top + 14],
                 color=C_EDGE, lw=LW, zorder=8, solid_capstyle="butt")
         ax.text(mid_x, stack_top + 16, r"$V_{PP}$",
-                ha="center", va="bottom", fontsize=FONT["label"], color=C_TEXT, zorder=8)
-        # 衬底底部：圆点端子 + 接地符号（三横线）
-        _terminal_dot(ax, sub_mid, sub_bot, r=2.4)
-        ax.plot([sub_mid, sub_mid], [sub_bot, sub_bot - 8],
-                color=C_EDGE, lw=LW, zorder=8, solid_capstyle="butt")
+                ha="center", va="bottom", fontsize=FONT["tick"], color=C_TEXT, zorder=8)
+        # 竖线自衬底内部穿过底边；端子圆略上移，仍压住底线
+        lead_top = sub_bot + 8
+        ax.plot([sub_mid, sub_mid], [lead_top, sub_bot - 8],
+                color=C_EDGE, lw=LW, zorder=5, solid_capstyle="butt")
+        _terminal_dot(ax, sub_mid, sub_bot + 4.0, r=2.6)
         _ground_ieee(ax, sub_mid, sub_bot - 8, scale=0.85)
     else:
-        # 控制极 → 接地（三横线 GND）
-        ax.plot([mid_x, mid_x], [stack_top, stack_top + 8],
+        # 控制极 → 接地：竖线拉高，与 a 图 $V_{PP}$ 同高
+        ax.plot([mid_x, mid_x], [stack_top, stack_top + 14],
                 color=C_EDGE, lw=LW, zorder=8, solid_capstyle="butt")
-        _ground_ieee(ax, mid_x, stack_top + 8, scale=0.9)
-        # 衬底 → V_PP：仅竖线，无箭头
-        ax.plot([sub_mid, sub_mid], [sub_bot, sub_bot - 14],
-                color=C_EDGE, lw=LW, zorder=8, solid_capstyle="butt")
+        _ground_ieee(ax, mid_x, stack_top + 14, scale=0.9)
+        # 衬底 → V_PP：竖线自内部穿过底边
+        lead_top = sub_bot + 8
+        ax.plot([sub_mid, sub_mid], [lead_top, sub_bot - 14],
+                color=C_EDGE, lw=LW, zorder=5, solid_capstyle="butt")
         ax.text(sub_mid + 9, sub_bot - 11, r"$V_{PP}$",
-                ha="left", va="center", fontsize=FONT["label"], color=C_TEXT, zorder=8)
+                ha="left", va="center", fontsize=FONT["tick"], color=C_TEXT, zorder=8)
 
     ax.text(sub_mid, sub_y + sub_h * 0.38, "衬底",
-            ha="center", va="center", fontsize=FONT["label"], color=C_TEXT, zorder=5)
+            ha="center", va="center", fontsize=FONT["tick"], color=C_TEXT, zorder=5)
 
 
 def plot() -> plt.Figure:
-    fig, ax = plt.subplots(figsize=(11.0, 2.7))
+    # 栏宽出图；equal 纵横比由数据范围决定高度
+    fig, ax = plt.subplots(figsize=(TEXT_WIDTH_IN, 1.75))
     ax.set_xlim(0, 540)
-    # 内容约 y∈[26, 162+$V_{PP}$]：上沿贴紧 $V_{PP}$，仅留极少空白
-    ax.set_ylim(24, 168)
+    ax.set_ylim(22, 168)
     ax.set_aspect("equal")
     ax.axis("off")
 
-    # 小标题上移，贴近接地下方
     _draw_cell(ax, ox=5, mode="program")
-    ax.text(140, 26, "a) 写原理", fontsize=FONT["title"], fontweight="bold",
+    ax.text(140, 26, "a) 写原理", fontsize=FONT["tick"], fontweight="bold",
             ha="center", va="top", color=C_TEXT)
 
     _draw_cell(ax, ox=275, mode="erase")
-    ax.text(410, 26, "b) 擦除原理", fontsize=FONT["title"], fontweight="bold",
+    ax.text(410, 26, "b) 擦除原理", fontsize=FONT["tick"], fontweight="bold",
             ha="center", va="top", color=C_TEXT)
 
     fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
@@ -310,7 +311,7 @@ def main() -> None:
     ensure_output_dirs()
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
     fig = plot()
-    fig.savefig(OUT_PDF, bbox_inches="tight", facecolor="white", pad_inches=0.04)
+    savefig_text_width(fig, OUT_PDF, pad_inches=0.02)
     plt.close(fig)
     print(f"saved: {OUT_PDF}")
 

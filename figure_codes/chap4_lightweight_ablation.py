@@ -12,7 +12,6 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.transforms import blended_transform_factory
 
 from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
 from thesis_style import (
@@ -23,7 +22,10 @@ from thesis_style import (
     PAIR_READ,
     PAIR_READ_LS,
     PAIR_READ_MK,
+    TEXT_WIDTH_IN,
     apply_rc,
+    fig_shared_legend,
+    savefig_text_width,
 )
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -57,25 +59,26 @@ def _draw_panel(ax, xs, data, title: str) -> None:
             color=PAIR_READ[rtype],
             ls=PAIR_READ_LS[rtype],
             marker=PAIR_READ_MK[rtype],
-            lw=1.6, ms=5.5, label=rtype,
+            lw=1.6, ms=5.0, label=rtype,
         )
     ax.axhline(0, color=C_ZERO, lw=0.8, ls="--", zorder=1)
     ax.axhline(BASELINE, color=C_PRIMARY, lw=0.9, ls=":", alpha=0.7, zorder=1)
     ax.set_xticks(x)
-    ax.set_xticklabels(xs, rotation=30, ha="right")
-    ax.set_title(title, fontsize=FONT["title"], pad=6)
+    ax.set_xticklabels(xs, rotation=35, ha="right", fontsize=FONT["note"])
+    ax.set_title(title, fontsize=FONT["legend"], pad=3)
+    ax.tick_params(axis="y", labelsize=FONT["tick"])
     ax.grid(True, axis="y", linestyle="--", color=C_GRID, alpha=0.8)
     ax.set_axisbelow(True)
 
 
 def plot(*, save_path: Path = OUT_PDF) -> plt.Figure:
-    fig, axes = plt.subplots(1, 3, figsize=(12.0, 3.2), sharey=True)
+    fig, axes = plt.subplots(1, 3, figsize=(TEXT_WIDTH_IN, 2.25), sharey=True)
 
     _draw_panel(axes[0], VALUE_X, VALUE, "(a) 读取次数")
     _draw_panel(axes[1], LEVEL_X, LEVEL, "(b) 磨损档位")
     _draw_panel(axes[2], WL_X, WL, "(c) 字线采样")
 
-    axes[0].set_ylabel(r"$R_{\mathrm{imp}}$ / \%", fontsize=FONT["label"])
+    axes[0].set_ylabel(r"$R_{\mathrm{imp}}$ / \%", fontsize=FONT["note"])
 
     all_vals = (
         VALUE["BestRead"] + VALUE["DefaultRead"]
@@ -85,7 +88,6 @@ def plot(*, save_path: Path = OUT_PDF) -> plt.Figure:
     ymin, ymax = min(all_vals), max(all_vals)
     axes[0].set_ylim(ymin - 2.5, ymax + 2.5)
 
-    # 全量基准用虚线 + 纵轴刻度标出
     yticks = sorted({*np.round(axes[0].get_yticks(), 2), 0.0, BASELINE})
     yticks = [t for t in yticks if ymin - 2.5 <= t <= ymax + 2.5]
     axes[0].set_yticks(yticks)
@@ -95,17 +97,19 @@ def plot(*, save_path: Path = OUT_PDF) -> plt.Figure:
         ha="right", va="bottom", fontsize=FONT["annot"], color=C_PRIMARY,
     )
 
-    # 左下角、贴在 y=0 虚线上方（x 用轴坐标，y 用数据坐标）
-    for ax in axes:
-        trans = blended_transform_factory(ax.transAxes, ax.transData)
-        ax.legend(
-            frameon=False, loc="lower left", fontsize=FONT["legend"],
-            bbox_to_anchor=(0.02, 0.8), bbox_transform=trans, borderaxespad=0,
-        )
-
-    fig.tight_layout()
+    fig.subplots_adjust(left=0.09, right=0.99, top=0.86, bottom=0.30, wspace=0.20)
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig_shared_legend(
+        fig,
+        handles=handles,
+        labels=labels,
+        loc="lower center",
+        bbox_to_anchor=(0.5, 0.01),
+        ncol=2,
+        fontsize=FONT["note"],
+    )
     save_path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(save_path, bbox_inches="tight", facecolor="white", pad_inches=0.08)
+    savefig_text_width(fig, save_path, pad_inches=0.04)
     return fig
 
 

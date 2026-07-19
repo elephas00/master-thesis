@@ -16,7 +16,17 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
-from thesis_style import C_GRID, C_PRIMARY, C_ZERO, FONT, apply_rc, series_style
+from thesis_style import (
+    C_GRID,
+    C_PRIMARY,
+    C_ZERO,
+    FONT,
+    TEXT_WIDTH_IN,
+    apply_rc,
+    fig_shared_legend,
+    savefig_text_width,
+    series_style,
+)
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OUT_PDF = FIGURE_DIR / "chap4-rimp-by-model-readtype.pdf"
@@ -47,7 +57,7 @@ def _series_for_model(read_type: str, model_idx: int) -> list[float]:
     return [DATA[read_type][col][model_idx] for col in COLS]
 
 
-def _draw_panel(ax, read_type: str, *, show_ylabel: bool, show_legend: bool) -> None:
+def _draw_panel(ax, read_type: str, *, show_ylabel: bool) -> None:
     x = np.arange(len(COLS))
     for i, model in enumerate(MODELS):
         st = series_style(i)
@@ -60,21 +70,20 @@ def _draw_panel(ax, read_type: str, *, show_ylabel: bool, show_legend: bool) -> 
     ax.axhline(0, color=C_ZERO, lw=0.9, zorder=2)
     ax.axhline(BASELINE, color=C_PRIMARY, lw=0.9, ls=":", alpha=0.7, zorder=2)
     ax.set_xticks(x)
-    ax.set_xticklabels(COLS)
-    ax.set_title(read_type, fontsize=FONT["title"], pad=6)
+    ax.set_xticklabels(COLS, fontsize=FONT["tick"])
+    ax.set_title(read_type, fontsize=FONT["title"], pad=4)
     if show_ylabel:
-        ax.set_ylabel(r"$R_{\mathrm{imp}}$ / \%", fontsize=FONT["label"])
+        ax.set_ylabel(r"$R_{\mathrm{imp}}$ / \%", fontsize=FONT["note"])
+    ax.tick_params(axis="y", labelsize=FONT["tick"])
     ax.grid(True, axis="y", linestyle="--", color=C_GRID, alpha=0.8)
     ax.set_axisbelow(True)
-    if show_legend:
-        ax.legend(frameon=False, loc="best", fontsize=FONT["legend"])
 
 
 def plot(*, save_path: Path = OUT_PDF) -> plt.Figure:
-    fig, axes = plt.subplots(1, 2, figsize=(10.5, 3.3), sharey=True)
+    fig, axes = plt.subplots(1, 2, figsize=(TEXT_WIDTH_IN, 2.95), sharey=True)
 
-    _draw_panel(axes[0], "BestRead", show_ylabel=True, show_legend=True)
-    _draw_panel(axes[1], "DefaultRead", show_ylabel=False, show_legend=True)
+    _draw_panel(axes[0], "BestRead", show_ylabel=True)
+    _draw_panel(axes[1], "DefaultRead", show_ylabel=False)
 
     all_vals = [v for rt in DATA.values() for col in COLS for v in rt[col]]
     ymin, ymax = min(all_vals), max(all_vals)
@@ -89,9 +98,19 @@ def plot(*, save_path: Path = OUT_PDF) -> plt.Figure:
         ha="right", va="bottom", fontsize=FONT["annot"], color=C_PRIMARY,
     )
 
-    fig.tight_layout()
+    fig.subplots_adjust(left=0.10, right=0.99, top=0.88, bottom=0.22, wspace=0.18)
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig_shared_legend(
+        fig,
+        handles=handles,
+        labels=labels,
+        loc="lower center",
+        bbox_to_anchor=(0.5, 0.01),
+        ncol=3,
+        fontsize=FONT["note"],
+    )
     save_path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(save_path, bbox_inches="tight", facecolor="white", pad_inches=0.08)
+    savefig_text_width(fig, save_path, pad_inches=0.04)
     return fig
 
 

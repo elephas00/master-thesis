@@ -18,10 +18,12 @@ from pathlib import Path
 
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
+from matplotlib.legend_handler import HandlerPatch
 from matplotlib.lines import Line2D
+from matplotlib.patches import Rectangle as MplRectangle
 
 from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
-from thesis_style import FONT, apply_rc, fig_shared_legend
+from thesis_style import FONT, TEXT_WIDTH_IN, apply_rc, fig_shared_legend, savefig_text_width
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OUTPUT_PDF = FIGURE_DIR / "chap3-label-strategy.pdf"
@@ -66,11 +68,74 @@ COLORS = {
     "jump_mk": "#1565C0",
 }
 
-BAR_H = 0.13
+BAR_H = 0.11
 
 
 def _rect(ax, d_left, d_right, y, h, **kwargs):
     ax.add_patch(mpatches.Rectangle((d_right, y - h / 2), d_left - d_right, h, **kwargs))
+
+
+def _diag_seg_in_rect(x0, left, bottom, right, top):
+    """45° 斜线 y=x-x0+bottom 与矩形求交，返回框内线段端点。"""
+    # 参数化：点 (t, t - x0 + bottom)，t 从 left 扫到 right
+    # 同时约束 bottom <= y <= top
+    t_lo = max(left, x0)          # y>=bottom ⇒ t >= x0
+    t_hi = min(right, x0 + (top - bottom))  # y<=top ⇒ t <= x0+(top-bottom)
+    if t_hi <= t_lo:
+        return None
+    return (t_lo, t_lo - x0 + bottom), (t_hi, t_hi - x0 + bottom)
+
+
+class _InvalidHatchLegendHandler(HandlerPatch):
+    """图例色块：内缩后手绘 ///，边框压在最上层，避免斜线溢出。"""
+
+    def create_artists(
+        self, legend, orig_handle, xdescent, ydescent, width, height, fontsize, trans,
+    ):
+        left, bottom = -xdescent, -ydescent
+        face = MplRectangle(
+            (left, bottom), width, height,
+            facecolor=COLORS["wrong_fc"],
+            edgecolor="none",
+            alpha=0.85,
+            transform=trans,
+        )
+        arts: list = [face]
+
+        # 内缩 + 稀疏细斜线，与正文 /// 同向但不挤满小方块
+        pad = 0.18 * min(width, height)
+        il, ib = left + pad, bottom + pad
+        ir, it = left + width - pad, bottom + height - pad
+        span = (ir - il) + (it - ib)
+        n = 2
+        for i in range(n):
+            x0 = il - (it - ib) + (i + 1) / (n + 1) * span
+            seg = _diag_seg_in_rect(x0, il, ib, ir, it)
+            if seg is None:
+                continue
+            (xa, ya), (xb, yb) = seg
+            arts.append(
+                Line2D(
+                    [xa, xb], [ya, yb],
+                    color=COLORS["wrong_ec"],
+                    lw=0.55,
+                    solid_capstyle="butt",
+                    transform=trans,
+                    clip_on=False,
+                    zorder=2,
+                )
+            )
+
+        border = MplRectangle(
+            (left, bottom), width, height,
+            facecolor="none",
+            edgecolor=COLORS["wrong_ec"],
+            linewidth=0.75,
+            transform=trans,
+            zorder=3,
+        )
+        arts.append(border)
+        return arts
 
 
 def _obs_jump(d_jump, w=W):
@@ -186,16 +251,20 @@ def plot_label_strategy(disks=DISKS, strategies=STRATEGIES, w=W, record_left=REC
     ys = _disk_ys(len(disks))
     plot_left = record_left + 1.0
 
-    fig, axes = plt.subplots(1, n_cols, figsize=(2.2 * n_cols + 0.5, 4.0), sharex=True)
+    # 栏宽出图；五列并排压高，图例放底部
+    fig, axes = plt.subplots(1, n_cols, figsize=(TEXT_WIDTH_IN, 2.25), sharex=True)
     if n_cols == 1:
         axes = [axes]
+
+    fs_title = FONT["note"]
+    fs_disk = FONT["note"] - 1
 
     for c, (key, title) in enumerate(strategies):
         ax = axes[c]
         ax.set_xlim(plot_left, -0.5)
         ax.set_ylim(0, 1)
         ax.set_yticks([])
-        ax.set_title(title, fontsize=FONT["label"], pad=10)
+        ax.set_title(title, fontsize=fs_title, pad=4)
         for spine in ("left", "top", "right"):
             ax.spines[spine].set_visible(False)
         ax.spines["bottom"].set_color(COLORS["track_edge"])
@@ -206,18 +275,14 @@ def plot_label_strategy(disks=DISKS, strategies=STRATEGIES, w=W, record_left=REC
             if d_jump is not None:
                 ax.plot(
                     d_jump, y + BAR_H / 2 + 0.02,
-                    marker="v", ms=5.5,
+                    marker="v", ms=4.5,
                     color=COLORS["jump_mk"],
                     clip_on=False,
                     zorder=4,
                 )
 
-        ax.axvline(0, color=COLORS["fail"], lw=1.6, zorder=5)
-        ax.axvline(w, color=COLORS["warn_line"], ls="--", lw=1.2, alpha=0.85, zorder=6)
-        if key != "fix_day":
-            ax.axvline(
-                K_SHORT, color=COLORS["track_edge"], ls=":", lw=0.7, zorder=0, alpha=0.7,
-            )
+        ax.axvline(0, color=COLORS["fail"], lw=1.4, zorder=5)
+        ax.axvline(w, color=COLORS["warn_line"], ls="--", lw=1.0, alpha=0.85, zorder=6)
 
         if c == 0:
             for y, (disk_label, _) in zip(ys, disks):
@@ -225,22 +290,19 @@ def plot_label_strategy(disks=DISKS, strategies=STRATEGIES, w=W, record_left=REC
                     -0.06, y, disk_label,
                     transform=ax.transAxes,
                     ha="right", va="center",
-                    fontsize=FONT["annot"], color=COLORS["fail"],
+                    fontsize=fs_disk, color=COLORS["fail"],
                 )
 
-    # fig.suptitle(
-    #     "不同标签策略示意图",
-    #     y=0.02,
-    #     fontsize=11,
-    #     fontweight="bold",
-    #     ha="center",
-    #     color="#212121",
-    # )
     for ax in axes:
         ax.set_xticks([0])
-        ax.set_xticklabels(["$t_{\\mathrm{fail}}$"])
+        ax.set_xticklabels(["$t_{\\mathrm{fail}}$"], fontsize=FONT["note"])
         ax.set_xlabel("")
 
+    invalid_patch = mpatches.Patch(
+        facecolor=COLORS["wrong_fc"], edgecolor=COLORS["wrong_ec"],
+        hatch="///", alpha=0.75,
+        label="无效标注",
+    )
     legend_handles = [
         mpatches.Patch(
             facecolor=COLORS["record_hist"], edgecolor=COLORS["track_edge"],
@@ -250,11 +312,7 @@ def plot_label_strategy(disks=DISKS, strategies=STRATEGIES, w=W, record_left=REC
             facecolor=COLORS["correct"], edgecolor=COLORS["correct_ec"],
             label="有效标注",
         ),
-        mpatches.Patch(
-            facecolor=COLORS["wrong_fc"], edgecolor=COLORS["wrong_ec"],
-            hatch="///", alpha=0.75,
-            label="无效标注",
-        ),
+        invalid_patch,
         Line2D(
             [0], [0], color=COLORS["warn_line"], ls="--", lw=1.2,
             label="预警观测窗左界",
@@ -262,19 +320,22 @@ def plot_label_strategy(disks=DISKS, strategies=STRATEGIES, w=W, record_left=REC
         Line2D(
             [0], [0], marker="v", color="w", label="首跳时刻",
             markerfacecolor=COLORS["jump_mk"], markeredgecolor=COLORS["jump_mk"],
-            markersize=6, markeredgewidth=0, linestyle="None",
+            markersize=5, markeredgewidth=0, linestyle="None",
         ),
     ]
-    fig.subplots_adjust(left=0.15, right=0.99, top=0.84, bottom=0.18, wspace=0.32)
+    fig.subplots_adjust(left=0.16, right=0.99, top=0.88, bottom=0.24, wspace=0.26)
     fig_shared_legend(
         fig,
         handles=legend_handles,
-        loc="upper center",
-        bbox_to_anchor=(0.5, 1.02),
+        loc="lower center",
+        bbox_to_anchor=(0.55, 0.01),
         ncol=5,
-        handlelength=1.0,
-        handletextpad=0.35,
-        columnspacing=0.9,
+        fontsize=FONT["note"] - 1,
+        handlelength=1.4,
+        handleheight=1.15,
+        handletextpad=0.30,
+        columnspacing=0.7,
+        handler_map={invalid_patch: _InvalidHatchLegendHandler()},
     )
     return fig
 
@@ -283,7 +344,7 @@ def main() -> None:
     ensure_output_dirs()
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
     fig = plot_label_strategy()
-    fig.savefig(OUTPUT_PDF, bbox_inches="tight", facecolor="white")
+    savefig_text_width(fig, OUTPUT_PDF, pad_inches=0.04)
     plt.close(fig)
     print(f"saved: {OUTPUT_PDF}")
 
