@@ -13,12 +13,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from matplotlib.patches import Patch
-from matplotlib.transforms import blended_transform_factory
 
 from figure_paths import GENERATED_DIR as FIGURE_DIR, ensure_output_dirs
 from thesis_style import (
     METHOD_COLORS, METHOD_HATCH, C_EDGE, C_ZERO, BAR_LW, FONT,
-    apply_rc, fig_shared_legend,
+    TEXT_WIDTH_IN, apply_rc, fig_shared_legend, savefig_text_width,
 )
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -61,49 +60,56 @@ def main():
     METHOD_HATCHES = METHOD_HATCH
 
     GRID_METRICS = [
-        ("TPR", "TPR", 1.0, "{:.3f}"),
-        ("FPR", r"FPR ($\times 10^{-5}$)", 1e5, "{:.2e}"),
-        ("Precision", "Precision", 1.0, "{:.3f}"),
-        ("F0.5", r"$F_{0.5}$", 1.0, "{:.3f}"),
+        ("TPR", "TPR", 1.0),
+        ("FPR", r"FPR ($\times 10^{-5}$)", 1e5),
+        ("Precision", "Precision", 1.0),
+        ("F0.5", r"$F_{0.5}$", 1.0),
     ]
 
-    # 单轴局部放大（FPR 等）
+    # 单轴局部放大（FPR 等）；上界可略高于末刻度，由 _ylim_with_headroom 留出头
     YLIM_GRID = {
-        ("MB1", "FPR"): (0.0, 25.0),
+        ("MB1", "FPR"): (0.0, 20.0),  # 末刻度 20，视图再出头
         ("MB2", "FPR"): (0.0, 10.0),
+    }
+    YTICKS_GRID = {
+        ("MB1", "FPR"): [0, 10, 20],
+        ("MB2", "FPR"): [0, 5, 10],
+        ("MB2", "TPR"): [0.0, 0.1, 0.2],
+        ("MB2", "Precision"): [0.0, 0.5, 1.0],  # 末刻度=1，轴顶与之对齐
+        ("MB2", "F0.5"): [0.0, 0.3, 0.6],
     }
 
     # MB1 TPR / Precision / F0.5：断轴
-    # - top / bottom：上下段 y 轴显示范围
-    # - split：截断阈值；v >= split → 上段真实柱 + 下段按字典样式画满；v < split → 仅下段真实柱
+    # 上下段各 3 个刻度
     BROKEN_YLIM_GRID = {
         ("MB1", "TPR"): {
-            "top": (0.73, 0.78),
+            "top": (0.73, 0.77),
             "bottom": (0.0, 0.08),
             "split": 0.08,
-            "top_ticks": np.arange(0.73, 0.785, 0.01),
-            "bottom_ticks": [0.0, 0.02, 0.04, 0.06, 0.08],
+            "top_ticks": [0.73, 0.75, 0.77],
+            "bottom_ticks": [0.0, 0.04, 0.08],
         },
         ("MB1", "Precision"): {
-            "top": (0.93, 0.98),
-            "bottom": (0.0, 0.55),
-            "split": 0.55,
-            "top_ticks": np.arange(0.93, 0.985, 0.01),
-            "bottom_ticks": [0.0, 0.1, 0.2, 0.3, 0.4, 0.5],
+            "top": (0.92, 1.0),
+            "bottom": (0.0, 0.60),
+            "split": 0.60,
+            "top_ticks": [0.92, 0.96, 1.0],
+            "bottom_ticks": [0.0, 0.3, 0.6],
         },
         ("MB1", "F0.5"): {
-            "top": (0.89, 0.93),
+            "top": (0.88, 0.92),
             "bottom": (0.0, 0.12),
             "split": 0.12,
-            "top_ticks": np.arange(0.89, 0.935, 0.01),
-            "bottom_ticks": [0.0, 0.04, 0.08, 0.12],
+            "top_ticks": [0.88, 0.90, 0.92],
+            "bottom_ticks": [0.0, 0.06, 0.12],
         },
     }
 
     x = np.arange(len(METHODS))
     bar_width = 0.72
-    BREAK_GAP = 0.018   # 上下段间距（figure 坐标）；过大会在 MB1 断轴列留出大块空白
-    BOT_FRAC = 0.30     # 下段高度占比；略增以压缩上段空白、让低值柱更易读
+    # BREAK_GAP：断轴「上段柱 // 空白 // 下段柱」中间的空隙（figure 坐标）
+    BREAK_GAP = 0.045
+    BOT_FRAC = 0.30     # 下段高度占比（恢复原值）
 
 
     def _style_axis(ax):
@@ -114,42 +120,11 @@ def main():
         ax.tick_params(axis="y", pad=2)
 
 
-    def _annotate_zero(ax, xi, ylo, yhi, color=None):
-        """指标为 0：在 y 轴下沿用黑色标注「0」，不绘制柱形。"""
-        span = max(yhi - ylo, 1e-9)
-        y = ylo + 0.035 * span
-        ax.plot([xi, xi], [ylo, ylo + 0.018 * span], color=C_ZERO, lw=0.9, zorder=4)
-        ax.text(xi, y, "0", ha="center", va="bottom", fontsize=FONT["annot"],
-                color=C_ZERO, zorder=5)
+    TITLE_PAD = 10  # 指标标题与 MB1 行距（栏宽画布下收紧）
 
 
-    TITLE_PAD = 26  # 指标标题与 MB1 行距（从行间 hspace 挪过来）
-    # 柱顶数值相对纵轴跨度的统一抬升（各柱、各子图同一比例）
-    ANNOT_PAD_FRAC = 0.025
-
-
-    def _annotate_bar(ax, xi, v, raw, fmt, key, ylo, yhi, *, rotation=0, above_bar=False):
-        if raw <= 0:
-            return
-        span = max(yhi - ylo, 1e-9)
-        pad = ANNOT_PAD_FRAC * span
-        label = fmt.format(raw if key != "FPR" else raw)
-        # 一律贴在柱顶上方固定比例处；超出可视上界时也按同一 pad 抬升，避免近顶柱被压扁
-        bar_top = min(max(v, ylo), yhi) if v <= yhi else yhi
-        y_text = bar_top + pad
-        kw = dict(
-            ha="center", va="bottom", fontsize=FONT["annot"],
-            rotation=rotation, zorder=5, clip_on=False,
-        )
-        if v > yhi:
-            kw["color"] = C_ZERO
-        if v < ylo:
-            return
-        ax.text(xi, y_text, label, **kw)
-
-
-    def _draw_low_bar(ax, xi, v, raw, color, hatch, bot_lo, bot_hi, fmt, key):
-        """下段：真实低值柱 + 数值标注（与普通柱同形）。"""
+    def _draw_low_bar(ax, xi, v, raw, color, hatch, bot_lo, bot_hi):
+        """下段：真实低值柱。"""
         if raw <= 0:
             return
         draw_v = min(max(v, bot_lo), bot_hi)
@@ -159,11 +134,10 @@ def main():
                      color=color, hatch=hatch, edgecolor=C_EDGE, linewidth=BAR_LW, zorder=3)
         if xi == 0:
             bar[0].set_linewidth(BAR_LW * 1.5)
-        _annotate_bar(ax, xi, draw_v, raw, fmt, key, bot_lo, bot_hi)
 
 
     def _draw_bottom_fill(ax, xi, color, hatch, bot_lo, bot_hi):
-        """下段：高值方法在短轴内画满（字典色/底纹原样，无三角/无额外底纹）。"""
+        """下段：高值方法在短轴内画满（字典色/底纹原样）。"""
         span = bot_hi - bot_lo
         if span <= 0:
             return
@@ -173,8 +147,8 @@ def main():
             bar[0].set_linewidth(BAR_LW * 1.5)
 
 
-    def _draw_top_bar(ax, xi, v, raw, color, hatch, top_lo, top_hi, fmt, key):
-        """上段：放大区间内的真实柱 + 数值标注。"""
+    def _draw_top_bar(ax, xi, v, raw, color, hatch, top_lo, top_hi):
+        """上段：放大区间内的真实柱。"""
         if raw <= 0 or v < top_lo:
             return
         draw_v = min(v, top_hi)
@@ -182,7 +156,6 @@ def main():
                      color=color, hatch=hatch, edgecolor=C_EDGE, linewidth=BAR_LW, zorder=3)
         if xi == 0:
             bar[0].set_linewidth(BAR_LW * 1.5)
-        _annotate_bar(ax, xi, draw_v, raw, fmt, key, top_lo, top_hi)
 
 
     def _draw_break_marks(ax_top, ax_bot, d=0.018):
@@ -206,19 +179,47 @@ def main():
         ax.set_xticklabels([])
 
 
+    def _fmt_ytick(v, _):
+        """刻度标签：整数不带小数；其余去掉末尾 0。"""
+        if abs(v - round(v)) < 1e-9:
+            return f"{int(round(v))}"
+        s = f"{v:.2f}".rstrip("0").rstrip(".")
+        return s
+
+
+    def _ylim_with_headroom(ylo, yhi, ticks, *, pad_frac=0.14):
+        """末刻度非 1 时，轴顶略高出末刻度，避免「刻度封顶」；末刻度为 1 则贴齐。
+
+        出头按「首末刻度跨度」比例计算（不用末刻度绝对值），否则断轴上段
+        （如 0.89–0.93）会被 0.93 撑出过大空白，导致末刻度视觉上偏矮。
+        """
+        if not ticks:
+            return ylo, yhi
+        t_lo, t_hi = min(ticks), max(ticks)
+        if abs(t_hi - 1.0) < 1e-9:
+            return ylo, max(yhi, 1.0)
+        span = max(t_hi - t_lo, 1e-9)
+        return ylo, max(yhi, t_hi + pad_frac * span)
+
+
+    def _set_yticks_sparse(ax, ylo, yhi, ticks=None):
+        """普通子图统一约 3 个主刻度。"""
+        if ticks is not None:
+            ax.set_yticks(ticks)
+        else:
+            from matplotlib.ticker import MaxNLocator
+            ax.yaxis.set_major_locator(MaxNLocator(nbins=3, min_n_ticks=3, prune=None))
+        ax.yaxis.set_major_formatter(plt.FuncFormatter(_fmt_ytick))
+
+
     def _align_broken_pair(ax_top, ax_bot):
         """上下段共享同一绘图区 left/width。"""
         _apply_xlim(ax_top)
         _apply_xlim(ax_bot)
 
-        ylabel_text = ax_top.yaxis.get_label().get_text()
-        if ylabel_text:
-            ax_bot.set_ylabel(ylabel_text, labelpad=2)
-            ax_bot.yaxis.label.set_visible(False)
-
         for ax in (ax_top, ax_bot):
-            ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda v, _: f"{v:.2f}"))
-            ax.yaxis.set_tick_params(pad=3)
+            ax.yaxis.set_major_formatter(plt.FuncFormatter(_fmt_ytick))
+            ax.yaxis.set_tick_params(pad=2, labelsize=FONT["note"])
 
         fig = ax_top.figure
         fig.canvas.draw()
@@ -229,28 +230,43 @@ def main():
 
 
     def _draw_row_label(panel_col0, label):
-        """行标签：x 位置与 MB2 列0 一致（transAxes -0.28），y 为整列垂直居中。"""
+        """行标签：整行垂直居中，置于第 0 列 y 刻度文字左侧。"""
         if panel_col0["kind"] == "broken":
-            ax_ref = panel_col0["bot"]
-            ax_top = panel_col0["top"]
-            fig = ax_ref.figure
+            axes_ref = [panel_col0["bot"], panel_col0["top"]]
+            fig = axes_ref[0].figure
             fig.canvas.draw()
-            pb, pt = ax_ref.get_position(), ax_top.get_position()
-            y_center = pb.y0 + 0.5 * (pt.y0 + pt.height - pb.y0)
-            trans = blended_transform_factory(ax_ref.transAxes, fig.transFigure)
-            ax_ref.text(
-                -0.28, y_center, label, transform=trans,
-                rotation=90, va="center", ha="center", fontsize=FONT["title"], fontweight="bold",
+            pb, pt = axes_ref[0].get_position(), axes_ref[1].get_position()
+            y = 0.5 * (
+                (pb.y0 + 0.5 * pb.height) + (pt.y0 + 0.5 * pt.height)
             )
         else:
-            ax = panel_col0["ax"]
-            ax.text(
-                -0.28, 0.5, label, transform=ax.transAxes,
-                rotation=90, va="center", ha="center", fontsize=FONT["title"], fontweight="bold",
-            )
+            axes_ref = [panel_col0["ax"]]
+            fig = axes_ref[0].figure
+            fig.canvas.draw()
+            pos = axes_ref[0].get_position()
+            y = pos.y0 + 0.5 * pos.height
+
+        renderer = fig.canvas.get_renderer()
+        inv = fig.transFigure.inverted()
+        # 取该列所有 y 刻度标签的最左缘，再向左留空隙
+        tick_left = min(ax.get_position().x0 for ax in axes_ref)
+        for ax in axes_ref:
+            for t in ax.get_yticklabels():
+                if not t.get_visible() or not t.get_text():
+                    continue
+                bb = t.get_window_extent(renderer).transformed(inv)
+                tick_left = min(tick_left, bb.x0)
+
+        fig.text(
+            tick_left - 0.032, y, label,
+            transform=fig.transFigure,
+            rotation=90, va="center", ha="center",
+            fontsize=FONT["title"], fontweight="bold",
+            clip_on=False,
+        )
 
 
-    def _plot_broken_panel(fig, ax_placeholder, *, raw_vals, vals, colors, hatches, cfg, ylabel, fmt, key,
+    def _plot_broken_panel(fig, ax_placeholder, *, raw_vals, vals, colors, hatches, cfg, ylabel, key,
                            show_title=False, show_model_label=False):
         pos = ax_placeholder.get_position()
         ax_placeholder.remove()
@@ -266,24 +282,24 @@ def main():
 
         for xi, v, raw, c, h in zip(x, vals, raw_vals, colors, hatches):
             if raw <= 0:
-                _annotate_zero(ax_bot, xi, bot_lo, bot_hi, c)
                 continue
             if v >= split:
                 _draw_bottom_fill(ax_bot, xi, c, h, bot_lo, bot_hi)
             else:
-                _draw_low_bar(ax_bot, xi, v, raw, c, h, bot_lo, bot_hi, fmt, key)
+                _draw_low_bar(ax_bot, xi, v, raw, c, h, bot_lo, bot_hi)
             if v >= top_lo:
-                _draw_top_bar(ax_top, xi, v, raw, c, h, top_lo, top_hi, fmt, key)
+                _draw_top_bar(ax_top, xi, v, raw, c, h, top_lo, top_hi)
 
-        ax_top.set_ylim(top_lo, top_hi)
-        ax_bot.set_ylim(bot_lo, bot_hi)
+        # 上段出头需可辨认（过小看不出）；随后与 FPR 末刻度水平对齐
+        ax_top.set_ylim(*_ylim_with_headroom(top_lo, top_hi, cfg["top_ticks"], pad_frac=0.10))
+        ax_bot.set_ylim(*_ylim_with_headroom(bot_lo, bot_hi, cfg["bottom_ticks"], pad_frac=0.14))
         ax_top.set_yticks(cfg["top_ticks"])
         ax_bot.set_yticks(cfg["bottom_ticks"])
         _style_axis(ax_top)
         _style_axis(ax_bot)
         _draw_break_marks(ax_top, ax_bot)
 
-        ax_top.set_ylabel(ylabel, labelpad=2)
+        # 指标含义统一放在列标题，不设 y 轴文字标签（避免与 MB 行标签抢位）
         if show_title:
             ax_top.set_title(ylabel, fontweight="bold", pad=TITLE_PAD)
 
@@ -325,6 +341,55 @@ def main():
         ax_target.set_position([x0_col + delta, y0, w_col - delta, h])
 
 
+    def _last_ytick(ax):
+        ylo, yhi = ax.get_ylim()
+        ticks = [t for t in ax.get_yticks() if ylo - 1e-9 <= t <= yhi + 1e-9]
+        return max(ticks) if ticks else None
+
+
+    def _last_ytick_fig_y(ax):
+        """末刻度在 figure 坐标中的垂直位置。"""
+        pos = ax.get_position()
+        ylo, yhi = ax.get_ylim()
+        t = _last_ytick(ax)
+        if t is None or yhi <= ylo:
+            return None
+        return pos.y0 + (t - ylo) / (yhi - ylo) * pos.height
+
+
+    def _set_ylim_to_match_last_tick_fig_y(ax, fig_y):
+        """调整 y 上界，使末刻度落在给定 figure-y（末刻度为 1 的贴顶轴不改）。"""
+        pos = ax.get_position()
+        ylo, yhi = ax.get_ylim()
+        t = _last_ytick(ax)
+        if t is None or abs(t - 1.0) < 1e-9:
+            return
+        target_frac = (fig_y - pos.y0) / max(pos.height, 1e-9)
+        target_frac = float(np.clip(target_frac, 0.05, 0.995))
+        ax.set_ylim(ylo, ylo + (t - ylo) / target_frac)
+
+
+    def _align_mb1_top_last_ticks(mb1_panels, fig):
+        """MB1：TPR / F0.5 断轴上段末刻度与 FPR 末刻度水平对齐。
+
+        以断轴上段（非贴顶的 1.0）为基准，抬高 FPR 的末刻度，避免再加大断轴出头。
+        """
+        fig.canvas.draw()
+        broken_tops = []
+        fpr_ax = None
+        for p in mb1_panels:
+            if p["kind"] == "broken":
+                t = _last_ytick(p["top"])
+                if t is not None and abs(t - 1.0) > 1e-9:
+                    broken_tops.append(p["top"])
+            else:
+                fpr_ax = p["ax"]
+        if not broken_tops or fpr_ax is None:
+            return
+        target = sum(_last_ytick_fig_y(ax) for ax in broken_tops) / len(broken_tops)
+        _set_ylim_to_match_last_tick_fig_y(fpr_ax, target)
+
+
     def _align_mb1_columns_to_mb2(mb1_panels, mb2_panels, fig):
         """以 MB2 各列为基准，对齐 MB1 同指标列的 x0 / width / height。"""
         fig.canvas.draw()
@@ -359,7 +424,7 @@ def main():
                 _align_plot_left_margin(p1["ax"], mb1_broken_ref, fig, x0, y0_col, h_col, w)
 
 
-    def _plot_simple_panel(ax, *, raw_vals, vals, colors, hatches, ylabel, fmt, key, model,
+    def _plot_simple_panel(ax, *, vals, colors, hatches, ylabel, key, model,
                            show_title=False, show_model_label=False):
         custom_ylim = YLIM_GRID.get((model, key))
         if custom_ylim is not None:
@@ -376,31 +441,27 @@ def main():
         bars = ax.bar(x, vals, width=bar_width, color=colors, hatch=hatches,
                       edgecolor=C_EDGE, linewidth=BAR_LW, zorder=3)
         bars[0].set_linewidth(BAR_LW * 1.5)
+        ticks = YTICKS_GRID.get((model, key))
+        ylo, yhi = _ylim_with_headroom(ylo, yhi, ticks)
         ax.set_ylim(ylo, yhi)
-        if model == "MB1" and key == "FPR":
-            ax.set_ylabel("FPR", labelpad=2)
-        else:
-            ax.set_ylabel(ylabel)
+        _set_yticks_sparse(ax, ylo, yhi, ticks=ticks)
         _style_axis(ax)
         if show_title:
-            ax.set_title(ylabel.replace(r" ($\times 10^{-5}$)", ""), fontweight="bold", pad=TITLE_PAD)
-        for xi, v, raw, c in zip(x, vals, raw_vals, colors):
-            if raw <= 0:
-                _annotate_zero(ax, xi, ylo, yhi, c)
-                continue
-            _annotate_bar(ax, xi, v, raw, fmt, key, ylo, yhi, above_bar=(key == "FPR"))
+            # FPR 保留 ×10^{-5} 于列标题；其余指标名同 ylabel
+            ax.set_title(ylabel, fontweight="bold", pad=TITLE_PAD)
         _apply_xlim(ax)
         return ax
 
 
-    fig, axes = plt.subplots(2, 4, figsize=(13.8, 6.6), sharex=False)
+    # 按版心宽度出图：正文 \\includegraphics 默认尺寸即可，避免 width= 缩放缩字号
+    fig, axes = plt.subplots(2, 4, figsize=(TEXT_WIDTH_IN, 3.35), sharex=False)
 
     broken_pairs = []
     row_panels = [[], []]
 
     for row, model in enumerate(MODELS):
         sub = df[df["model"] == model].set_index("method").loc[METHODS]
-        for col, (key, ylabel, scale, fmt) in enumerate(GRID_METRICS):
+        for col, (key, ylabel, scale) in enumerate(GRID_METRICS):
             ax = axes[row, col]
             raw_vals = sub[key].to_numpy(dtype=float)
             vals = raw_vals * scale
@@ -412,7 +473,7 @@ def main():
                 ax_top, ax_bot = _plot_broken_panel(
                     fig, ax,
                     raw_vals=raw_vals, vals=vals, colors=colors, hatches=hatches,
-                    cfg=broken_cfg, ylabel=ylabel, fmt=fmt, key=key,
+                    cfg=broken_cfg, ylabel=ylabel, key=key,
                     show_title=(row == 0),
                     show_model_label=(col == 0),
                 )
@@ -421,8 +482,8 @@ def main():
                 axes[row, col] = ax_bot
             else:
                 _plot_simple_panel(
-                    ax, raw_vals=raw_vals, vals=vals, colors=colors, hatches=hatches,
-                    ylabel=ylabel, fmt=fmt, key=key, model=model,
+                    ax, vals=vals, colors=colors, hatches=hatches,
+                    ylabel=ylabel, key=key, model=model,
                     show_title=(row == 0),
                     show_model_label=(col == 0),
                 )
@@ -442,11 +503,12 @@ def main():
     ]
 
     # hspace 收紧 → 行距让给 TITLE_PAD（指标 ↔ MB1）
-    fig.subplots_adjust(left=0.08, right=0.98, top=0.93, bottom=0.08, wspace=0.38, hspace=0.22)
+    fig.subplots_adjust(left=0.15, right=0.99, top=0.88, bottom=0.12, wspace=0.38, hspace=0.28)
 
     for ax_top, ax_bot in broken_pairs:
         _align_broken_pair(ax_top, ax_bot)
     _align_mb1_columns_to_mb2(row_panels[0], row_panels[1], fig)
+    _align_mb1_top_last_ticks(row_panels[0], fig)
     _draw_row_label(row_panels[0][0], "MB1")
     _draw_row_label(row_panels[1][0], "MB2")
 
@@ -457,10 +519,12 @@ def main():
         loc="lower center",
         bbox_to_anchor=(0.5, 0.01),
         ncol=6,
+        columnspacing=0.8,
+        handletextpad=0.35,
+        borderpad=0.3,
     )
 
-    # fig.savefig(OUT_GRID, bbox_inches="tight")
-    fig.savefig(OUT_GRID_PDF, bbox_inches="tight")
+    savefig_text_width(fig, OUT_GRID_PDF, pad_inches=0.02)
     print(f"saved: {OUT_GRID_PDF}")
 
 

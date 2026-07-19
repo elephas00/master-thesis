@@ -43,7 +43,7 @@
 | [ ] | 难 | `figure/generated/chap2-program-erase-principle.pdf` | `figure_codes/chap2_program_erase_principle.py` | ~1.62× | 绝对坐标 |
 | [ ] | 难 | `figure/generated/chap2-random-forest.pdf` | `figure_codes/chap2_random_forest.py` | ~1.65× | 绝对坐标树 |
 | [ ] | 难 | `figure/generated/chap3-tp-tn-fp-fn.pdf` | `figure_codes/chap3_tp_tn_fp_fn.py` | ~1.35× | 绝对坐标示意 |
-| [ ] | 难 | `figure/generated/chap3-baseline-bar-grid.pdf` | `figure_codes/chap3_baseline_bar_grid.py` | ~2.13× | 2×4 挤进栏宽难读 |
+| [x] | 难 | `figure/generated/chap3-baseline-bar-grid.pdf` | `figure_codes/chap3_baseline_bar_grid.py` | **1.00×** | 已对齐（栏宽出图；FPR 标 ×10⁻⁵ 数值） |
 | [ ] | 难 | `figure/generated/chap4-blockfilter-grouping.pdf` | `figure_codes/chap4_blockfilter_grouping.py` | ~1.32× | 绝对坐标 |
 | [ ] | 难 | `figure/generated/chap1-framework.pdf` | `figure_codes/chap1_framework.py` | ~2.10× | draw.io 整页重排 |
 | [ ] | 难 | `figure/generated/chap3-pipeline.pdf` | `figure_codes/chap3_pipeline.py` | ~2.14× | draw.io |
@@ -56,7 +56,7 @@
 
 - 易：8（已完成 3 / 已回滚 4 / 余截图 1）
 - 中：13
-- 难：12
+- 难：12（已完成 1）
 - 合计：33
 
 ## 建议顺序
