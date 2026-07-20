@@ -19,7 +19,7 @@ from thesis_style import drawio_fs, fit_drawio_pdf_width
 OUT_XML = BUILD_DIR / "chap3-ensemble.xml"
 OUT_PDF = GENERATED_DIR / "chap3-ensemble.pdf"
 
-_SCALE = 6.19
+_SCALE = 7.20
 _R = _SCALE / 5.0
 FS_TITLE = drawio_fs("title", scale=_SCALE)
 FS_LABEL = drawio_fs("label", scale=_SCALE)
@@ -112,7 +112,21 @@ class Diagram:
 
 
 def build() -> Diagram:
-    d = Diagram()
+    # 左/右端与第二层、Focal 同步加宽；压缩第二层底部空档
+    dx = 320
+    out_w = 570 + dx          # 890，与左侧特征框同宽
+    l2_w = 1200               # 原 900
+    l2_extra = l2_w - 900
+    out_extra = out_w - 480
+    l2_h = 880                # 原 1170，收掉底部空档
+    l2_x = 2460 + dx
+    l2_y = 320
+    out_x = 3540 + dx + l2_extra
+    out_y = 620
+    out_h = 480
+    # Focal / 标签下移，与输出框拉开；避免竖向虚线压字
+    focal_y = max(l2_y + l2_h + 120, out_y + out_h + 280)
+    d = Diagram(page_w=4200 + dx + l2_extra + out_extra, page_h=max(1980, focal_y + 360))
 
     d.box(
         "input",
@@ -120,7 +134,7 @@ def build() -> Diagram:
         '<font style="font-size:51px">'
         "z<sub>i,t</sub> ∈ ℝ<sup>|𝒜|W + |ℬ|(W+1)</sup><br>"
         "（A/B 组 Lag + B 组加权突变）</font>",
-        120, 690, 570, 330,
+        120, 690, 570 + dx, 330,
         style=(
             "rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;"
             f"fontSize={FS_BOX};arcSize=8;"
@@ -130,7 +144,7 @@ def build() -> Diagram:
     # layer 1 swimlane
     d.box(
         "layer1-box", "第一层：异构基分类器",
-        840, 330, 900, 1096,
+        840 + dx, 330, 900, 1096,
         style=(
             "swimlane;html=1;startSize=90;fillColor=#e3f2fd;strokeColor=#1565c0;"
             f"fontStyle=1;fontSize={FS_SWIM};rounded=1;arcSize=6;"
@@ -222,17 +236,18 @@ def build() -> Diagram:
         '<font style="font-size:51px">'
         "p<sub>i,t</sub> =<br>"
         "[p<sup>(1)</sup>, …, p<sup>(N)</sup>]<sup>T</sup></font>",
-        1890, 690, 390, 330,
+        1890 + dx, 690, 390, 330,
         style=(
             "rounded=1;whiteSpace=wrap;html=1;fillColor=#e8eaf6;strokeColor=#3949ab;"
             f"fontSize={FS_SWIM};"
         ),
     )
 
-    # layer 2
+    # layer 2：加宽；步骤略增高、间距收紧，去掉底部大块留白
+    step_w = l2_w - 180
     d.box(
         "layer2-box", "第二层：Attention 样本级融合",
-        2460, 270, 900, 1170,
+        l2_x, l2_y, l2_w, l2_h,
         style=(
             "swimlane;startSize=84;fillColor=#fff3e0;strokeColor=#e65100;"
             f"fontStyle=1;fontSize={FS_SWIM};rounded=1;arcSize=6;"
@@ -242,7 +257,7 @@ def build() -> Diagram:
         "attn-step1",
         "① 线性变换<br>"
         '<font style="font-size:45px">W<sub>α</sub>·p<sub>i,t</sub> + b<sub>α</sub></font>',
-        90, 150, 720, 166,
+        90, 100, step_w, 185,
         style=(
             "rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#e65100;"
             f"fontSize={FS_BODY};"
@@ -254,7 +269,7 @@ def build() -> Diagram:
         "② Softmax 归一化<br>"
         '<font style="font-size:45px">'
         "α<sub>i,t</sub><sup>(m)</sup>，Σ<sub>m</sub>α = 1</font>",
-        90, 390, 720, 166,
+        90, 320, step_w, 185,
         style=(
             "rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#e65100;"
             f"fontSize={FS_BODY};"
@@ -266,7 +281,7 @@ def build() -> Diagram:
         "③ 加权组合<br>"
         '<font style="font-size:45px">'
         "ŷ<sub>i,t</sub> = Σ<sub>m=1</sub><sup>N</sup> α<sup>(m)</sup>·p<sup>(m)</sup></font>",
-        90, 630, 720, 166,
+        90, 540, step_w, 185,
         style=(
             "rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#e65100;"
             f"fontSize={FS_BODY};"
@@ -277,66 +292,68 @@ def build() -> Diagram:
         "attn-note",
         '<font style="font-size:45px;color:#555555">'
         "样本自适应权重，可解释各专家贡献占比</font>",
-        60, 870, 780, 90,
+        60, 755, l2_w - 120, 80,
         style=TEXT + "align=center;",
         parent="layer2-box",
     )
 
     d.box(
         "output",
-        "<b>融合故障概率</b><br>"
+        f'<font style="font-size:{FS_SWIM}px"><b>融合故障概率</b></font><br><br>'
         '<font style="font-size:51px">ŷ<sub>i,t</sub> ∈ [0, 1]</font>',
-        3540, 736, 480, 240,
+        out_x, out_y, out_w, out_h,
         style=(
             "rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;"
-            f"fontSize={FS_BOX};arcSize=8;"
+            f"fontSize={FS_SWIM};arcSize=8;spacing=16;verticalAlign=middle;"
         ),
     )
     d.box(
         "focal",
-        "<b>Focal Loss</b>  ℒ<sub>FL</sub><br>"
-        '<font style="font-size:45px">'
+        '<font style="font-size:54px"><b>Focal Loss</b>  ℒ<sub>FL</sub></font><br>'
+        '<font style="font-size:42px">'
         "对易分样本降权，强化少数类故障样本<br>"
         "在验证集上更新 W<sub>α</sub>, b<sub>α</sub>（γ=2）</font>",
-        2460, 1560, 1020, 210,
+        l2_x, focal_y, l2_w, 200,
         style=(
             "rounded=1;whiteSpace=wrap;html=1;fillColor=#ffebee;strokeColor=#c62828;"
-            f"fontSize={FS_BODY};dashed=1;dashPattern=8 8;"
+            "fontSize=42;dashed=1;dashPattern=8 8;"
+            "align=center;verticalAlign=middle;spacingTop=14;spacingBottom=14;"
         ),
     )
     d.box(
         "ylabel",
         "标签 y<sub>i,t</sub> ∈ {0,1}",
-        3540, 1590, 390, 150,
+        out_x, focal_y + 20, out_w, 160,
         style=(
             "rounded=1;whiteSpace=wrap;html=1;fillColor=#fce4ec;strokeColor=#c62828;"
-            f"fontSize={FS_BODY};"
+            "fontSize=48;align=center;verticalAlign=middle;"
         ),
     )
 
-    # legend
+    # legend（与 Focal 底对齐一带）
+    leg_y = focal_y
     d.box(
-        "legend-box", "", 120, 1546, 600, 234,
+        "legend-box", "", 120, leg_y, 600, 234,
         style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fafafa;strokeColor=#cccccc;dashed=1;",
     )
     d.box(
-        "legend-title", "图例", 156, 1560, 120, 54,
+        "legend-title", "图例", 156, leg_y + 14, 120, 54,
         style=TEXT + f"fontStyle=1;fontSize={FS_BODY};",
     )
     d.free_edge(
-        "legend1-line", 156, 1640, 306, 1640,
+        "legend1-line", 156, leg_y + 94, 306, leg_y + 94,
         style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#333333;",
     )
     d.box(
-        "legend1", "推理数据流", 336, 1614, 330, 60,
+        "legend1", "推理数据流", 336, leg_y + 68, 330, 60,
         style=TEXT + f"fontSize={FS_TICK};align=left;",
     )
     d.free_edge(
-        "legend2-line", 156, 1712, 306, 1712,
+        "legend2-line", 156, leg_y + 166, 306, leg_y + 166,
         style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#c62828;dashed=1;",
     )
     d.box(
-        "legend2", "训练 / 损失", 336, 1686, 330, 60,
+        "legend2", "训练 / 损失", 336, leg_y + 140, 330, 60,
         style=TEXT + f"fontSize={FS_TICK};align=left;",
     )
 
@@ -435,7 +452,8 @@ def build() -> Diagram:
         style=(
             "edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;"
             "html=1;strokeWidth=2;strokeColor=#c62828;dashed=1;"
-            "exitX=0.5;exitY=1;entryX=0.75;entryY=0;"
+            # 从输出框左侧下行，走第二层与输出之间的廊道，避开下方「标签」框
+            "exitX=0;exitY=0.75;entryX=0.88;entryY=0;"
         ),
     )
     d.edge(
@@ -443,7 +461,7 @@ def build() -> Diagram:
         style=(
             "edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;"
             "html=1;strokeWidth=2;strokeColor=#c62828;dashed=1;"
-            "exitX=0;exitY=0.5;entryX=1;entryY=0.5;"
+            "exitX=0;exitY=0.5;entryX=1;entryY=0.55;"
         ),
     )
     d.edge(
@@ -451,7 +469,8 @@ def build() -> Diagram:
         style=(
             "edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;"
             f"html=1;strokeWidth=2;strokeColor=#c62828;dashed=1;fontSize={FS_TICK};"
-            "exitX=0.25;exitY=0;entryX=0.5;entryY=1;"
+            "labelBackgroundColor=#FFFFFF;"
+            "exitX=0.22;exitY=0;entryX=0.5;entryY=1;"
         ),
         value="更新 W<sub>α</sub>, b<sub>α</sub>",
     )
