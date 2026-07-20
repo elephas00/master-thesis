@@ -64,7 +64,7 @@ Zhang等人设计3D TLC块粒度SVM预测框架，配套现场可编程门阵列
 
 在盘级故障预测方面，当前主流研究大多基于厂商私有大规模时序数据集挖掘长期设备退化规律，针对阿里云公开开源SMART数据集的近端短期突变前兆建模尚显不足。多数算法未围绕数据中心运维低误报硬性约束做$F_{0.5}$阈值联合调优，导致模型在线上的工程适配性受限\cite{zhang2024msfrd,zhang2023multi,koh2024temporal, zhou2023proactive}。
 
-在块粒度寿命管理方面，现有工作多局限于健康度或剩余寿命的预测建模，缺乏从“预测输出”到“差异化读写调度”的完整工程闭环。鲜有研究定量测算差异化 PE 策略在可控可靠性风险下的容量与耐久提升收益，难以直接指导固件开发与运维系统的实际部署。
+在块粒度寿命管理方面，现有工作多局限于健康度或剩余寿命的预测建模，缺乏从“预测输出”到“差异化读写调度”的工程闭环。鲜有研究测算差异化 PE 策略在可控可靠性风险下的容量与耐久提升收益，难以直接指导固件开发与运维系统的实际部署。
 
 \section{研究目标与本文主要工作}
 针对上述现有研究存在的两类核心缺陷，本文确立统一总体研究目标：在数据中心运维可接受故障误报水平约束下，同步提升SSD故障提前检出能力与NAND闪存介质整体耐久容量利用率。围绕该总体目标，本文拆解两大相互关联的核心问题开展系统性研究：
@@ -1020,8 +1020,8 @@ p_t=
 验证月份不参与基分类器训练，其概率仅用于融合模块拟合与阈值选取。
 
 盘级评估指标采用 TPR、FPR、Precision 与 $F_{0.5}$。
-测试月评估盘集合取该月数据集中出现过的盘。
-对各方法，若某日因历史窗不足等原因无法构造有效特征，则该日样本不参与分类推理、也不产生告警，
+测试月评估盘取该月出现过的盘。
+对各方法，若某日因历史窗不足等无法构造有效特征，则不参与推理、不告警；
 若整盘在测试月均无有效特征，盘级视为未预警，等价于将该盘预测为健康盘。
 
 主实验统一采用混合标注与 Lag+$r_k|\Delta|$ 完整突变特征；标签策略与突变特征消融在固定其余设定下替换单一组件，样本级阈值取 0.5。
@@ -1029,9 +1029,13 @@ p_t=
 
 \subsubsection{对比模型介绍}
 
-为全面评估所提方法的性能，本文将其与一系列基线方法进行了对比，这些基线模型涵盖了无监督学习模型、传统机器学习模型、深度学习模型和集成模型。
+为全面评估所提方法的性能，本文将其与一系列基线方法进行了对比，这些基线涵盖启发式规则、无监督学习模型、传统机器学习模型、深度学习模型和集成模型。
 
 \begin{itemize}[noitemsep, topsep=4pt, parsep=0pt]
+    \item Mut-Rule：
+        启发式规则基线，口径同~\ref{sec:chap3-b-mutation-eda}~节：
+        在非补全的相邻原始观测日上，若任一 B 组属性满足 $|\Delta|>0$，则将该日判为告警；
+        盘级取测试月内最早告警日；该基线不训练模型，用于量化“仅凭跳变告警”在低误报约束下的上限与代价。
     \item RF~\cite{xu2021general}：
         采用 30 日固定窗口标签，
         对SMART数据构造 7天 / 3天 时间窗口内的统计特征，
@@ -1061,10 +1065,9 @@ p_t=
 
 上述文献方法多在私有数据集上验证，且尚未见与本文实验设定完全一致的公开实现。
 为此，使用与本文一致的数据预处理得到的特征、时间划分与盘级指标口径下，
-% 对 Xu 式 RF 对照及 MVTRF、MSFRD、AE 与 TCAN 等文献方法进行了复现。
-对 Xu 式 RF 对照及 MVT-RF、AE 、 TCAN 与 Mut-RF 等文献方法进行了复现。
+对 Mut-Rule 启发式规则以及 Xu 式 RF 对照、MVT-RF、AE、TCAN 与 Mut-RF 等文献方法进行了复现。
 其中 Mut-RF 分为 Informer 时序训练与随机森林分类两步：Informer 大规模时序推理依赖云端 vGPU 加速，
-后续随机森林训练、其余基线模型（RF/AE/TCAN/MVT-RF）全部在 Apple M2 芯片、16GB 内存 MacBook Air 上完成，代码统一基于 Python 3.9.6 实现。
+后续随机森林训练、其余基线（Mut-Rule/RF/AE/TCAN/MVT-RF）全部在 Apple M2 芯片、16GB 内存 MacBook Air 上完成，代码统一基于 Python 3.9.6 实现。
 \subsection{关键超参数 $W$ 与 $k$ 的选取}
 \label{sec:chap3-wk-sensitivity}
 
@@ -1111,138 +1114,53 @@ p_t=
 \subsection{模型整体效果的验证与分析}
 \label{sec:chap3-main-results}
 
-在 \S\ref{sec:chap3-wk-sensitivity} 确定各型号最优 $(W^{\ast}, k^{\ast})$ 后，本节将本文异构集成与文献复现基线进行对比，采用盘级 TPR、FPR、Precision 与 $F_{0.5}$ 四项指标评估。
-分轮明细见表~\ref{tab:chap3-main-results-mb1} 与表~\ref{tab:chap3-main-results-mb2}，三轮平均指标对比见图~\ref{fig:chap3-baseline-bar-grid}；表便于核对各轮次 TP/FP 与单项指标，图便于跨方法、跨指标的整体比较。
-其中除 FPR 外均保留三位小数，FPR 以科学计数法表示。
+在 \S\ref{sec:chap3-wk-sensitivity} 确定各型号最优 $(W^{\ast}, k^{\ast})$ 后，本节将本文异构集成与 Mut-Rule 及文献复现基线进行对比，采用盘级 TPR、FPR、Precision 与 $F_{0.5}$ 四项指标评估。
+三轮平均结果见表~\ref{tab:chap3-main-results-mb1}、\ref{tab:chap3-main-results-mb2} 与图~\ref{fig:chap3-baseline-bar-grid}；各轮次 TP/FP 与分项明细见附表~\ref{tab:app-chap3-main-results-mb1}、\ref{tab:app-chap3-main-results-mb2}。
+其中除 FPR 外均保留三位小数，FPR 以科学计数法表示；加粗与下划线分别表示同列最优与次优。
 
 \begin{table}[htbp]
     \centering
-    \caption{\label{tab:chap3-main-results-mb1}MB1 盘级性能对比}
-    \setlength{\tabcolsep}{2pt} % 微调列间距，避免拥挤
-    \renewcommand{\multirowsetup}{\centering} 
-
-    % 加宽方法列，彻底解决Mutation-RF文字溢出重叠问题
-    \begin{tabularx}{\linewidth}{>{\centering\arraybackslash}m{1.6cm} >{\centering\arraybackslash}m{1.05cm} >{\centering\arraybackslash}m{0.7cm} @{\hspace{4pt}} >{\centering\arraybackslash}m{0.7cm} *{4}{>{\centering\arraybackslash}X}}
+    \caption{\label{tab:chap3-main-results-mb1}MB1 三轮平均盘级性能对比}
+    \setlength{\tabcolsep}{4pt}
+    \begin{tabularx}{\linewidth}{>{\centering\arraybackslash}m{2.2cm} *{4}{>{\centering\arraybackslash}X}}
         \toprule
-        方法 & 轮次 & TP & FP & TPR & FPR & Precision & $F_{0.5}$ \\
+        方法 & TPR & FPR & Precision & $F_{0.5}$ \\
         \midrule
-        
-        % --- 本文方法 ---
-        \multirow{4}{*}{本文方法}
-        & R1 & \underline{36} & \textbf{0} & \underline{0.783} & \textbf{0} & \textbf{1.000} & \textbf{0.947} \\
-        & R2 & \underline{47} & 2 & \underline{0.723} & $5.41\times10^{-5}$ & \underline{0.959} & \underline{0.900} \\
-        & R3 & 66 & \underline{1} & 0.710 & \underline{$2.73\times10^{-5}$} & \textbf{0.985} & \underline{0.914} \\
-        & 平均 & 149 & \underline{3} & 0.738 & \underline{$2.71\times10^{-5}$} & \textbf{0.981} & \textbf{0.921} \\
-        \cmidrule{1-8}
-        
-        % --- RF ---
-        \multirow{4}{*}{RF}
-        & R1 & \textbf{37} & 1 & \textbf{0.804} & \underline{$2.71\times10^{-5}$} & \underline{0.974} & \underline{0.934} \\
-        & R2 & \underline{47} & 3 & \underline{0.723} & $8.12\times10^{-5}$ & 0.940 & 0.887 \\
-        & R3 & \textbf{73} & 9 & \textbf{0.768} & $2.46\times10^{-4}$ & 0.890 & 0.863 \\
-        & 平均 & \textbf{157} & 13 & \underline{0.765} & $1.18\times10^{-4}$ & 0.935 & 0.895 \\
-        \cmidrule{1-8}
-        
-        % --- AE ---
-        \multirow{4}{*}{AE}
-        & R1 & 1 & 54 & 0.022 & $1.46\times10^{-3}$ & 0.018 & 0.019 \\
-        & R2 & 5 & 51 & 0.079 & $1.38\times10^{-3}$ & 0.089 & 0.087 \\
-        & R3 & 1 & 43 & 0.011 & $1.17\times10^{-3}$ & 0.023 & 0.019 \\
-        & 平均 & 7 & 148 & 0.038 & $1.34\times10^{-3}$ & 0.043 & 0.042 \\
-        \cmidrule{1-8}
-        % TCAN
-        \multirow{4}{*}{TCAN}
-        & R1 & 0 & \textbf{0} & 0.000 & \textbf{0} & 0.000 & 0.000 \\
-        & R2 & 0 & \textbf{0} & 0.000 & \textbf{0} & 0.000 & 0.000 \\
-        & R3 & 0 & \textbf{0} & 0.000 & \textbf{0} & 0.000 & 0.000 \\
-        & 平均 & 0 & \textbf{0} & 0.000 & \textbf{0} & 0.000 & 0.000 \\
-        \cmidrule{1-8}
-        % MVT-RF
-        \multirow{4}{*}{MVT-RF}
-        & R1 & \textbf{37} & 2 & \textbf{0.804} & $5.42\times10^{-5}$ & 0.949 & 0.916 \\
-        & R2 & \textbf{48} & \underline{1} & \textbf{0.738} & \underline{$2.71\times10^{-5}$} & \textbf{0.980} & \textbf{0.920} \\
-        & R3 & \underline{71} & 2 & \underline{0.763} & $5.46\times10^{-5}$ & \underline{0.973} & \textbf{0.922} \\
-        & 平均 & \underline{156} & 5 & \textbf{0.769} & $4.53\times10^{-5}$ & \underline{0.967} & \underline{0.919} \\
-        \cmidrule{1-8}
-        % Mutation-RF 统一科学计数法格式
-        \multirow{4}{*}{Mut-RF}
-        & R1 & 1 & 1 & 0.022 & $2.71\times10^{-5}$ & 0.500 & 0.094 \\
-        & R2 & 1 & 1 & 0.016 & $2.70\times10^{-5}$ & 0.500 & 0.070 \\
-        & R3 & 2 & 2 & 0.022 & $5.46\times10^{-5}$ & 0.500 & 0.094 \\
-        & 平均 & 4 & 4 & 0.020 & $3.63\times10^{-5}$ & 0.500 & 0.086 \\
-        
+        本文方法 & 0.738 & \underline{$2.71\times10^{-5}$} & \textbf{0.981} & \textbf{0.921} \\
+        Mut-Rule & \textbf{0.777} & $1.07\times10^{-3}$ & 0.564 & 0.595 \\
+        RF & 0.765 & $1.18\times10^{-4}$ & 0.935 & 0.895 \\
+        AE & 0.038 & $1.34\times10^{-3}$ & 0.043 & 0.042 \\
+        TCAN & 0.000 & \textbf{0} & 0.000 & 0.000 \\
+        MVT-RF & \underline{0.769} & $4.53\times10^{-5}$ & \underline{0.967} & \underline{0.919} \\
+        Mut-RF & 0.020 & $3.63\times10^{-5}$ & 0.500 & 0.086 \\
         \bottomrule
     \end{tabularx}
-
     \vspace{2pt}
     \begin{minipage}{\linewidth}
-        注：平均行中 TP、FP 为三轮实验检出/误报总数总和。
+        注：加粗与下划线分别表示同列最优与次优；FPR 并列最优时均可加粗。
     \end{minipage}
 \end{table}
 
 \begin{table}[htbp]
     \centering
-    \caption{\label{tab:chap3-main-results-mb2}MB2 盘级性能对比}
-    \setlength{\tabcolsep}{2pt}
-    \renewcommand{\multirowsetup}{\centering} 
-    
-    \begin{tabularx}{\linewidth}{>{\centering\arraybackslash}m{1.6cm} >{\centering\arraybackslash}m{1.05cm} >{\centering\arraybackslash}m{0.7cm} @{\hspace{4pt}} >{\centering\arraybackslash}m{0.7cm} *{4}{>{\centering\arraybackslash}X}}
+    \caption{\label{tab:chap3-main-results-mb2}MB2 三轮平均盘级性能对比}
+    \setlength{\tabcolsep}{4pt}
+    \begin{tabularx}{\linewidth}{>{\centering\arraybackslash}m{2.2cm} *{4}{>{\centering\arraybackslash}X}}
         \toprule
-        方法 & 轮次 & TP & FP & TPR & FPR & Precision & $F_{0.5}$ \\
+        方法 & TPR & FPR & Precision & $F_{0.5}$ \\
         \midrule
-        % 本文方法
-        \multirow{4}{*}{本文方法}
-        & R1 & \textbf{7} & \textbf{0} & \textbf{0.304} & \textbf{0} & \textbf{1.000} & \textbf{0.686} \\
-        & R2 & \textbf{2} & \textbf{0} & \textbf{0.200} & \textbf{0} & \textbf{1.000} & \textbf{0.556} \\
-        & R3 & \textbf{1} & \textbf{0} & \textbf{0.056} & \textbf{0} & \textbf{1.000} & \textbf{0.227} \\
-        & 平均 & \textbf{10} & \textbf{0} & \textbf{0.187} & \textbf{0} & \textbf{1.000} & \textbf{0.490} \\
-        \cmidrule{1-8}
-        
-        % --- RF ---
-        \multirow{4}{*}{RF}
-        & R1 & 4 & \textbf{0} & 0.182 & \textbf{0} & \textbf{1.000} & 0.526 \\
-        & R2 & 0 & \textbf{0} & 0.000 & \textbf{0} & 0.000 & 0.000 \\
-        & R3 & \textbf{1} & \underline{1} & \textbf{0.056} & \underline{$2.43\times10^{-5}$} & \underline{0.500} & \underline{0.192} \\
-        & 平均 & 5 & \underline{1} & 0.079 & \underline{$8.14\times10^{-6}$} & \underline{0.500} & 0.240 \\
-        \cmidrule{1-8}
-        
-        % --- AE ---
-        \multirow{4}{*}{AE}
-        & R1 & 4 & 111 & 0.182 & $2.69\times10^{-3}$ & 0.035 & 0.041 \\
-        & R2 & \underline{1} & 68 & \underline{0.100} & $1.65\times10^{-3}$ & 0.014 & 0.017 \\
-        & R3 & \textbf{1} & 56 & \textbf{0.056} & $1.36\times10^{-3}$ & 0.018 & 0.020 \\
-        & 平均 & 6 & 235 & 0.112 & $1.90\times10^{-3}$ & 0.022 & 0.026 \\
-        \cmidrule{1-8}
-        
-        % --- TCAN ---
-        \multirow{4}{*}{TCAN}
-        & R1 & 0 & \textbf{0} & 0.000 & \textbf{0} & 0.000 & 0.000 \\
-        & R2 & 0 & \textbf{0} & 0.000 & \textbf{0} & 0.000 & 0.000 \\
-        & R3 & 0 & \textbf{0} & 0.000 & \textbf{0} & 0.000 & 0.000 \\
-        & 平均 & 0 & \textbf{0} & 0.000 & \textbf{0} & 0.000 & 0.000 \\
-        \cmidrule{1-8}
-        
-        % --- MVT-RF ---
-        \multirow{4}{*}{MVT-RF}
-        & R1 & \underline{6} & \textbf{0} & \underline{0.273} & \textbf{0} & \textbf{1.000} & \underline{0.652} \\
-        & R2 & \underline{1} & \textbf{0} & \underline{0.100} & \textbf{0} & \textbf{1.000} & \underline{0.357} \\
-        & R3 & \textbf{1} & \textbf{0} & \textbf{0.056} & \textbf{0} & \textbf{1.000} & \textbf{0.227} \\
-        & 平均 & \underline{8} & \textbf{0} & \underline{0.143} & \textbf{0} & \textbf{1.000} & \underline{0.412} \\
-        \cmidrule{1-8}
-        
-        % --- Mutation-RF 统一格式 ---
-        \multirow{4}{*}{Mut-RF}
-        & R1 &  0 &  \textbf{0} & 0.000 & \textbf{0} & 0.000 & 0.000 \\
-        & R2 &  0 &  \textbf{0} & 0.000 & \textbf{0} & 0.000 & 0.000 \\
-        & R3 &  0 &  \textbf{0} & 0.000 & \textbf{0} & 0.000 & 0.000 \\
-        & 平均 & 0 &  \textbf{0} & 0.000 & \textbf{0} & 0.000 & 0.000 \\
-        
+        本文方法 & \underline{0.187} & \textbf{0} & \textbf{1.000} & \textbf{0.490} \\
+        Mut-Rule & \textbf{0.271} & $3.40\times10^{-3}$ & 0.031 & 0.037 \\
+        RF & 0.079 & \underline{$8.14\times10^{-6}$} & \underline{0.500} & 0.240 \\
+        AE & 0.112 & $1.90\times10^{-3}$ & 0.022 & 0.026 \\
+        TCAN & 0.000 & \textbf{0} & 0.000 & 0.000 \\
+        MVT-RF & 0.143 & \textbf{0} & \textbf{1.000} & \underline{0.412} \\
+        Mut-RF & 0.000 & \textbf{0} & 0.000 & 0.000 \\
         \bottomrule
     \end{tabularx}
-
     \vspace{2pt}
     \begin{minipage}{\linewidth}
-        注：平均行中 TP、FP 为三轮实验检出/误报总数总和。
+        注：加粗与下划线分别表示同列最优与次优；FPR 并列最优时均可加粗。
     \end{minipage}
 \end{table}
 
@@ -1257,6 +1175,10 @@ p_t=
 \end{figure}
 
 通过比较本文提出模型与基准模型在测试集上所得出的结果，可以得到以下结论。
+
+Mut-Rule 将 B 组任一原始跳变直接视为告警，能够捕获第~\ref{sec:chap3-b-mutation-eda}~节所述近端突变前兆：MB1 三轮平均 TPR 达 0.777，甚至略高于本文方法与 MVT-RF；MB2 平均 TPR 亦为各方法最高（0.271）。
+然而健康盘上属性 199 等偶发波动同样触发规则，FPR 分别升至 $1.07\times10^{-3}$ 与 $3.40\times10^{-3}$，较本文方法高约两个数量级，Precision 与 $F_{0.5}$ 随之显著下降（MB1 0.595、MB2 0.037）。
+这表明“有跳变即可预警”虽能抬高召回，但无法满足数据中心低误报约束，也说明后续稀有加权与监督学习并非冗余。
 
 Xu 式 RF 对照在 3 日与 7 日自然日窗上为各 SMART 读数构造统计量，经 XGB 筛选后实际输入维数为 MB1 62 维、MB2 54 维，长于本文 $W{=}1$/2 的短期 Lag 与 $r_k|\Delta|$ 表征（25/41 维）。
 在 MB1 上其 TPR 略高于本文方法（0.765 \emph{vs.}\ 0.738），但 FPR 高了一个数量级（$1.18\times10^{-4}$ \emph{vs.}\ $2.71\times10^{-5}$），导致盘级 $F_{0.5}$ 相对略低（0.895 \emph{vs.}\ 0.921），
@@ -1277,7 +1199,7 @@ MVT-RF 多视图长时序特征引入静默噪声，误报率高于本文方法�
 Mut-RF 采用 30 日固定窗口标签，以健康盘的7日SMART时序送入Informer预测未来3日指标，依托稀有权重计算突变分数，截取连续10阶滞后突变特征送入随机森林完成判别。
 突变分数对业务周期波动与故障短时跳变不加区分，无法针对退化指标赋予差异化权重，特征内有效故障信息占比极低。MB1三轮平均TPR仅0.020，MB2无任何故障检出，尽管FPR维持较低水平，但极低检出率使其无法完成SSD盘提前预警，稀有权重计算突变分数难以剥离平稳噪声、捕获早期微弱异常。
 
-综合两套数据集三轮平均结果，本文异构集成方法在MB1、MB2上均实现更低FPR、更高Precision与最优$F_{0.5}$，在控制误报的同时兼顾故障检出，综合盘级预警效果优于全部对比基线。
+综合两套数据集三轮平均结果，本文异构集成方法在MB1、MB2上均实现更低FPR、更高Precision与最优$F_{0.5}$，在控制误报的同时兼顾故障检出，综合盘级预警效果优于 Mut-Rule 与全部学习型对比基线。
 \subsection{突变时序特征有效性分析}
 \label{sec:chap3-mutation-ablation}
 
@@ -2130,7 +2052,7 @@ MB2 各轮 TP 仅 1--7 块：R1 以 $d=0$ 为主（6/7 满足 $d\le 1$），含 
 
 首先，针对现有盘级故障预测方法误报率偏高、难以适应近端突变前兆的问题，本文提出了一种面向低误报约束的预测方法。该方法的核心在于，通过混合标注策略与短期时序突变特征，将监督信号与故障前兆的时间尺度对齐，从而在抑制标签噪声的同时，有效放大了微弱的故障信号。实验验证了这一思路的有效性：在阿里云 MB1 数据集上，该方法取得了 0.921 的 $F_{0.5}$ 分数，证明了在维持极低误报率的前提下，实现对故障盘的精准、及时检出是可行的。这为数据中心降低因误报导致的非必要换盘成本提供了可靠的技术手段。
 
-其次，针对传统统一 PE 阈值策略浪费强块寿命的问题，本文设计了一套基于块级 FBC 的差异化寿命提升策略。该策略的出发点是，将块寿命预测从一个难以精确回归的问题，转化为一个更稳健的“强/弱块”二分类问题。基于此分类结果实施差异化的 PE 擦写上限管控，能够在不突破可靠性边界的前提下，充分挖掘强块的剩余寿命。测试结果表明，该策略可带来约 17\% 的累计可写入量提升。更重要的是，轻量化采集实验验证了该策略在控制器端部署的可行性，为在资源受限的固件环境中实现精细化寿命管理提供了一条实践路径。
+其次，针对传统统一 PE 阈值策略浪费强块寿命的问题，本文设计了一套基于块级 FBC 的差异化寿命提升策略。该策略的出发点是，将块寿命预测从一个难以精确回归的问题，转化为一个更稳健的“强/弱块”二分类问题。基于此分类结果实施差异化的 PE 擦写上限管控，能够在不突破可靠性边界的前提下，充分挖掘强块的剩余寿命。测试结果表明，该策略可带来约 17\% 的累计可写入量提升。轻量化采集实验进一步验证了该策略在控制器端部署的可行性。
 
 最后，为验证上述算法的工程实用性，本文遵循软件工程规范，设计并实现了一套智慧 SSD 运维原型软件。该系统并非简单的功能堆砌，而是打通了从数据采集、模型推理到预警处置的完整业务闭环。通过功能测试，系统验证了从理论模型到实际运维流程的转化能力，证明了本文所提方法具备落地应用的潜力。
 

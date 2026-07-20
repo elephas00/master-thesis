@@ -49,6 +49,7 @@ COLORS_BAR: list[str] = [
     "#E69F00",  # 4 琥珀
     "#009E73",  # 5 绿蓝
     "#CC79A7",  # 6 紫红
+    "#0072B2",  # 7 Okabe 蓝
 ]
 
 HATCH_BAR: list[str] = [
@@ -58,6 +59,7 @@ HATCH_BAR: list[str] = [
     "///",      # 4 琥珀
     "\\\\\\",   # 5 绿蓝
     "xx",       # 6 紫红
+    "++",       # 7 蓝
 ]
 
 # ---------------------------------------------------------------------------
@@ -164,7 +166,7 @@ PAIR_READ_HATCH = {"DefaultRead": HATCH_BAR[0], "BestRead": HATCH_BAR[1]}
 PAIR_READ_LS = {"DefaultRead": _ls0["ls"], "BestRead": _ls1["ls"]}
 PAIR_READ_MK = {"DefaultRead": _ls0["marker"], "BestRead": _ls1["marker"]}
 
-_METHOD_ORDER = ["本文方法", "RF", "AE", "TCAN", "MVT-RF", "Mut-RF"]
+_METHOD_ORDER = ["本文方法", "Mut-Rule", "RF", "AE", "TCAN", "MVT-RF", "Mut-RF"]
 METHOD_COLORS = {
     m: bar_style(i)["color"] for i, m in enumerate(_METHOD_ORDER)
 }

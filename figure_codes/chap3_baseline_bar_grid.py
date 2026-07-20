@@ -29,19 +29,21 @@ plt.rcParams.update({
     "savefig.dpi": 300,
 })
 
-METHODS = ["本文方法", "RF", "AE", "TCAN", "MVT-RF", "Mut-RF"]
+METHODS = ["本文方法", "Mut-Rule", "RF", "AE", "TCAN", "MVT-RF", "Mut-RF"]
 MODELS = ["MB1", "MB2"]
 
 # 三轮平均（与 content.tex 主结果表一致）
 ROWS = [
     # model, method, TPR, FPR, Precision, F0.5
     ("MB1", "本文方法", 0.738, 2.71e-5, 0.981, 0.921),
+    ("MB1", "Mut-Rule", 0.777, 1.07e-3, 0.564, 0.595),
     ("MB1", "RF",      0.765, 1.18e-4, 0.935, 0.895),
     ("MB1", "AE",      0.038, 1.34e-3, 0.043, 0.042),
     ("MB1", "TCAN",    0.000, 0.0,     0.000, 0.000),
     ("MB1", "MVT-RF",  0.769, 4.53e-5, 0.967, 0.919),
     ("MB1", "Mut-RF",  0.020, 3.63e-5, 0.500, 0.086),
     ("MB2", "本文方法", 0.187, 0.0,     1.000, 0.490),
+    ("MB2", "Mut-Rule", 0.271, 3.40e-3, 0.031, 0.037),
     ("MB2", "RF",      0.079, 8.14e-6, 0.500, 0.240),
     ("MB2", "AE",      0.112, 1.90e-3, 0.022, 0.026),
     ("MB2", "TCAN",    0.000, 0.0,     0.000, 0.000),
@@ -66,27 +68,22 @@ def main():
         ("F0.5", r"$F_{0.5}$", 1.0),
     ]
 
-    # 单轴局部放大（FPR 等）；上界可略高于末刻度，由 _ylim_with_headroom 留出头
-    YLIM_GRID = {
-        ("MB1", "FPR"): (0.0, 20.0),  # 末刻度 20，视图再出头
-        ("MB2", "FPR"): (0.0, 10.0),
-    }
+    # 单轴局部放大；上界可略高于末刻度，由 _ylim_with_headroom 留出头
+    YLIM_GRID = {}
     YTICKS_GRID = {
-        ("MB1", "FPR"): [0, 10, 20],
-        ("MB2", "FPR"): [0, 5, 10],
-        ("MB2", "TPR"): [0.0, 0.1, 0.2],
+        ("MB2", "TPR"): [0.0, 0.15, 0.30],
         ("MB2", "Precision"): [0.0, 0.5, 1.0],  # 末刻度=1，轴顶与之对齐
         ("MB2", "F0.5"): [0.0, 0.3, 0.6],
     }
 
-    # MB1 TPR / Precision / F0.5：断轴
+    # 断轴：MB1 的 TPR / Precision / F0.5；MB1/MB2 的 FPR（Mut-Rule/AE 误报远高于学习型基线）
     # 上下段各 3 个刻度
     BROKEN_YLIM_GRID = {
         ("MB1", "TPR"): {
-            "top": (0.73, 0.77),
+            "top": (0.73, 0.78),
             "bottom": (0.0, 0.08),
             "split": 0.08,
-            "top_ticks": [0.73, 0.75, 0.77],
+            "top_ticks": [0.73, 0.755, 0.78],
             "bottom_ticks": [0.0, 0.04, 0.08],
         },
         ("MB1", "Precision"): {
@@ -97,11 +94,25 @@ def main():
             "bottom_ticks": [0.0, 0.3, 0.6],
         },
         ("MB1", "F0.5"): {
-            "top": (0.88, 0.92),
-            "bottom": (0.0, 0.12),
-            "split": 0.12,
-            "top_ticks": [0.88, 0.90, 0.92],
-            "bottom_ticks": [0.0, 0.06, 0.12],
+            "top": (0.88, 0.93),
+            "bottom": (0.0, 0.60),
+            "split": 0.60,
+            "top_ticks": [0.88, 0.905, 0.93],
+            "bottom_ticks": [0.0, 0.3, 0.6],
+        },
+        ("MB1", "FPR"): {
+            "top": (100.0, 140.0),
+            "bottom": (0.0, 20.0),
+            "split": 20.0,
+            "top_ticks": [100, 120, 140],
+            "bottom_ticks": [0, 10, 20],
+        },
+        ("MB2", "FPR"): {
+            "top": (180.0, 360.0),
+            "bottom": (0.0, 5.0),
+            "split": 5.0,
+            "top_ticks": [180, 270, 360],
+            "bottom_ticks": [0, 2.5, 5],
         },
     }
 
@@ -311,36 +322,6 @@ def main():
         return ax_top, ax_bot
 
 
-    def _panel_bbox(ax_top, ax_bot):
-        """断轴子图整体外框（上段顶 → 下段底）。"""
-        fig = ax_top.figure
-        fig.canvas.draw()
-        pt, pb = ax_top.get_position(), ax_bot.get_position()
-        return pt.x0, pb.y0, pt.width, pt.y0 + pt.height - pb.y0
-
-
-    def _broken_column_span(panel):
-        """断轴列整列 bbox：bottom y0 与总高度（含 BREAK_GAP）。"""
-        pb, pt = panel["bot"].get_position(), panel["top"].get_position()
-        return pb.y0, pt.y0 + pt.height - pb.y0
-
-
-    def _plot_left_inset(ax, fig):
-        """绘图区左缘相对 axes bbox 的偏移（figure 坐标）。"""
-        renderer = fig.canvas.get_renderer()
-        ax_pos = ax.get_position()
-        spine_x = ax.spines["left"].get_window_extent(renderer).transformed(fig.transFigure.inverted()).x0
-        return spine_x - ax_pos.x0
-
-
-    def _align_plot_left_margin(ax_target, ax_ref, fig, x0_col, y0, h, w_col):
-        """对齐绘图区左缘边距，使 x 轴刻度与断轴列一致。"""
-        ax_target.set_position([x0_col, y0, w_col, h])
-        fig.canvas.draw()
-        delta = _plot_left_inset(ax_ref, fig) - _plot_left_inset(ax_target, fig)
-        ax_target.set_position([x0_col + delta, y0, w_col - delta, h])
-
-
     def _last_ytick(ax):
         ylo, yhi = ax.get_ylim()
         ticks = [t for t in ax.get_yticks() if ylo - 1e-9 <= t <= yhi + 1e-9]
@@ -370,58 +351,55 @@ def main():
 
 
     def _align_mb1_top_last_ticks(mb1_panels, fig):
-        """MB1：TPR / F0.5 断轴上段末刻度与 FPR 末刻度水平对齐。
-
-        以断轴上段（非贴顶的 1.0）为基准，抬高 FPR 的末刻度，避免再加大断轴出头。
-        """
+        """MB1：非贴顶断轴上段末刻度彼此水平对齐（FPR 亦为断轴时跳过旧逻辑）。"""
         fig.canvas.draw()
         broken_tops = []
-        fpr_ax = None
         for p in mb1_panels:
-            if p["kind"] == "broken":
-                t = _last_ytick(p["top"])
-                if t is not None and abs(t - 1.0) > 1e-9:
-                    broken_tops.append(p["top"])
-            else:
-                fpr_ax = p["ax"]
-        if not broken_tops or fpr_ax is None:
+            if p["kind"] != "broken":
+                continue
+            t = _last_ytick(p["top"])
+            if t is not None and abs(t - 1.0) > 1e-9:
+                broken_tops.append(p["top"])
+        if len(broken_tops) < 2:
             return
         target = sum(_last_ytick_fig_y(ax) for ax in broken_tops) / len(broken_tops)
-        _set_ylim_to_match_last_tick_fig_y(fpr_ax, target)
+        for ax in broken_tops:
+            _set_ylim_to_match_last_tick_fig_y(ax, target)
 
 
-    def _align_mb1_columns_to_mb2(mb1_panels, mb2_panels, fig):
-        """以 MB2 各列为基准，对齐 MB1 同指标列的 x0 / width / height。"""
-        fig.canvas.draw()
-        mb1_row_span = None
-        mb1_broken_ref = None
+    def _place_panel(panel, x0, y0, w, h):
+        """将简单/断轴面板放入同一单元格（断轴内 BOT_FRAC + BREAK_GAP）。"""
+        if panel["kind"] == "broken":
+            bot_h = h * BOT_FRAC
+            top_h = h - bot_h - BREAK_GAP
+            panel["bot"].set_position([x0, y0, w, bot_h])
+            panel["top"].set_position([x0, y0 + bot_h + BREAK_GAP, w, top_h])
+            _align_broken_pair(panel["top"], panel["bot"])
+        else:
+            _apply_xlim(panel["ax"])
+            panel["ax"].set_position([x0, y0, w, h])
 
-        for p1, p2 in zip(mb1_panels, mb2_panels):
-            if p2["kind"] != "simple":
-                continue
-            pos2 = p2["ax"].get_position()
-            x0, w, h_ref = pos2.x0, pos2.width, pos2.height
 
-            if p1["kind"] == "broken":
-                y0 = p1["bot"].get_position().y0
-                bot_h = h_ref * BOT_FRAC
-                top_h = h_ref - bot_h - BREAK_GAP
-                p1["bot"].set_position([x0, y0, w, bot_h])
-                p1["top"].set_position([x0, y0 + bot_h + BREAK_GAP, w, top_h])
-                _align_broken_pair(p1["top"], p1["bot"])
-                if mb1_row_span is None:
-                    fig.canvas.draw()
-                    mb1_row_span = _broken_column_span(p1)
-                    mb1_broken_ref = p1["bot"]
-            else:
-                if mb1_row_span is None:
-                    ref = next(p for p in mb1_panels if p["kind"] == "broken")
-                    fig.canvas.draw()
-                    mb1_row_span = _broken_column_span(ref)
-                    mb1_broken_ref = ref["bot"]
-                y0_col, h_col = mb1_row_span
-                _apply_xlim(p1["ax"])
-                _align_plot_left_margin(p1["ax"], mb1_broken_ref, fig, x0, y0_col, h_col, w)
+    def _layout_equal_grid(row_panels, *, left, right, top, bottom, wspace, hspace):
+        """四列等宽、列间距均分；两行等高，FPR 与其余列共用同一单元格高度。
+
+        断轴用 fig.add_axes 创建后不会随 subplots_adjust 移动，必须在此统一落位。
+        """
+        n_cols = len(row_panels[0])
+        n_rows = len(row_panels)
+        avail_w = right - left
+        avail_h = top - bottom
+        # 与 matplotlib wspace/hspace 定义一致：间隙 = 系数 × 平均轴宽/高
+        col_w = avail_w / (n_cols + (n_cols - 1) * wspace)
+        col_gap = wspace * col_w
+        row_h = avail_h / (n_rows + (n_rows - 1) * hspace)
+        row_gap = hspace * row_h
+        y0s = [bottom + (n_rows - 1 - r) * (row_h + row_gap) for r in range(n_rows)]
+
+        for col in range(n_cols):
+            x0 = left + col * (col_w + col_gap)
+            for row in range(n_rows):
+                _place_panel(row_panels[row][col], x0, y0s[row], col_w, row_h)
 
 
     def _plot_simple_panel(ax, *, vals, colors, hatches, ylabel, key, model,
@@ -454,7 +432,7 @@ def main():
 
 
     # 按版心宽度出图：正文 \\includegraphics 默认尺寸即可，避免 width= 缩放缩字号
-    fig, axes = plt.subplots(2, 4, figsize=(TEXT_WIDTH_IN, 3.35), sharex=False)
+    fig, axes = plt.subplots(2, 4, figsize=(TEXT_WIDTH_IN, 3.55), sharex=False)
 
     broken_pairs = []
     row_panels = [[], []]
@@ -502,12 +480,10 @@ def main():
         for m in METHODS
     ]
 
-    # hspace 收紧 → 行距让给 TITLE_PAD（指标 ↔ MB1）
-    fig.subplots_adjust(left=0.15, right=0.99, top=0.88, bottom=0.12, wspace=0.38, hspace=0.28)
-
-    for ax_top, ax_bot in broken_pairs:
-        _align_broken_pair(ax_top, ax_bot)
-    _align_mb1_columns_to_mb2(row_panels[0], row_panels[1], fig)
+    # 断轴面板不随 subplots_adjust 移动：用等宽列 + 等高行统一落位
+    LAYOUT = dict(left=0.15, right=0.99, top=0.88, bottom=0.14, wspace=0.38, hspace=0.28)
+    fig.subplots_adjust(**LAYOUT)
+    _layout_equal_grid(row_panels, **LAYOUT)
     _align_mb1_top_last_ticks(row_panels[0], fig)
     _draw_row_label(row_panels[0][0], "MB1")
     _draw_row_label(row_panels[1][0], "MB2")
@@ -518,9 +494,9 @@ def main():
         handles=legend_handles,
         loc="lower center",
         bbox_to_anchor=(0.5, 0.01),
-        ncol=6,
-        columnspacing=0.8,
-        handletextpad=0.35,
+        ncol=7,
+        columnspacing=0.55,
+        handletextpad=0.30,
         borderpad=0.3,
     )
 
