@@ -66,7 +66,6 @@ fi
 echo "======== 3/3 拼接盲审封面 ========"
 python3 - "$COVER_PDF" "$LATEX_PDF" "$OUT_PDF" <<'PY'
 import sys
-from pathlib import Path
 
 try:
     import fitz  # PyMuPDF
@@ -81,7 +80,9 @@ def page_text(doc, i: int) -> str:
     return doc[i].get_text("text").strip()
 
 # 送审稿用 cover-blind-review.pdf 替换模板自带封面/独创性声明等；
-# 从「摘要」前一页空白（若有）起接上 latex 正文，与手工秋季盲审拼法一致。
+# 从「摘要」前一页空白（若有）起接上 latex 正文。
+# 注意：insert_pdf 会丢掉 hyperref 的命名目标链接与书签，需手动重映射，
+# 否则目录/交叉引用无法点击跳转。
 start = None
 for i in range(latex.page_count):
     t = page_text(latex, i)
@@ -93,16 +94,56 @@ for i in range(latex.page_count):
 if start is None:
     sys.exit(f"未在 {latex_path} 中找到「摘要」起始页，无法拼接")
 
+n_cover = cover.page_count
+# 旧页码 p（0-based）→ 新页码 p + offset
+offset = n_cover - start
+
 out = fitz.open()
 out.insert_pdf(cover)
-out.insert_pdf(latex, from_page=start)
+out.insert_pdf(latex, from_page=start, links=False, annots=True)
+
+added = skipped = 0
+for src_i in range(start, latex.page_count):
+    dst_i = src_i + offset
+    for ln in latex[src_i].get_links():
+        new_ln = {k: v for k, v in ln.items() if k not in ("xref", "id")}
+        kind = new_ln.get("kind")
+        if kind in (fitz.LINK_GOTO, fitz.LINK_GOTOR, fitz.LINK_NAMED):
+            tgt = new_ln.get("page")
+            if tgt is None or tgt < start:
+                skipped += 1
+                continue
+            new_ln["page"] = tgt + offset
+            if kind == fitz.LINK_NAMED:
+                new_ln["kind"] = fitz.LINK_GOTO
+                new_ln.pop("nameddest", None)
+            new_ln.setdefault("to", fitz.Point(0, 0))
+            new_ln.setdefault("zoom", 0)
+        elif kind != fitz.LINK_URI:
+            skipped += 1
+            continue
+        try:
+            out[dst_i].insert_link(new_ln)
+            added += 1
+        except Exception:
+            skipped += 1
+
+new_toc = []
+for lvl, title, page in latex.get_toc():
+    p0 = page - 1
+    if p0 < start:
+        continue
+    new_toc.append([lvl, title, p0 + offset + 1])
+if new_toc:
+    out.set_toc(new_toc)
+
 out.save(out_path)
-n_cover, n_body = cover.page_count, out.page_count - cover.page_count
+n_body = out.page_count - n_cover
 print(
     f"写入 {out_path}\n"
     f"  前置 {n_cover} 页 ← {cover_path}\n"
     f"  正文 {n_body} 页 ← {latex_path} 第 {start + 1}–{latex.page_count} 页\n"
-    f"  合计 {out.page_count} 页"
+    f"  合计 {out.page_count} 页；链接 {added}（跳过 {skipped}）；书签 {len(new_toc)}"
 )
 out.close()
 cover.close()
