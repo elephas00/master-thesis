@@ -47,7 +47,7 @@
 | [x] | 难 | `figure/generated/chap4-blockfilter-grouping.pdf` | `figure_codes/chap4_blockfilter_grouping.py` | **1.00×** | 已对齐（栏宽；块号 tick 字号） |
 | [x] | 难 | `figure/generated/chap1-framework.pdf` | `figure_codes/chap1_framework.py` | **1.00×** | 已对齐（draw.io 导出后缩栏宽） |
 | [x] | 难 | `figure/generated/chap3-pipeline.pdf` | `figure_codes/chap3_pipeline.py` | **1.00×** | 已对齐（draw.io 导出后缩栏宽） |
-| [x] | 难 | `figure/generated/chap3-ensemble.pdf` | `figure_codes/chap3_ensemble.py` | **1.00×** | 已对齐（draw.io 导出后缩栏宽） |
+| [x] | 难 | `figure/generated/chap3-ensemble.pdf` | `figure_codes/chap3_ensemble.py` | **1.00×** | 已对齐；次级字改走 `drawio_fs(note)`（≈8 pt） |
 | [x] | 难 | `figure/generated/chap5-usecase.pdf` | `figure_codes/chap5_usecase.py` | **1.00×** | 已对齐（draw.io 导出后缩栏宽） |
 | [x] | 难 | `figure/generated/chap5-software-structure.pdf` | `figure_codes/chap5_software_structure.py` | **1.00×** | 已对齐（draw.io 导出后缩栏宽） |
 | [x] | 难 | `figure/generated/chap5-database-er.pdf` | `figure_codes/chap5_database_er.py` | **1.00×** | 已对齐（draw.io 导出后缩栏宽） |
