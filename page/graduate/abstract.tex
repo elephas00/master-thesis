@@ -18,8 +18,8 @@
 该系统打通了从数据采集、模型推理到预警处置的完整业务闭环，并通过功能测试验证了其从理论模型到实际运维流程的转化能力。
 
 本文构建了从“盘级精准预警”到“块级寿命优化”再到“系统闭环落地”的完整技术链路。
-研究表明，将低误报约束贯穿于算法设计与策略制定的全流程，能够在保障存储可靠性的同时显著提升资源利用效率。
-这一工作为数据中心固态硬盘的可靠性运维与成本优化提供了可行的方法与实践参考。   
+研究表明，在盘级侧落实运维误报成本约束、在块级侧落实可靠性边界约束，并辅以原型系统闭环验证，能够在保障存储可靠性的同时显著提升资源利用效率。
+这一工作为数据中心固态硬盘的可靠性运维与成本优化提供了可行的方法与实践参考。  
 
 \textbf{关键词}：固态硬盘；机器学习；低误报故障预警；寿命提升
 
@@ -34,7 +34,7 @@ With the goal of improving operational reliability and resource utilization, it 
 For the high false alarm rate of existing drive-level failure prediction methods and their difficulty in capturing near-end sudden-change precursors, this thesis proposes a prediction method oriented toward low false-alarm constraints.
 The method aligns supervisory signals with the time scale of failure precursors through a hybrid labeling strategy and short-term temporal mutation features, suppressing label noise while effectively amplifying weak failure signals.
 The model adopts three heterogeneous base learners (RF, XGB, and LGB), introduces an Attention module for sample-level adaptive weighted fusion, and uses Focal Loss to mitigate class imbalance, thereby improving discrimination stability for sparse failure samples.
-Experimental results on the Alibaba Cloud MB1 and MB2 datasets show that the method achieves $F_{0.5}$ scores of 0.921 and 0.490 respectively while maintaining an extremely low false alarm rate, enabling accurate and timely detection of faulty disks.
+Experimental results on the Alibaba Cloud MB1 and MB2 datasets show that the method achieves $F_{0.5}$ scores of 0.921 and 0.490 respectively while maintaining an extremely low false alarm rate, enabling accurate and timely detection of faulty drives.
 
 To address the problem that traditional unified Program/Erase (PE) threshold strategies waste the lifetime of strong blocks, this thesis designs a differentiated lifetime enhancement strategy based on block-level Fault Bit Count (FBC).
 The strategy transforms block lifetime prediction into a strong/weak block binary classification problem, and implements differentiated PE write limit control accordingly, fully exploiting the remaining lifetime of strong blocks without crossing reliability boundaries.
@@ -45,7 +45,7 @@ To verify the engineering practicality of the above algorithms, this thesis desi
 The system completes the full business loop from data collection and model inference to warning handling, and functional testing validates its ability to translate theoretical models into actual operational workflows.
 
 This thesis constructs a complete technical chain from drive-level precise warning to block-level lifetime optimization to closed-loop system deployment.
-The research shows that applying low false-alarm constraints throughout algorithm design and strategy formulation can significantly improve resource utilization efficiency while ensuring storage reliability.
+The research shows that enforcing an operational false-alarm cost constraint at the drive level and a reliability-boundary constraint at the block level, together with prototype closed-loop validation, can significantly improve resource utilization efficiency while ensuring storage reliability.
 This work provides feasible methods and practical references for reliability-oriented operation and cost optimization of SSDs in datacenters.
 
 

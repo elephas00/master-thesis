@@ -2,7 +2,7 @@
 
 生成 figure/generated/chap3-first-jump-pmf.pdf。
 
-布局：无跳变柱靠左 + MB1/MB2 日分布折线 + 右上 $d\\geq 3$ inset。
+布局：无跳变柱靠左（左 MB1 / 右 MB2）+ 竖虚线分界 + MB1/MB2 日分布折线 + 右上 $d\\geq 3$ inset。
 
 数据固化自 codes/eda/notebooks/eda_first_jump_cdf.ipynb
 （源：eda/run/first_jump_detail_*.parquet / first_jump_cdf_points.csv；
@@ -82,10 +82,10 @@ def plot(*, save_path: Path = OUTPUT_PDF) -> plt.Figure:
     # 主轴下移，顶部留给图例外置
     ax = fig.add_axes([0.10, 0.16, 0.88, 0.68])
 
-    # 无跳变区域浅底；柱序左 MB2 / 右 MB1（百分比见正文，图上不标）
+    # 无跳变区域浅底；柱序左 MB1 / 右 MB2（与图例、正文叙述一致）
     ax.axvspan(band_left, band_right, color="#F3F4F6", zorder=0, lw=0)
 
-    bar_order = ["MB2", "MB1"]
+    bar_order = ["MB1", "MB2"]
     for i, m in enumerate(bar_order):
         off = -BAR_W / 2 if i == 0 else BAR_W / 2
         ax.bar(
@@ -98,6 +98,16 @@ def plot(*, save_path: Path = OUTPUT_PDF) -> plt.Figure:
             zorder=2,
             alpha=0.90,
         )
+
+    # 无跳变柱与日分布折线之间的分界虚线
+    x_sep = 0.5 * (band_right + x0_days)
+    ax.axvline(
+        x_sep,
+        color="#9CA3AF",
+        linestyle="--",
+        linewidth=0.9,
+        zorder=1,
+    )
 
     for m in MODELS:
         ls = ls_map[m]
