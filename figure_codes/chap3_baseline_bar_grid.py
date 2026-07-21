@@ -73,7 +73,7 @@ def main():
     YTICKS_GRID = {
         ("MB2", "TPR"): [0.0, 0.15, 0.30],
         ("MB2", "Precision"): [0.0, 0.5, 1.0],  # 末刻度=1，轴顶与之对齐
-        ("MB2", "F0.5"): [0.0, 0.3, 0.6],
+        ("MB2", "F0.5"): [0.0, 0.25, 0.5],
     }
 
     # 断轴：MB1 的 TPR / Precision / F0.5；MB1/MB2 的 FPR（Mut-Rule/AE 误报远高于学习型基线）
@@ -94,24 +94,24 @@ def main():
             "bottom_ticks": [0.0, 0.3, 0.6],
         },
         ("MB1", "F0.5"): {
-            "top": (0.88, 0.93),
+            "top": (0.88, 0.92),
             "bottom": (0.0, 0.60),
             "split": 0.60,
-            "top_ticks": [0.88, 0.905, 0.93],
+            "top_ticks": [0.88, 0.90, 0.92],
             "bottom_ticks": [0.0, 0.3, 0.6],
         },
         ("MB1", "FPR"): {
             "top": (100.0, 140.0),
             "bottom": (0.0, 20.0),
             "split": 20.0,
-            "top_ticks": [100, 120, 140],
+            "top_ticks": [100, 115, 140],
             "bottom_ticks": [0, 10, 20],
         },
         ("MB2", "FPR"): {
-            "top": (180.0, 360.0),
+            "top": (180.0, 340.0),
             "bottom": (0.0, 5.0),
             "split": 5.0,
-            "top_ticks": [180, 270, 360],
+            "top_ticks": [180, 260, 340],
             "bottom_ticks": [0, 2.5, 5],
         },
     }
@@ -350,20 +350,25 @@ def main():
         ax.set_ylim(ylo, ylo + (t - ylo) / target_frac)
 
 
-    def _align_mb1_top_last_ticks(mb1_panels, fig):
-        """MB1：非贴顶断轴上段末刻度彼此水平对齐（FPR 亦为断轴时跳过旧逻辑）。"""
+    def _align_row_last_ticks(panels, fig):
+        """同行各面板末刻度水平对齐（含单轴与断轴上段；末刻度=1 的贴顶轴不改）。
+
+        MB2：对齐 TPR 0.3、FPR 360、$F_{0.5}$ 0.6；Precision 末刻度=1 跳过。
+        """
         fig.canvas.draw()
-        broken_tops = []
-        for p in mb1_panels:
-            if p["kind"] != "broken":
-                continue
-            t = _last_ytick(p["top"])
+        axes = []
+        for p in panels:
+            ax = p["top"] if p["kind"] == "broken" else p["ax"]
+            t = _last_ytick(ax)
             if t is not None and abs(t - 1.0) > 1e-9:
-                broken_tops.append(p["top"])
-        if len(broken_tops) < 2:
+                axes.append(ax)
+        if len(axes) < 2:
             return
-        target = sum(_last_ytick_fig_y(ax) for ax in broken_tops) / len(broken_tops)
-        for ax in broken_tops:
+        ys = [_last_ytick_fig_y(ax) for ax in axes]
+        if any(y is None for y in ys):
+            return
+        target = sum(ys) / len(ys)
+        for ax in axes:
             _set_ylim_to_match_last_tick_fig_y(ax, target)
 
 
@@ -484,7 +489,8 @@ def main():
     LAYOUT = dict(left=0.15, right=0.99, top=0.88, bottom=0.14, wspace=0.38, hspace=0.28)
     fig.subplots_adjust(**LAYOUT)
     _layout_equal_grid(row_panels, **LAYOUT)
-    _align_mb1_top_last_ticks(row_panels[0], fig)
+    _align_row_last_ticks(row_panels[0], fig)  # MB1
+    _align_row_last_ticks(row_panels[1], fig)  # MB2：TPR/FPR/F0.5 末刻度水平对齐
     _draw_row_label(row_panels[0][0], "MB1")
     _draw_row_label(row_panels[1][0], "MB2")
 
