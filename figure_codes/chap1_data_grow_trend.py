@@ -38,7 +38,8 @@ VALUES = [11, 15, 20, 26, 33, 44, 58, 77, 102, 133, 175, 236, 325, 460, 670, 100
 
 def plot(*, save_path: Path = OUT_PDF) -> plt.Figure:
     st = line_style(0)
-    fig, ax = plt.subplots(figsize=(TEXT_WIDTH_IN, 2.2))
+    # 高约加一行正文（≈0.28 in），便于图后正文换到次页
+    fig, ax = plt.subplots(figsize=(TEXT_WIDTH_IN, 2.48))
     fig.patch.set_facecolor("white")
     ax.set_facecolor("white")
 
