@@ -268,3 +268,5 @@ TSWLatexianTemp*
 
 .venv
 .DS_Store
+
+.tmp_pkgs/
