@@ -8,14 +8,14 @@
 针对现有盘级故障预测方法误报率偏高、难以捕捉近端突变前兆的问题，本文提出一种面向低误报约束的预测方法。
 该方法通过混合标注策略与短期时序突变特征，将监督信号与故障前兆的时间尺度对齐，在抑制标签噪声的同时有效放大微弱的故障信号。
 模型采用 RF、XGB 与 LGB 三种异构基学习器，并引入 Attention 模块进行样本级自适应加权融合，同时利用 Focal Loss 缓解类别不平衡，从而提升对稀疏故障样本的判别稳定性。
-在阿里云 MB1 与 MB2 数据集上的实验结果表明，该方法在维持极低误报率的前提下，分别取得了0.921和0.490的$F_{0.5}$分数，实现了对故障盘的精准、及时检出。
+在阿里云 MB1 与 MB2 数据集上的实验结果表明，该方法在维持极低误报率的前提下，分别取得了 0.919 与 0.490 的 $F_{0.5}$；其中 MB1 与最强基线并列最优，并以更低误报与更高精确率形成区分，能够对故障盘给出有效检出。
 
 针对传统统一编程/擦除（PE）阈值策略浪费强块寿命的问题，本文设计了一套基于块级错误比特计数（FBC）的差异化寿命提升策略。
 该策略将块寿命预测转化为“强/弱块”二分类问题，并据此实施差异化的 PE 擦写上限管控，在不突破可靠性边界的前提下充分挖掘强块的剩余寿命。
 测试结果表明，该策略可带来约17\%的累计可写入量提升。轻量化采集实验进一步验证了该策略在控制器端部署的可行性。
 
 为验证上述算法的工程实用性，本文设计并实现了一套智慧 SSD 运维原型软件。
-该系统打通了从数据采集、模型推理到预警处置的完整业务闭环，并通过功能测试验证了其从理论模型到实际运维流程的转化能力。
+该系统打通了从数据采集、模型推理到预警处置的完整业务闭环，并通过功能测试覆盖采集—推理—预警处置链路。
 
 本文构建了从“盘级精准预警”到“块级寿命优化”再到“系统闭环落地”的完整技术链路。
 研究表明，在盘级侧落实运维误报成本约束、在块级侧落实可靠性边界约束，并辅以原型系统闭环验证，能够在保障存储可靠性的同时显著提升资源利用效率。
@@ -34,7 +34,7 @@ With the goal of improving operational reliability and resource utilization, it 
 For the high false alarm rate of existing drive-level failure prediction methods and their difficulty in capturing near-end sudden-change precursors, this thesis proposes a prediction method oriented toward low false-alarm constraints.
 The method aligns supervisory signals with the time scale of failure precursors through a hybrid labeling strategy and short-term temporal mutation features, suppressing label noise while effectively amplifying weak failure signals.
 The model adopts three heterogeneous base learners (RF, XGB, and LGB), introduces an Attention module for sample-level adaptive weighted fusion, and uses Focal Loss to mitigate class imbalance, thereby improving discrimination stability for sparse failure samples.
-Experimental results on the Alibaba Cloud MB1 and MB2 datasets show that the method achieves $F_{0.5}$ scores of 0.921 and 0.490 respectively while maintaining an extremely low false alarm rate, enabling accurate and timely detection of faulty drives.
+Experimental results on the Alibaba Cloud MB1 and MB2 datasets show that the method achieves $F_{0.5}$ scores of 0.919 and 0.490 respectively while maintaining an extremely low false alarm rate; on MB1 it ties the strongest baseline on $F_{0.5}$ while attaining lower false alarms and higher precision, enabling effective detection of faulty drives.
 
 To address the problem that traditional unified Program/Erase (PE) threshold strategies waste the lifetime of strong blocks, this thesis designs a differentiated lifetime enhancement strategy based on block-level Fault Bit Count (FBC).
 The strategy transforms block lifetime prediction into a strong/weak block binary classification problem, and implements differentiated PE write limit control accordingly, fully exploiting the remaining lifetime of strong blocks without crossing reliability boundaries.
@@ -42,7 +42,7 @@ Test results show that the strategy brings about a 17\% improvement in cumulativ
 Lightweight collection experiments further validate the feasibility of deploying this strategy on the controller side.
 
 To verify the engineering practicality of the above algorithms, this thesis designs and implements an intelligent SSD operation and maintenance prototype system.
-The system completes the full business loop from data collection and model inference to warning handling, and functional testing validates its ability to translate theoretical models into actual operational workflows.
+The system completes the full business loop from data collection and model inference to warning handling, and functional testing covers the acquisition--inference--alert handling pipeline.
 
 This thesis constructs a complete technical chain from drive-level precise warning to block-level lifetime optimization to closed-loop system deployment.
 The research shows that enforcing an operational false-alarm cost constraint at the drive level and a reliability-boundary constraint at the block level, together with prototype closed-loop validation, can significantly improve resource utilization efficiency while ensuring storage reliability.
