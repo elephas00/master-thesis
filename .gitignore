@@ -20,6 +20,9 @@ figure/generated/
 codes/
 data/
 
+### Defense materials: keep extracted directory, ignore the zip ###
+答辩材料.zip
+
 ### Overleaf repo dir ###
 /zjuthesis/*
 
