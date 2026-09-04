@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 # 将答辩材料中的 Word 修改说明表转为 PDF。
-# 优先用 LibreOffice（soffice）按原 docx 版式导出；找不到时回退到
-# textutil → HTML → Chrome 无头打印（版式会丢）。
 #
-# 用法（在本目录或仓库根目录）:
+# 优先：LibreOffice（soffice）
+#   - 临时把 docx 中的「仿宋」替换为 Noto Serif CJK SC（不改原文件）
+#   - 依赖本机已安装的 Noto Serif CJK（~/Library/Fonts 或 ~/.local/share/fonts）
+#   - 通过 FONTCONFIG_FILE 让 headless 能找到中文字体
+# 回退：textutil → HTML → Chrome（版式会偏离原模板）
+#
+# 用法:
 #   ./答辩材料/docx_to_pdf.sh
 #   ./答辩材料/docx_to_pdf.sh 工程师学院专业学位研究生学位论文修改说明表.docx
 #   ./答辩材料/docx_to_pdf.sh 某文件.docx 某文件.pdf
@@ -13,6 +17,7 @@ set -euo pipefail
 DIR="$(cd "$(dirname "$0")" && pwd)"
 DEFAULT_STEM="工程师学院专业学位研究生学位论文修改说明表"
 CHROME="${CHROME:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}"
+FONTCONF="${FONTCONFIG_FILE:-$HOME/.config/fontconfig/fonts.conf}"
 
 find_soffice() {
   if command -v soffice >/dev/null 2>&1; then
@@ -31,6 +36,45 @@ find_soffice() {
     fi
   done
   return 1
+}
+
+ensure_fontconfig() {
+  mkdir -p "$HOME/.config/fontconfig" "$HOME/.local/share/fonts"
+  if [[ ! -f "$FONTCONF" ]]; then
+    cat > "$FONTCONF" <<EOF
+<?xml version="1.0"?>
+<!DOCTYPE fontconfig SYSTEM "urn:fontconfig:fonts.dtd">
+<fontconfig>
+  <dir>$HOME/Library/Fonts</dir>
+  <dir>$HOME/.local/share/fonts</dir>
+  <dir>/System/Library/Fonts</dir>
+  <dir>/System/Library/Fonts/Supplemental</dir>
+  <dir>/Library/Fonts</dir>
+  <dir>/Applications/LibreOffice.app/Contents/Resources/fonts/truetype</dir>
+</fontconfig>
+EOF
+  fi
+  # Prefer a copy under ~/.local/share/fonts for headless fontconfig.
+  if [[ -f "$HOME/Library/Fonts/NotoSerifCJK.ttc" && ! -f "$HOME/.local/share/fonts/NotoSerifCJK.ttc" ]]; then
+    cp -f "$HOME/Library/Fonts/NotoSerifCJK.ttc" "$HOME/.local/share/fonts/NotoSerifCJK.ttc"
+  fi
+}
+
+pdf_has_cjk_font() {
+  local pdf="$1"
+  python3 - "$pdf" <<'PY'
+import sys
+from pathlib import Path
+pdf = Path(sys.argv[1])
+try:
+    import fitz
+    doc = fitz.open(pdf)
+except Exception:
+    sys.exit(1)
+fonts = " ".join(f[3] for page in doc for f in page.get_fonts(full=True)).lower()
+ok = any(k in fonts for k in ("noto", "cjk", "song", "hei", "stsong", "source han", "hiragino", "pingfang"))
+sys.exit(0 if ok else 1)
+PY
 }
 
 if [[ $# -eq 0 ]]; then
@@ -58,19 +102,43 @@ fi
 
 convert_with_libreoffice() {
   local soffice="$1"
-  local outdir tmp_pdf
-  outdir="$(mktemp -d)"
+  local work patched outdir user_inst tmp_pdf
+  ensure_fontconfig
+  work="$(mktemp -d)"
   # shellcheck disable=SC2064
-  trap "rm -rf '$outdir'" RETURN
+  trap "rm -rf '$work'" RETURN
+  patched="$work/form.docx"
+  outdir="$work/out"
+  user_inst="$work/user"
+  mkdir -p "$outdir" "$user_inst"
 
-  "$soffice" --headless --nologo --nofirststartwizard \
-    --convert-to pdf:writer_pdf_Export \
-    --outdir "$outdir" \
-    "$DOCX" >/dev/null
+  python3 - "$DOCX" "$patched" <<'PY'
+import sys, zipfile
+src, dst = sys.argv[1], sys.argv[2]
+with zipfile.ZipFile(src) as zin, zipfile.ZipFile(dst, "w", zipfile.ZIP_DEFLATED) as zout:
+    for item in zin.infolist():
+        data = zin.read(item.filename)
+        if item.filename.startswith("word/") and item.filename.endswith(".xml"):
+            text = data.decode("utf-8")
+            text = text.replace("仿宋", "Noto Serif CJK SC").replace("FangSong", "Noto Serif CJK SC")
+            data = text.encode("utf-8")
+        zout.writestr(item, data)
+PY
+
+  FONTCONFIG_FILE="$FONTCONF" FONTCONFIG_PATH="$(dirname "$FONTCONF")" \
+    "$soffice" --headless --nologo --nofirststartwizard \
+      "-env:UserInstallation=file://$user_inst" \
+      --convert-to pdf:writer_pdf_Export \
+      --outdir "$outdir" \
+      "$patched" >/dev/null
 
   tmp_pdf="$(find "$outdir" -maxdepth 1 -type f -name '*.pdf' | head -n 1)"
   if [[ -z "$tmp_pdf" || ! -s "$tmp_pdf" ]]; then
     echo "LibreOffice 未生成 PDF" >&2
+    return 1
+  fi
+  if ! pdf_has_cjk_font "$tmp_pdf"; then
+    echo "LibreOffice PDF 未嵌入中文字体，改用 Chrome…" >&2
     return 1
   fi
   mv -f "$tmp_pdf" "$PDF"
@@ -119,12 +187,14 @@ PY
     --no-pdf-header-footer \
     --print-to-pdf="$PDF" \
     "file://$html" >/dev/null
-  echo "已用 Chrome 回退写出 $PDF（版式可能偏离原模板）"
+  echo "已用 Chrome 写出 $PDF（版式可能偏离原模板）"
 }
 
 if SOFFICE="$(find_soffice)"; then
-  convert_with_libreoffice "$SOFFICE"
+  if ! convert_with_libreoffice "$SOFFICE"; then
+    convert_with_chrome
+  fi
 else
-  echo "未找到 LibreOffice，回退 Chrome…" >&2
+  echo "未找到 LibreOffice，使用 Chrome…" >&2
   convert_with_chrome
 fi
