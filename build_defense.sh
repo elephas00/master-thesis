@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 # 生成答辩版 PDF：
 #   用 figure/cover.pdf 的正式封面（单页）替换 latex 产物里会换页的模板封面，
-#   保留评阅人页、英文题名页、独创性声明、致谢及之后正文。
+#   再用 script/title_eng_page.tex 生成的单页英文题名页替换撑成两页的题名页，
+#   保留评阅人页、独创性声明、致谢及之后正文。
 #
 # 用法（项目根目录）:
 #   ./build_defense.sh
 #   ./build_defense.sh --skip-figures
-#   ./build_defense.sh --skip-latex     # 跳过编译（仅重拼封面）
+#   ./build_defense.sh --skip-latex     # 跳过编译（仅重拼封面与英文题名页）
 #   ./build_defense.sh --merge-only     # 同 --skip-figures --skip-latex
+#   python3 script/replace_title_eng.py # 只重做英文题名页（默认答辩 PDF）
 
 set -euo pipefail
 
@@ -27,7 +29,7 @@ for arg in "$@"; do
     --skip-latex)   SKIP_LATEX=1 ;;
     --merge-only)   SKIP_FIGURES=1; SKIP_LATEX=1 ;;
     -h|--help)
-      sed -n '2,14p' "$0"
+      sed -n '2,16p' "$0"
       exit 0
       ;;
     *)
@@ -168,5 +170,8 @@ front.close()
 cover.close()
 latex.close()
 PY
+
+echo "======== 4/4 拼接英文题名页 ========"
+python3 "$ROOT/script/replace_title_eng.py" "$OUT_PDF"
 
 echo "完成: $ROOT/$OUT_PDF"

@@ -1,0 +1,94 @@
+% 独立生成英文题名/签名页（单页 A4）。
+% 版式与中文题名页对齐：标签与填写内容同一行。
+%
+% 在项目根目录编译：
+%   xelatex -jobname=title-eng -output-directory=figure script/title_eng_page.tex
+% 产物：figure/title-eng.pdf
+
+\documentclass[a4paper]{article}
+
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\usepackage{geometry}
+\usepackage{tabularx}
+\usepackage{ulem}
+\usepackage{graphicx}
+\usepackage{setspace}
+
+\setCJKmainfont{STFangsong}
+
+\geometry{
+    a4paper,
+    marginpar=0pt,
+    includeheadfoot,
+    vmargin={2.0cm, 2.0cm},
+    hmargin={2.5cm, 2.5cm},
+    headsep=4mm
+}
+
+\setmainfont{Times New Roman}
+
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt}
+
+\newcommand{\zihaosan}{\fontsize{16bp}{20bp}\selectfont}
+\newcommand{\zihaoxiaosan}{\fontsize{15bp}{19bp}\selectfont}
+\newcommand{\zihaosi}{\fontsize{14bp}{18bp}\selectfont}
+
+\begin{document}
+\thispagestyle{empty}
+\begin{spacing}{1.3}
+
+\begin{center}
+    \bfseries \zihaosan
+    \uline{\makebox[0.78\textwidth][c]{Solid State Drive Failure Prediction and Lifetime}}\\[8pt]
+    \uline{\makebox[0.78\textwidth][c]{Enhancement Methods Based on Machine Learning}}
+\end{center}
+
+\vskip 12pt
+
+\begin{center}
+    \includegraphics[width=0.15\paperwidth]{figure/logo/zju.pdf}
+\end{center}
+
+\vskip 16pt
+
+\begin{center}
+    \bfseries \zihaoxiaosan
+    \begin{tabularx}{.62\textwidth}{r @{\hspace{1em}} X}
+        Author's signature:     & \uline{\makebox[0.92\linewidth]{}} \\[4pt]
+        Supervisor's signature: & \uline{\makebox[0.92\linewidth]{}} \\
+    \end{tabularx}
+\end{center}
+
+\vskip 16pt
+
+\begin{center}
+    \zihaosi
+    \begin{tabularx}{\textwidth}{r @{\hspace{1em}} >{\centering\arraybackslash}X}
+        Reviewer 1:  & \uline{Anonymous review} \\[4pt]
+        Reviewer 2:  & \uline{Anonymous review} \\[4pt]
+        Reviewer 3:  & \uline{Anonymous review} \\[4pt]
+        Reviewer 4:  & \uline{\makebox[0.55\linewidth]{}} \\[4pt]
+        Reviewer 5:  & \uline{\makebox[0.55\linewidth]{}} \\[12pt]
+        Chairperson: & {\fontsize{10bp}{13bp}\selectfont \uline{Kewei Liang, Associate Professor, School of Mathematical Sciences}} \\[5pt]
+        Member 1:    & {\fontsize{10bp}{13bp}\selectfont \uline{Tianxiao Pang, Professor, School of Mathematical Sciences}} \\[5pt]
+        Member 2:    & {\fontsize{10bp}{13bp}\selectfont \uline{Xining Yuan, Senior Engineer, Zhejiang Yongbao Environmental Technology Co., Ltd.}} \\[5pt]
+        Member 3:    & \uline{\makebox[0.92\linewidth]{}} \\[5pt]
+        Member 4:    & \uline{\makebox[0.92\linewidth]{}} \\[5pt]
+        Member 5:    & \uline{\makebox[0.92\linewidth]{}} \\
+    \end{tabularx}
+\end{center}
+
+\vskip 20pt
+
+\begin{center}
+    \zihaoxiaosan
+    \begin{tabularx}{.62\textwidth}{r @{\hspace{1em}} >{\centering\arraybackslash}X}
+        Date of oral defence: & \uline{September 6, 2026} \\
+    \end{tabularx}
+\end{center}
+
+\end{spacing}
+\end{document}

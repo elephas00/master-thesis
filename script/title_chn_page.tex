@@ -1,0 +1,97 @@
+% 独立生成中文题名/签名页（单页 A4），填入隐名评阅与答辩委员会。
+%
+% 在项目根目录编译：
+%   xelatex -jobname=title-chn -output-directory=figure script/title_chn_page.tex
+% 产物：figure/title-chn.pdf
+
+\documentclass[UTF8,zihao=-4,a4paper,fontset=none]{ctexart}
+
+\usepackage{geometry}
+\usepackage{tabularx}
+\usepackage{ulem}
+\usepackage{graphicx}
+
+\setCJKmainfont{STFangsong}[AutoFakeBold=4]
+\setCJKfamilyfont{zhfs}{STFangsong}[AutoFakeBold=4]
+\setCJKfamilyfont{zhsong}{Songti SC Light}[BoldFont={Songti SC Bold}]
+\setCJKsansfont{Heiti SC Light}[BoldFont={Heiti SC Medium}]
+\newcommand{\fangsong}{\CJKfamily{zhfs}}
+
+\geometry{
+    a4paper,
+    marginpar=0pt,
+    includeheadfoot,
+    vmargin={2.0cm, 2.0cm},
+    hmargin={2.5cm, 2.5cm},
+    headsep=4mm
+}
+
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt}
+
+\begin{document}
+\thispagestyle{empty}
+\linespread{1.625}\selectfont
+
+\begin{center}
+    \bfseries \zihao{-2}
+    \begin{tabularx}{.8\textwidth}{>{\fangsong}X<{\centering}}
+        \uline{\hfill \fangsong 基于机器学习的固态硬盘故障预测 \hfill} \\
+        \uline{\hfill \fangsong 与寿命提升方法研究 \hfill} \\
+    \end{tabularx}
+\end{center}
+
+\vskip 20pt
+
+\begin{center}
+    \includegraphics[width=0.15\paperwidth]{figure/logo/zju.pdf}
+\end{center}
+
+\vskip 20pt
+
+\begin{center}
+    \bfseries \zihao{-3}
+    \begin{tabularx}{.6\textwidth}{>{\fangsong}l >{\fangsong}X<{\centering}}
+        论文作者签名：      &  \uline{\hfill} \\
+        指导教师签名：      &  \uline{\hfill} \\
+    \end{tabularx}
+\end{center}
+
+\vskip 20pt
+
+\begin{center}
+    \zihao{4}
+    \begin{tabularx}{.6\textwidth}{>{\fangsong}r >{\fangsong}X<{\centering}}
+        论文评阅人1： & \uline{\hfill 隐名评阅 \hfill} \\
+        评阅人2： & \uline{\hfill 隐名评阅 \hfill} \\
+        评阅人3： & \uline{\hfill 隐名评阅 \hfill} \\
+        评阅人4： & \uline{\hfill} \\
+        评阅人5： & \uline{\hfill} \\
+    \end{tabularx}
+\end{center}
+
+\vskip 15pt
+
+\begin{center}
+    \zihao{4}
+    \begin{tabularx}{\textwidth}{>{\fangsong}r >{\fangsong}X<{\centering}}
+        答辩委员会主席： & \uline{\hfill 梁克维，副教授，浙江大学数学科学学院 \hfill} \\
+        委员1： &  \uline{\hfill 庞天晓，教授，浙江大学数学科学学院 \hfill} \\
+        委员2： &  \uline{\hfill 袁细宁，高级工程师，浙江永保环境科技有限公司 \hfill} \\
+        委员3： &  \uline{\hfill} \\
+        委员4： &  \uline{\hfill} \\
+        委员5： &  \uline{\hfill} \\
+    \end{tabularx}
+\end{center}
+
+\vskip 15pt
+
+\begin{center}
+    \zihao{-3}
+    \begin{tabularx}{.5\textwidth}{>{\fangsong}l >{\fangsong}X<{\centering}}
+        答辩日期 & \uline{\hfill 2026年9月6日 \hfill}
+    \end{tabularx}
+\end{center}
+
+\end{document}
